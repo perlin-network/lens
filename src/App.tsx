@@ -10,8 +10,8 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     public render() {
         return (
             <>
-                <header style={{margin: '2.5em 1.5em'}}>
-                    <img src={logo} style={{width: "16em"}}/>
+                <header style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
+                    <img src={logo} style={{width: "12em"}}/>
                 </header>
 
                 <div style={{margin: '1em'}}>
