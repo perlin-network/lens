@@ -1,4 +1,4 @@
-import {Button, Callout, Card, Code, FormGroup, H5, InputGroup, Intent, Pre, Text} from "@blueprintjs/core";
+import {Button, Callout, Card, Code, FormGroup, H5, InputGroup, Intent, Pre} from "@blueprintjs/core";
 import {observer} from "mobx-react";
 import * as React from 'react';
 import {Perlin} from "./Perlin";
@@ -15,16 +15,16 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                 <div style={{margin: '1em'}}>
                     <Callout intent={Intent.SUCCESS}>
-                        You're connected to: <Code
+                        You're connected as: <Code
                         style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
                     </Callout>
 
                     <br/>
 
-                    <Card>
-                        <H5>Peers</H5>
-                        <Text>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Text>
-                    </Card>
+                    <Callout intent={Intent.PRIMARY}>
+                        You're connected to: <Code
+                        style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Code>
+                    </Callout>
 
                     <br/>
 
