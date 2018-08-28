@@ -3,14 +3,15 @@ import {observer} from "mobx-react";
 import * as React from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
+import logo from "./perlin-logo.svg"
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     public render() {
         return (
             <>
-                <header style={{margin: '1em'}}>
-                    <h1>Perlin</h1>
+                <header style={{margin: '2.5em 1.5em'}}>
+                    <img src={logo} style={{width: "16em"}}/>
                 </header>
 
                 <div style={{margin: '1em'}}>
@@ -31,7 +32,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     <Card>
                         <H5>Ledger</H5>
                         <Pre>
-                            {JSON.stringify(this.props.perlin.ledger.state, null, "\t")}
+                            {JSON.stringify(this.props.perlin.ledger.state, null, 4)}
                         </Pre>
                     </Card>
 

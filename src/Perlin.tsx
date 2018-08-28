@@ -40,6 +40,8 @@ class Perlin {
         await this.initLedger();
 
         await this.pollTransactions();
+
+        console.log(this.ledger)
     }
 
     private async request(endpoint: string, body?: any, headers?: any): Promise<any> {
