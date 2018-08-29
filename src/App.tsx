@@ -73,6 +73,12 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     <br/>
 
                     <Card>
+                        <H5>Recent Transactions</H5>
+                    </Card>
+
+                    <br/>
+
+                    <Card>
                         <H5>Send PERLs</H5>
                         <FormGroup
                             label="Recipient"
