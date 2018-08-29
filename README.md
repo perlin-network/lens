@@ -14,5 +14,6 @@ A TypeScript/React/MobX web interface to a Perlin node's API.
 npm install -g yarn
 yarn
 yarn start
+# make sure the perlin ledger API server is running on 127.0.0.1:3902
 # visit localhost:3000
 ```
