@@ -11,7 +11,7 @@ class Perlin {
 
     @observable public ledger = {
         public_key: "",
-        peers: [],
+        peers: [] as string[],
         state: {}
     };
 
@@ -24,7 +24,7 @@ class Perlin {
     }
 
     @observable public transactions = {
-        recent: []
+        recent: [] as any[]
     }
 
     private keys: nacl.SignKeyPair;
@@ -56,10 +56,6 @@ class Perlin {
             await this.pollTransactions();
 
             this.pollStatistics();
-
-            console.log(this.transactions.recent);
-
-            console.log(this)
         } catch (err) {
             console.error(err)
         }
@@ -81,6 +77,7 @@ class Perlin {
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
         this.transactions.recent = await this.recentTransactions();
+        console.log(this.transactions.recent)
     }
 
     private async initSession() {
@@ -99,14 +96,15 @@ class Perlin {
         console.log(`Session token: ${this.api.token}`);
     }
 
-    private pollTransactions() {
-        const ws = new WebSocket(`ws://${this.api.host}/transaction/poll`, this.api.token)
+    private pollTransactions(event: string = "accepted") {
+        const ws = new WebSocket(`ws://${this.api.host}/transaction/poll?event=${event}`, this.api.token)
 
         ws.onmessage = ({data}) => {
-            data = JSON.parse(data)
-            data.payload = data.payload && JSON.parse(atob(data.payload)) || {}
-
-            console.log(data)
+            data = this.flattenTransaction(JSON.parse(data), this.transactions.recent.length)
+            this.transactions.recent.push(data)
+            if (this.transactions.recent.length > 50) {
+                this.transactions.recent.shift()
+            }
         }
     }
 
@@ -120,7 +118,7 @@ class Perlin {
         tx = _.merge(tx, tx.body);
         delete tx.body;
 
-        tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || {}
+        tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || ""
 
         return tx;
     }
