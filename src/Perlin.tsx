@@ -1,5 +1,6 @@
 import {observable} from "mobx";
 import * as nacl from "tweetnacl"
+import * as _ from "lodash";
 
 
 class Perlin {
@@ -22,6 +23,9 @@ class Perlin {
         cmdline: []
     }
 
+    @observable public transactions = {
+        recent: []
+    }
 
     private keys: nacl.SignKeyPair;
 
@@ -45,15 +49,20 @@ class Perlin {
     }
 
     private async init() {
-        await this.initSession();
-        await this.initLedger();
+        try {
+            await this.initSession();
+            await this.initLedger();
 
-        await this.pollTransactions();
+            await this.pollTransactions();
 
-        this.pollStatistics();
+            this.pollStatistics();
 
-        console.log(this.ledger)
-        console.log(await this.recentTransactions())
+            console.log(this.transactions.recent);
+
+            console.log(this)
+        } catch (err) {
+            console.error(err)
+        }
     }
 
     private async request(endpoint: string, body?: any, headers?: any): Promise<any> {
@@ -71,6 +80,7 @@ class Perlin {
 
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
+        this.transactions.recent = await this.recentTransactions();
     }
 
     private async initSession() {
@@ -101,7 +111,18 @@ class Perlin {
     }
 
     private async recentTransactions(): Promise<any> {
-        return await this.request("/transaction/list", {})
+        const recent = await this.request("/transaction/list", {});
+        return _.map(recent, this.flattenTransaction);
+    }
+
+    private flattenTransaction(tx: any, index: number): any {
+        tx = _.extend(tx, {index});
+        tx = _.merge(tx, tx.body);
+        delete tx.body;
+
+        tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || {}
+
+        return tx;
     }
 
     // @ts-ignore
@@ -115,7 +136,7 @@ class Perlin {
             const data = await response.json()
 
             this.stats = data;
-        }, 500);
+        }, 250);
     }
 }
 

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@blueprintjs/core": "^3.4.0",
+    "@blueprintjs/table": "^3.1.1",
     "autoprefixer": "7.1.6",
     "babel-jest": "^22.1.0",
     "babel-loader": "^7.1.2",
@@ -19,6 +20,7 @@
     "fs-extra": "3.0.1",
     "html-webpack-plugin": "2.29.0",
     "jest": "22.4.2",
+    "lodash": "^4.17.10",
     "mobx": "^5.1.0",
     "mobx-react": "^5.2.5",
     "node-sass": "^4.9.3",
@@ -60,6 +62,7 @@
     "@types/node": "^10.9.2",
     "@types/react": "^16.4.12",
     "@types/react-dom": "^16.0.7",
+    "@types/lodash": "^4.14.116",
     "typescript": "^3.0.1"
   },
   "jest": {

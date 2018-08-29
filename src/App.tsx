@@ -8,6 +8,7 @@ import {
     H5,
     InputGroup,
     Intent,
+    Menu,
     Navbar,
     Pre,
     Tag
@@ -17,10 +18,15 @@ import * as React from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
+import {Cell, Column, CopyCellsMenuItem, IMenuContext, JSONFormat, Table} from "@blueprintjs/table";
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     public render() {
+        // const cellRenderer = (rowIndex: number) => {
+        //     return <Cell>{`$${(rowIndex * 10).toFixed(2)}`}</Cell>
+        // };
+
         return (
             <>
                 <header style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
@@ -74,6 +80,20 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <Card>
                         <H5>Recent Transactions</H5>
+
+                        <div style={{height: 280}}>
+                            <Table
+                                bodyContextMenuRenderer={this.recentContextMenu}
+                                numRows={this.props.perlin.transactions.recent.length}
+                                columnWidths={[150, 80, 80, 400, 480, 480]}>
+                                <Column name="Sender" cellRenderer={this.recentCellRenderer("sender")}/>
+                                <Column name="Nonce" cellRenderer={this.recentCellRenderer("nonce")}/>
+                                <Column name="Tag" cellRenderer={this.recentCellRenderer("tag")}/>
+                                <Column name="Payload" cellRenderer={this.recentCellRendererJSON("payload")}/>
+                                <Column name="Parents" cellRenderer={this.recentCellRendererJSON("parents")}/>
+                                <Column name="Signature" cellRenderer={this.recentCellRenderer("signature")}/>
+                            </Table>
+                        </div>
                     </Card>
 
                     <br/>
@@ -105,6 +125,44 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                 </div>
             </>
         );
+    }
+
+    private recentCellRenderer(key: string) {
+        return (row: number) =>
+            <Cell>{this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key]}</Cell>
+    }
+
+    private recentContextMenu = (context: IMenuContext) => {
+        return (
+            <Menu>
+                <CopyCellsMenuItem context={context} getCellData={this.recentCellData} text="Copy"
+                                   onCopy={this.onCopy}/>
+            </Menu>
+        );
+    };
+
+    private onCopy = (success: boolean) => {
+        console.log(success)
+    };
+
+    private recentCellData = (rowIndex: number, columnIndex: number) => {
+        const data = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - rowIndex];
+        const keys = {0: "sender", 1: "nonce", 2: "tag", 3: "payload", 4: "parents", 5: "signature"}
+
+        return data[keys[columnIndex]];
+    };
+
+    private recentCellRendererJSON(key: string) {
+        return (row: number) => {
+            const item = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key];
+            return (
+                <Cell>
+                    <JSONFormat>
+                        {Object.keys(item).length > 0 && item || ""}
+                    </JSONFormat>
+                </Cell>
+            );
+        }
     }
 
     private onRecipient = (event: any) => {
