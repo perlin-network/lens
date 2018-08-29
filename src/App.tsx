@@ -15,18 +15,44 @@ import {
 } from "@blueprintjs/core";
 import {observer} from "mobx-react";
 import * as React from 'react';
+import {createRef} from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
 import {Cell, Column, CopyCellsMenuItem, IMenuContext, JSONFormat, RowHeaderCell, Table} from "@blueprintjs/table";
+import {DataSet, Network} from "vis";
+
+const nodes = new DataSet([
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2'},
+    {id: 3, label: 'Node 3'},
+    {id: 4, label: 'Node 4'},
+    {id: 5, label: 'Node 5'}
+]);
+
+// create an array with edges
+const edges = new DataSet([
+    {from: 1, to: 3},
+    {from: 1, to: 2},
+    {from: 2, to: 4},
+    {from: 2, to: 5}
+]);
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
-    public render() {
-        // const cellRenderer = (rowIndex: number) => {
-        //     return <Cell>{`$${(rowIndex * 10).toFixed(2)}`}</Cell>
-        // };
+    private app: React.RefObject<any> = createRef();
+    private network: Network;
 
+    public componentDidMount() {
+        this.network = new Network(this.app.current, {nodes, edges}, {
+            layout: {
+                hierarchical: true
+            }
+        });
+        console.log(this.network.getSeed())
+    }
+
+    public render() {
         return (
             <>
                 <header style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
@@ -122,6 +148,13 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         </FormGroup>
 
                         <Button onClick={this.onTransfer} text="Send PERLs"/>
+                    </Card>
+
+                    <br/>
+
+                    <Card>
+                        <H5>Network</H5>
+                        <div ref={this.app} style={{height: 500}}/>
                     </Card>
                 </div>
             </>
