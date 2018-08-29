@@ -1,9 +1,20 @@
 import {observable} from "mobx";
 import * as nacl from "tweetnacl"
 import * as _ from "lodash";
+import {ITransaction} from "./Transaction";
 
 
 class Perlin {
+    public static parseWiredTransaction(tx: any, index: number): ITransaction {
+        tx = _.extend(tx, {index});
+        tx = _.merge(tx, tx.body);
+        delete tx.body;
+
+        tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || ""
+
+        return tx;
+    }
+
     @observable public api = {
         host: "127.0.0.1:3902",
         token: ""
@@ -24,7 +35,7 @@ class Perlin {
     }
 
     @observable public transactions = {
-        recent: [] as any[]
+        recent: [] as ITransaction[]
     }
 
     private keys: nacl.SignKeyPair;
@@ -101,7 +112,7 @@ class Perlin {
         const ws = new WebSocket(`ws://${this.api.host}/transaction/poll?event=${event}`, this.api.token)
 
         ws.onmessage = ({data}) => {
-            data = this.flattenTransaction(JSON.parse(data), this.transactions.recent.length)
+            data = Perlin.parseWiredTransaction(JSON.parse(data), this.transactions.recent.length)
             this.transactions.recent.push(data)
             if (this.transactions.recent.length > 50) {
                 this.transactions.recent.shift()
@@ -123,19 +134,9 @@ class Perlin {
         }
     }
 
-    private async recentTransactions(): Promise<any> {
+    private async recentTransactions(): Promise<ITransaction[]> {
         const recent = await this.request("/transaction/list", {});
-        return _.map(recent, this.flattenTransaction);
-    }
-
-    private flattenTransaction(tx: any, index: number): any {
-        tx = _.extend(tx, {index});
-        tx = _.merge(tx, tx.body);
-        delete tx.body;
-
-        tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || ""
-
-        return tx;
+        return _.map(recent, Perlin.parseWiredTransaction);
     }
 
     // @ts-ignore
