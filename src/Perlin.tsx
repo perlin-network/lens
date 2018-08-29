@@ -53,6 +53,7 @@ class Perlin {
         this.pollStatistics();
 
         console.log(this.ledger)
+        console.log(await this.recentTransactions())
     }
 
     private async request(endpoint: string, body?: any, headers?: any): Promise<any> {
@@ -97,6 +98,15 @@ class Perlin {
 
             console.log(data)
         }
+    }
+
+    private async recentTransactions(): Promise<any> {
+        return await this.request("/transaction/list", {})
+    }
+
+    // @ts-ignore
+    private async listTransactions(offset: number, limit: number): Promise<any> {
+        return await this.request("/transaction/list", {offset, limit})
     }
 
     private pollStatistics() {
