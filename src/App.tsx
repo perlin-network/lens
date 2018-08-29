@@ -1,4 +1,17 @@
-import {Button, Callout, Card, Code, FormGroup, H5, InputGroup, Intent, Pre} from "@blueprintjs/core";
+import {
+    Alignment,
+    Button,
+    Callout,
+    Card,
+    Code,
+    FormGroup,
+    H5,
+    InputGroup,
+    Intent,
+    Navbar,
+    Pre,
+    Tag
+} from "@blueprintjs/core";
 import {observer} from "mobx-react";
 import * as React from 'react';
 import {Perlin} from "./Perlin";
@@ -26,6 +39,27 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         You're connected to: <Code
                         style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Code>
                     </Callout>
+
+                    <br/>
+
+                    <Navbar>
+                        <Navbar.Group align={Alignment.CENTER}>
+                            <Navbar.Heading>Statistics</Navbar.Heading>
+
+                            <div className="tag-list">
+                                <Tag minimal={true}>{`uptime: ${this.props.perlin.stats.Uptime}`}</Tag>
+
+                                <Tag
+                                    minimal={true}>{`tx latency: ${this.props.perlin.stats.ConsensusDuration.toFixed(3)} sec`}</Tag>
+
+                                <Tag
+                                    minimal={true}>{`num accepted tx: ${this.props.perlin.stats.NumAcceptedTransactions}`}</Tag>
+
+                                <Tag
+                                    minimal={true}>{`tx/sec: ${this.props.perlin.stats.NumAcceptedTransactionsPerSecond}`}</Tag>
+                            </div>
+                        </Navbar.Group>
+                    </Navbar>
 
                     <br/>
 
@@ -60,9 +94,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                         onChange={this.onAmount}/>
                         </FormGroup>
 
-                        <Button onClick={this.onTransfer}>
-                            Send PERLs
-                        </Button>
+                        <Button onClick={this.onTransfer} text="Send PERLs"/>
                     </Card>
                 </div>
             </>

@@ -3,3 +3,16 @@
 html {
   background-color: $pt-dark-app-background-color;
 }
+
+.tag-list {
+  justify-self: right;
+  width: auto;
+}
+
+.tag-list > *:not(:first-child) {
+  margin-left: 0.75em;
+}
+
+.justify-between {
+  justify-content: space-between;
+}

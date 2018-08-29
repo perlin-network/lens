@@ -14,6 +14,15 @@ class Perlin {
         state: {}
     };
 
+    @observable public stats = {
+        ConsensusDuration: 0,
+        NumAcceptedTransactions: 0,
+        NumAcceptedTransactionsPerSecond: 0,
+        Uptime: "0s",
+        cmdline: []
+    }
+
+
     private keys: nacl.SignKeyPair;
 
     constructor() {
@@ -40,6 +49,8 @@ class Perlin {
         await this.initLedger();
 
         await this.pollTransactions();
+
+        this.pollStatistics();
 
         console.log(this.ledger)
     }
@@ -86,6 +97,15 @@ class Perlin {
 
             console.log(data)
         }
+    }
+
+    private pollStatistics() {
+        setInterval(async () => {
+            const response = await fetch(`http://${this.api.host}/debug/vars`)
+            const data = await response.json()
+
+            this.stats = data;
+        }, 500);
     }
 }
 
