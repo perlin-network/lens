@@ -200,7 +200,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
             return (
                 <Cell>
                     <JSONFormat>
-                        {Object.keys(item).length > 0 && item || ""}
+                        {item && Object.keys(item).length > 0 && item || ""}
                     </JSONFormat>
                 </Cell>
             );

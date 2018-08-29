@@ -56,6 +56,7 @@ class Perlin {
             await this.pollTransactions();
 
             this.pollStatistics();
+            this.pollAccountUpdates();
         } catch (err) {
             console.error(err)
         }
@@ -104,6 +105,20 @@ class Perlin {
             this.transactions.recent.push(data)
             if (this.transactions.recent.length > 50) {
                 this.transactions.recent.shift()
+            }
+        }
+    }
+
+    private pollAccountUpdates() {
+        const ws = new WebSocket(`ws://${this.api.host}/account/poll`, this.api.token)
+
+        ws.onmessage = ({data}) => {
+            data = JSON.parse(data)
+
+            const account = this.ledger.state[data.account]
+            if (account != null) {
+                account.nonce = data.nonce;
+                account.balance = data.balance;
             }
         }
     }
