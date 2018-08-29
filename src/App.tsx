@@ -18,7 +18,7 @@ import * as React from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
-import {Cell, Column, CopyCellsMenuItem, IMenuContext, JSONFormat, Table} from "@blueprintjs/table";
+import {Cell, Column, CopyCellsMenuItem, IMenuContext, JSONFormat, RowHeaderCell, Table} from "@blueprintjs/table";
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
@@ -83,6 +83,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                         <div style={{height: 280}}>
                             <Table
+                                rowHeaderCellRenderer={this.recentRowCellRenderer}
                                 bodyContextMenuRenderer={this.recentContextMenu}
                                 numRows={this.props.perlin.transactions.recent.length}
                                 columnWidths={[150, 80, 80, 400, 480, 480]}>
@@ -151,6 +152,14 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
         return data[keys[columnIndex]];
     };
+
+    private recentRowCellRenderer = (row: number) => {
+        return (
+            <RowHeaderCell index={row} style={{textAlign: 'center'}}>
+                <small>{this.props.perlin.transactions.recent.length - row}</small>
+            </RowHeaderCell>
+        );
+    }
 
     private recentCellRendererJSON(key: string) {
         return (row: number) => {

@@ -6,5 +6,5 @@ A TypeScript/React/MobX web interface to a Perlin node's API.
 
 ```bash
 # run debug web server
-yarn serve
+yarn start
 ```
