@@ -1,4 +1,5 @@
 interface ITransaction {
+    id: string;
     nonce: number;
     sender: string;
     tag: string;

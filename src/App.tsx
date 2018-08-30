@@ -18,10 +18,10 @@ import {createRef} from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
-import {DataSet, Network} from "vis";
+import {DataSet, Edge, Network, Node} from "vis";
 import ReactTable from "react-table";
 import {ITransaction} from "./Transaction";
-import {autorun} from "mobx";
+import {when} from "mobx";
 
 const recentColumns = [
     {
@@ -52,16 +52,46 @@ const recentColumns = [
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
-    private networkGraph: React.RefObject<any> = createRef();
-    private network: Network;
+    private networkGraphRef: React.RefObject<any> = createRef();
+    // @ts-ignore
+    private networkGraph: Network;
 
-    private txGraph: React.RefObject<any> = createRef();
+    private txGraphRef: React.RefObject<any> = createRef();
+    // @ts-ignore
+    private txGraph: Network;
 
     public componentDidMount() {
-        const nodes = new DataSet();
-        const edges = new DataSet();
+        const networkNodes = new DataSet<Node>();
+        const networkEdges = new DataSet<Edge>();
 
-        autorun(
+        const peerNodes = new DataSet<Node>();
+        const peerEdges = new DataSet<Edge>();
+
+        this.networkGraph = new Network(this.networkGraphRef.current, {nodes: networkNodes, edges: networkEdges}, {
+            width: '100%',
+            height: '360px',
+            nodes: {
+                shape: 'dot',
+                size: 15,
+                font: {
+                    color: 'white',
+                    face: "monospace",
+                    size: 12
+                },
+            },
+            interaction: {
+                zoomView: false,
+                hover: true,
+            },
+            physics: {
+                solver: "forceAtlas2Based",
+                minVelocity: 1.5,
+                maxVelocity: 15
+            },
+        });
+
+        when(
+            () => this.props.perlin.ledger.address.length > 0,
             () => {
                 const self = this.props.perlin.ledger.address;
                 if (self.length === 0) {
@@ -71,46 +101,87 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                 const peers = this.props.perlin.ledger.peers.slice();
 
                 // Add nodes.
-                nodes.add({id: self, label: self});
-                nodes.add(peers.map(peer => {
+                networkNodes.add({id: self, label: self});
+                networkNodes.add(peers.map(peer => {
                     return {id: peer, label: peer}
                 }));
 
                 // Add edges.
-                nodes.forEach((x: any) => {
-                    nodes.forEach((y: any) => {
+                networkNodes.forEach((x: any) => {
+                    networkNodes.forEach((y: any) => {
                         if (x.id !== y.id) {
-                            edges.add({from: x.id, to: y.id});
+                            networkEdges.add({from: x.id, to: y.id});
                         }
                     })
                 })
 
-                if (this.network == null) {
-                    this.network = new Network(this.networkGraph.current, {nodes, edges}, {
-                        nodes: {
-                            shape: 'dot',
-                            size: 15,
-                            font: {
-                                color: 'white',
-                                face: "monospace",
-                                size: 12
-                            },
-                        },
-                        interaction: {
-                            zoomView: false,
-                            hover: true,
-                        },
-                        physics: {
-                            solver: "forceAtlas2Based",
-                            minVelocity: 1.5,
-                            maxVelocity: 15
-                        },
-                    });
-                }
-
-                console.log(this.network.getSeed())
             }
-        )
+        );
+
+        this.txGraph = new Network(this.txGraphRef.current, {nodes: peerNodes, edges: peerEdges}, {
+            clickToUse: true,
+            width: '100%',
+            height: '360px',
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    direction: 'LR',
+                    levelSeparation: 100,
+                    sortMethod: "directed"
+                }
+            },
+            nodes: {
+                shape: 'dot',
+                size: 15,
+                font: {
+                    color: 'white',
+                    face: "monospace",
+                    size: 12
+                },
+            },
+            interaction: {
+                hover: true,
+            },
+            physics: {
+                hierarchicalRepulsion: {
+                    nodeDistance: 100,
+                },
+            }
+        });
+
+
+        when(
+            () => this.props.perlin.transactions.recent.length > 0,
+            () => {
+                const recent = this.props.perlin.transactions.recent;
+
+                recent.forEach((tx: ITransaction) => {
+                    peerNodes.add({
+                        id: tx.id,
+                        label: tx.id.slice(0, 10)
+                    });
+
+                    if (tx.parents != null) {
+                        tx.parents.forEach(parent => {
+                            peerEdges.add({from: parent, to: tx.id});
+                        });
+                    }
+                });
+            }
+        );
+
+        // this.props.perlin.onPolledTransaction = (tx: ITransaction) => {
+        //     peerNodes.update({
+        //         id: tx.id,
+        //         label: tx.id.slice(0, 10)
+        //     });
+        //
+        //     if (tx.parents != null) {
+        //         tx.parents.forEach(parent => {
+        //             peerEdges.update({from: parent, to: tx.id});
+        //         });
+        //     }
+        // }
     }
 
     public render() {
@@ -216,14 +287,14 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <Card>
                         <H5>Network</H5>
-                        <div ref={this.networkGraph} style={{height: 360}}/>
+                        <div ref={this.networkGraphRef} style={{height: 360}}/>
                     </Card>
 
                     <br/>
 
                     <Card>
                         <H5>Transactions</H5>
-                        <div ref={this.txGraph} style={{height: 360}}/>
+                        <div ref={this.txGraphRef} style={{height: 360}}/>
                     </Card>
                 </div>
             </>

@@ -39,6 +39,8 @@ class Perlin {
         recent: [] as ITransaction[]
     }
 
+    public onPolledTransaction: (tx: ITransaction) => void;
+
     private keys: nacl.SignKeyPair;
 
     constructor() {
@@ -94,7 +96,6 @@ class Perlin {
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
         this.transactions.recent = await this.requestRecentTransactions();
-        console.log(this.transactions.recent)
     }
 
     private async initSession() {
@@ -119,6 +120,11 @@ class Perlin {
         ws.onmessage = ({data}) => {
             data = Perlin.parseWiredTransaction(JSON.parse(data), this.transactions.recent.length)
             this.transactions.recent.push(data)
+
+            if (this.onPolledTransaction != null) {
+                this.onPolledTransaction(data);
+            }
+
             if (this.transactions.recent.length > 50) {
                 this.transactions.recent.shift()
             }
