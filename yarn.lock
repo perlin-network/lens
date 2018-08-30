@@ -118,15 +118,6 @@
     classnames "^2.2"
     tslib "^1.9.0"
 
-"@blueprintjs/table@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@blueprintjs/table/-/table-3.1.1.tgz#bcb7a775e28af451e32b8a9c38fb32401dd755ac"
-  dependencies:
-    "@blueprintjs/core" "^3.4.0"
-    classnames "^2.2"
-    prop-types "^15.6.0"
-    tslib "^1.9.0"
-
 "@types/dom4@^2.0.0":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@types/dom4/-/dom4-2.0.1.tgz#506d5781b9bcab81bd9a878b198aec7dee2a6033"
@@ -158,6 +149,12 @@
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.0.7.tgz#54d0f867a76b90597e8432030d297982f25c20ba"
   dependencies:
     "@types/node" "*"
+    "@types/react" "*"
+
+"@types/react-table@^6.7.12":
+  version "6.7.12"
+  resolved "https://registry.yarnpkg.com/@types/react-table/-/react-table-6.7.12.tgz#216ca51d5c91c812d6c8d6e06f4ee5cbd1138d56"
+  dependencies:
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.4.12":
@@ -1562,7 +1559,7 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-classnames@^2.2:
+classnames@^2.2, classnames@^2.2.5:
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
 
@@ -6024,6 +6021,12 @@ react-popper@^1.0.0:
     prop-types "^15.6.1"
     typed-styles "^0.0.5"
     warning "^3.0.0"
+
+react-table@^6.8.6:
+  version "6.8.6"
+  resolved "https://registry.yarnpkg.com/react-table/-/react-table-6.8.6.tgz#a0ad8b4839319052d5befc012603fb161e52ede3"
+  dependencies:
+    classnames "^2.2.5"
 
 react-transition-group@^2.2.1:
   version "2.4.0"

@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@blueprintjs/core": "^3.4.0",
-    "@blueprintjs/table": "^3.1.1",
+    "@types/react-table": "^6.7.12",
     "autoprefixer": "7.1.6",
     "babel-jest": "^22.1.0",
     "babel-loader": "^7.1.2",
@@ -33,6 +33,7 @@
     "react": "^16.4.2",
     "react-dev-utils": "^5.0.1",
     "react-dom": "^16.4.2",
+    "react-table": "^6.8.6",
     "resolve": "1.6.0",
     "sass-loader": "^7.1.0",
     "source-map-loader": "^0.2.1",

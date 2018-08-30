@@ -8,7 +8,6 @@ import {
     H5,
     InputGroup,
     Intent,
-    Menu,
     Navbar,
     Pre,
     Tag
@@ -19,8 +18,9 @@ import {createRef} from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
-import {Cell, Column, CopyCellsMenuItem, IMenuContext, JSONFormat, RowHeaderCell, Table} from "@blueprintjs/table";
 import {DataSet, Network} from "vis";
+import ReactTable from "react-table";
+import {ITransaction} from "./Transaction";
 
 const nodes = new DataSet([
     {id: 1, label: 'Node 1'},
@@ -37,6 +37,29 @@ const edges = new DataSet([
     {from: 2, to: 4},
     {from: 2, to: 5}
 ]);
+
+const recentColumns = [
+    {
+        Header: "Sender",
+        accessor: "sender",
+        maxWidth: 300
+    },
+    {
+        Header: "Nonce",
+        accessor: "nonce",
+        maxWidth: 80
+    },
+    {
+        Header: "Tag",
+        accessor: "tag",
+        maxWidth: 80
+    },
+    {
+        Header: "Payload",
+        id: "payload",
+        accessor: (tx: ITransaction) => tx.payload && JSON.stringify(tx.payload) || undefined
+    }
+]
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
@@ -105,27 +128,6 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     <br/>
 
                     <Card>
-                        <H5>Recent Transactions</H5>
-
-                        <div style={{height: 280}}>
-                            <Table
-                                rowHeaderCellRenderer={this.recentRowCellRenderer}
-                                bodyContextMenuRenderer={this.recentContextMenu}
-                                numRows={this.props.perlin.transactions.recent.length}
-                                columnWidths={[150, 80, 80, 400, 480, 480]}>
-                                <Column name="Sender" cellRenderer={this.recentCellRenderer("sender")}/>
-                                <Column name="Nonce" cellRenderer={this.recentCellRenderer("nonce")}/>
-                                <Column name="Tag" cellRenderer={this.recentCellRenderer("tag")}/>
-                                <Column name="Payload" cellRenderer={this.recentCellRendererJSON("payload")}/>
-                                <Column name="Parents" cellRenderer={this.recentCellRendererJSON("parents")}/>
-                                <Column name="Signature" cellRenderer={this.recentCellRenderer("signature")}/>
-                            </Table>
-                        </div>
-                    </Card>
-
-                    <br/>
-
-                    <Card>
                         <H5>Send PERLs</H5>
                         <FormGroup
                             label="Recipient"
@@ -153,6 +155,27 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     <br/>
 
                     <Card>
+                        <H5>Recent Transactions</H5>
+
+                        <div>
+                            <ReactTable
+                                data={[...this.props.perlin.transactions.recent]}
+                                columns={recentColumns}
+                                className="-striped"
+                                defaultPageSize={15}
+                                defaultSorted={[
+                                    {
+                                        id: "index",
+                                        desc: true
+                                    }
+                                ]}
+                            />
+                        </div>
+                    </Card>
+
+                    <br/>
+
+                    <Card>
                         <H5>Network</H5>
                         <div ref={this.app} style={{height: 500}}/>
                     </Card>
@@ -161,51 +184,51 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
         );
     }
 
-    private recentCellRenderer(key: string) {
-        return (row: number) =>
-            <Cell>{this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key]}</Cell>
-    }
+    // private recentCellRenderer(key: string) {
+    //     return (row: number) =>
+    //         <Cell>{this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key]}</Cell>
+    // }
+    //
+    // private recentContextMenu = (context: IMenuContext) => {
+    //     return (
+    //         <Menu>
+    //             <CopyCellsMenuItem context={context} getCellData={this.recentCellData} text="Copy"
+    //                                onCopy={this.onCopy}/>
+    //         </Menu>
+    //     );
+    // };
 
-    private recentContextMenu = (context: IMenuContext) => {
-        return (
-            <Menu>
-                <CopyCellsMenuItem context={context} getCellData={this.recentCellData} text="Copy"
-                                   onCopy={this.onCopy}/>
-            </Menu>
-        );
-    };
-
-    private onCopy = (success: boolean) => {
-        console.log(success)
-    };
-
-    private recentCellData = (rowIndex: number, columnIndex: number) => {
-        const data = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - rowIndex];
-        const keys = {0: "sender", 1: "nonce", 2: "tag", 3: "payload", 4: "parents", 5: "signature"}
-
-        return data[keys[columnIndex]];
-    };
-
-    private recentRowCellRenderer = (row: number) => {
-        return (
-            <RowHeaderCell index={row} style={{textAlign: 'center'}}>
-                <small>{this.props.perlin.transactions.recent.length - row}</small>
-            </RowHeaderCell>
-        );
-    }
-
-    private recentCellRendererJSON(key: string) {
-        return (row: number) => {
-            const item = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key];
-            return (
-                <Cell>
-                    <JSONFormat>
-                        {item && Object.keys(item).length > 0 && item || ""}
-                    </JSONFormat>
-                </Cell>
-            );
-        }
-    }
+    // private onCopy = (success: boolean) => {
+    //     console.log(success)
+    // };
+    //
+    // private recentCellData = (rowIndex: number, columnIndex: number) => {
+    //     const data = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - rowIndex];
+    //     const keys = {0: "sender", 1: "nonce", 2: "tag", 3: "payload", 4: "parents", 5: "signature"}
+    //
+    //     return data[keys[columnIndex]];
+    // };
+    //
+    // private recentRowCellRenderer = (row: number) => {
+    //     return (
+    //         <RowHeaderCell index={row} style={{textAlign: 'center'}}>
+    //             <small>{this.props.perlin.transactions.recent.length - row}</small>
+    //         </RowHeaderCell>
+    //     );
+    // }
+    //
+    // private recentCellRendererJSON(key: string) {
+    //     return (row: number) => {
+    //         const item = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key];
+    //         return (
+    //             <Cell>
+    //                 <JSONFormat>
+    //                     {item && Object.keys(item).length > 0 && item || ""}
+    //                 </JSONFormat>
+    //             </Cell>
+    //         );
+    //     }
+    // }
 
     private onRecipient = (event: any) => {
         this.props.store.recipient = event.target.value;

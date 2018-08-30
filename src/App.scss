@@ -1,5 +1,5 @@
 @import "~@blueprintjs/core/src/blueprint.scss";
-@import "~@blueprintjs/table/src/table.scss";
+@import "~react-table/react-table.css";
 
 html {
   background-color: $pt-dark-app-background-color;
@@ -16,4 +16,8 @@ html {
 
 .justify-between {
   justify-content: space-between;
+}
+
+.ReactTable .-pagination .-btn {
+  color: $pt-dark-text-color
 }
