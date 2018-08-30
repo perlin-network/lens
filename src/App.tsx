@@ -52,8 +52,10 @@ const recentColumns = [
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
-    private app: React.RefObject<any> = createRef();
+    private networkGraph: React.RefObject<any> = createRef();
     private network: Network;
+
+    private txGraph: React.RefObject<any> = createRef();
 
     public componentDidMount() {
         const nodes = new DataSet();
@@ -84,7 +86,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                 })
 
                 if (this.network == null) {
-                    this.network = new Network(this.app.current, {nodes, edges}, {
+                    this.network = new Network(this.networkGraph.current, {nodes, edges}, {
                         nodes: {
                             shape: 'dot',
                             size: 15,
@@ -99,15 +101,10 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                             hover: true,
                         },
                         physics: {
-                            barnesHut: {
-                                avoidOverlap: 1,
-                                gravitationalConstant: -50000,
-                                centralGravity: 5
-                            },
-                            stabilization: false,
+                            solver: "forceAtlas2Based",
                             minVelocity: 1.5,
                             maxVelocity: 15
-                        }
+                        },
                     });
                 }
 
@@ -219,7 +216,14 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <Card>
                         <H5>Network</H5>
-                        <div ref={this.app} style={{height: 500}}/>
+                        <div ref={this.networkGraph} style={{height: 360}}/>
+                    </Card>
+
+                    <br/>
+
+                    <Card>
+                        <H5>Transactions</H5>
+                        <div ref={this.txGraph} style={{height: 360}}/>
                     </Card>
                 </div>
             </>
