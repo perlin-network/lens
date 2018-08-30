@@ -19,5 +19,13 @@ html {
 }
 
 .ReactTable .-pagination .-btn {
-  color: $pt-dark-text-color
+  color: $pt-dark-text-color;
+}
+
+.ReactTable .rt-expander:after {
+  border-top: 7px solid $pt-dark-text-color;
+}
+
+.text-center {
+  text-align: center;
 }

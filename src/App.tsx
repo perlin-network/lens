@@ -42,22 +42,26 @@ const recentColumns = [
     {
         Header: "Sender",
         accessor: "sender",
-        maxWidth: 300
+        maxWidth: 300,
+        className: "text-center"
     },
     {
         Header: "Nonce",
         accessor: "nonce",
-        maxWidth: 80
+        maxWidth: 80,
+        className: "text-center"
     },
     {
         Header: "Tag",
         accessor: "tag",
-        maxWidth: 80
+        maxWidth: 80,
+        className: "text-center"
     },
     {
         Header: "Payload",
         id: "payload",
-        accessor: (tx: ITransaction) => tx.payload && JSON.stringify(tx.payload) || undefined
+        accessor: (tx: ITransaction) => tx.payload && JSON.stringify(tx.payload) || undefined,
+        className: "text-center"
     }
 ]
 
@@ -159,9 +163,9 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                         <div>
                             <ReactTable
-                                data={[...this.props.perlin.transactions.recent]}
+                                data={this.props.perlin.recentTransactions}
                                 columns={recentColumns}
-                                className="-striped"
+                                className="-striped -highlight"
                                 defaultPageSize={15}
                                 defaultSorted={[
                                     {
@@ -169,6 +173,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                         desc: true
                                     }
                                 ]}
+                                SubComponent={this.recentSubComponent}
                             />
                         </div>
                     </Card>
@@ -184,51 +189,13 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
         );
     }
 
-    // private recentCellRenderer(key: string) {
-    //     return (row: number) =>
-    //         <Cell>{this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key]}</Cell>
-    // }
-    //
-    // private recentContextMenu = (context: IMenuContext) => {
-    //     return (
-    //         <Menu>
-    //             <CopyCellsMenuItem context={context} getCellData={this.recentCellData} text="Copy"
-    //                                onCopy={this.onCopy}/>
-    //         </Menu>
-    //     );
-    // };
-
-    // private onCopy = (success: boolean) => {
-    //     console.log(success)
-    // };
-    //
-    // private recentCellData = (rowIndex: number, columnIndex: number) => {
-    //     const data = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - rowIndex];
-    //     const keys = {0: "sender", 1: "nonce", 2: "tag", 3: "payload", 4: "parents", 5: "signature"}
-    //
-    //     return data[keys[columnIndex]];
-    // };
-    //
-    // private recentRowCellRenderer = (row: number) => {
-    //     return (
-    //         <RowHeaderCell index={row} style={{textAlign: 'center'}}>
-    //             <small>{this.props.perlin.transactions.recent.length - row}</small>
-    //         </RowHeaderCell>
-    //     );
-    // }
-    //
-    // private recentCellRendererJSON(key: string) {
-    //     return (row: number) => {
-    //         const item = this.props.perlin.transactions.recent[this.props.perlin.transactions.recent.length - 1 - row][key];
-    //         return (
-    //             <Cell>
-    //                 <JSONFormat>
-    //                     {item && Object.keys(item).length > 0 && item || ""}
-    //                 </JSONFormat>
-    //             </Cell>
-    //         );
-    //     }
-    // }
+    private recentSubComponent = (row: any) => {
+        return (
+            <div style={{paddingLeft: 10, paddingRight: 10}}>
+                <Pre>{JSON.stringify(row.original, null, 4)}</Pre>
+            </div>
+        );
+    }
 
     private onRecipient = (event: any) => {
         this.props.store.recipient = event.target.value;

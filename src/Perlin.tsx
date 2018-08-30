@@ -1,4 +1,4 @@
-import {observable} from "mobx";
+import {computed, observable} from "mobx";
 import * as nacl from "tweetnacl"
 import * as _ from "lodash";
 import {ITransaction} from "./Transaction";
@@ -59,6 +59,10 @@ class Perlin {
         return await this.request("/transaction/send", params);
     }
 
+    @computed get recentTransactions() {
+        return this.transactions.recent.slice();
+    }
+
     private async init() {
         try {
             await this.initSession();
@@ -88,7 +92,7 @@ class Perlin {
 
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
-        this.transactions.recent = await this.recentTransactions();
+        this.transactions.recent = await this.requestRecentTransactions();
         console.log(this.transactions.recent)
     }
 
@@ -134,7 +138,7 @@ class Perlin {
         }
     }
 
-    private async recentTransactions(): Promise<ITransaction[]> {
+    private async requestRecentTransactions(): Promise<ITransaction[]> {
         const recent = await this.request("/transaction/list", {});
         return _.map(recent, Perlin.parseWiredTransaction);
     }
