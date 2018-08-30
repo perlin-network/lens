@@ -29,3 +29,10 @@ html {
 .text-center {
   text-align: center;
 }
+
+canvas {
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4);
+  background: rgba(16, 22, 26, 0.3);
+  color: #f5f8fa;
+}

@@ -21,22 +21,7 @@ import logo from "./perlin-logo.svg"
 import {DataSet, Network} from "vis";
 import ReactTable from "react-table";
 import {ITransaction} from "./Transaction";
-
-const nodes = new DataSet([
-    {id: 1, label: 'Node 1'},
-    {id: 2, label: 'Node 2'},
-    {id: 3, label: 'Node 3'},
-    {id: 4, label: 'Node 4'},
-    {id: 5, label: 'Node 5'}
-]);
-
-// create an array with edges
-const edges = new DataSet([
-    {from: 1, to: 3},
-    {from: 1, to: 2},
-    {from: 2, to: 4},
-    {from: 2, to: 5}
-]);
+import {autorun} from "mobx";
 
 const recentColumns = [
     {
@@ -71,12 +56,64 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     private network: Network;
 
     public componentDidMount() {
-        this.network = new Network(this.app.current, {nodes, edges}, {
-            layout: {
-                hierarchical: true
+        const nodes = new DataSet();
+        const edges = new DataSet();
+
+        autorun(
+            () => {
+                const self = this.props.perlin.ledger.address;
+                if (self.length === 0) {
+                    return;
+                }
+
+                const peers = this.props.perlin.ledger.peers.slice();
+
+                // Add nodes.
+                nodes.add({id: self, label: self});
+                nodes.add(peers.map(peer => {
+                    return {id: peer, label: peer}
+                }));
+
+                // Add edges.
+                nodes.forEach((x: any) => {
+                    nodes.forEach((y: any) => {
+                        if (x.id !== y.id) {
+                            edges.add({from: x.id, to: y.id});
+                        }
+                    })
+                })
+
+                if (this.network == null) {
+                    this.network = new Network(this.app.current, {nodes, edges}, {
+                        nodes: {
+                            shape: 'dot',
+                            size: 15,
+                            font: {
+                                color: 'white',
+                                face: "monospace",
+                                size: 12
+                            },
+                        },
+                        interaction: {
+                            zoomView: false,
+                            hover: true,
+                        },
+                        physics: {
+                            barnesHut: {
+                                avoidOverlap: 1,
+                                gravitationalConstant: -50000,
+                                centralGravity: 5
+                            },
+                            stabilization: false,
+                            minVelocity: 1.5,
+                            maxVelocity: 15
+                        }
+                    });
+                }
+
+                console.log(this.network.getSeed())
             }
-        });
-        console.log(this.network.getSeed())
+        )
     }
 
     public render() {
@@ -124,7 +161,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <Card>
                         <H5>Ledger</H5>
-                        <Pre>
+                        <Pre style={{overflow: "hidden", textOverflow: "ellipsis"}}>
                             {JSON.stringify(this.props.perlin.ledger.state, null, 4)}
                         </Pre>
                     </Card>
@@ -190,9 +227,12 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     }
 
     private recentSubComponent = (row: any) => {
+        const data = row.original;
+        delete data.index;
+
         return (
             <div style={{paddingLeft: 10, paddingRight: 10}}>
-                <Pre>{JSON.stringify(row.original, null, 4)}</Pre>
+                <Pre style={{overflow: "hidden", textOverflow: "ellipsis"}}>{JSON.stringify(data, null, 4)}</Pre>
             </div>
         );
     }

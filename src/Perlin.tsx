@@ -22,6 +22,7 @@ class Perlin {
 
     @observable public ledger = {
         public_key: "",
+        address: "",
         peers: [] as string[],
         state: {}
     };
