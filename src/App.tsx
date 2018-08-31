@@ -19,8 +19,8 @@ import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
 import ReactTable from "react-table";
 import {ITransaction} from "./Transaction";
-import {TransactionGraph} from "./TransactionGraph";
 import {NetworkGraph} from "./NetworkGraph";
+import {TransactionGraphD3} from "./TransactionGraphD3";
 
 const recentColumns = [
     {
@@ -163,7 +163,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <Card>
                         <H5>Transactions</H5>
-                        <TransactionGraph perlin={this.props.perlin}/>
+                        <TransactionGraphD3 perlin={this.props.perlin}/>
                     </Card>
                 </div>
             </>

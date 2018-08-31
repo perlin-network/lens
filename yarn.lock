@@ -358,6 +358,12 @@
   dependencies:
     moment ">=2.13.0"
 
+"@types/webcola@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@types/webcola/-/webcola-3.2.0.tgz#40abf867c5b32fd938e704b98819a5767c0c2547"
+  dependencies:
+    webcola "*"
+
 abab@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/abab/-/abab-2.0.0.tgz#aba0ab4c5eee2d4c79d3487d85450fb2376ebb0f"
@@ -2257,11 +2263,11 @@ d3-contour@1:
   dependencies:
     d3-array "^1.1.1"
 
-d3-dispatch@1:
+d3-dispatch@1, d3-dispatch@^1.0.3:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/d3-dispatch/-/d3-dispatch-1.0.5.tgz#e25c10a186517cd6c82dd19ea018f07e01e39015"
 
-d3-drag@1:
+d3-drag@1, d3-drag@^1.0.4:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/d3-drag/-/d3-drag-1.2.3.tgz#46e206ad863ec465d88c588098a1df444cd33c64"
   dependencies:
@@ -2369,7 +2375,7 @@ d3-time@1:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/d3-time/-/d3-time-1.0.10.tgz#8259dd71288d72eeacfd8de281c4bf5c7393053c"
 
-d3-timer@1:
+d3-timer@1, d3-timer@^1.0.5:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/d3-timer/-/d3-timer-1.0.9.tgz#f7bb8c0d597d792ff7131e1c24a36dd471a471ba"
 
@@ -8044,6 +8050,14 @@ wbuf@^1.1.0, wbuf@^1.7.2:
   resolved "https://registry.yarnpkg.com/wbuf/-/wbuf-1.7.3.tgz#c1d8d149316d3ea852848895cb6a0bfe887b87df"
   dependencies:
     minimalistic-assert "^1.0.0"
+
+webcola@*, webcola@^3.3.8:
+  version "3.3.8"
+  resolved "https://registry.yarnpkg.com/webcola/-/webcola-3.3.8.tgz#af5a8e2faf5213f40ab75d948bd582e1111b763e"
+  dependencies:
+    d3-dispatch "^1.0.3"
+    d3-drag "^1.0.4"
+    d3-timer "^1.0.5"
 
 webidl-conversions@^4.0.2:
   version "4.0.2"
