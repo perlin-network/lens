@@ -66,7 +66,6 @@ class NetworkGraph extends React.Component<{ perlin: Perlin }, {}> {
                     })
                 });
 
-
                 simulation.nodes(nodes);
                 simulation
                     .force<d3.ForceLink<ISimNode, d3.SimulationLinkDatum<ISimNode>>>('link')!
@@ -104,7 +103,7 @@ class NetworkGraph extends React.Component<{ perlin: Perlin }, {}> {
                         .attr("cx", (d: any) => d.x)
                         .attr("cy", (d: any) => d.y)
                         // @ts-ignore
-                        .call(this.drag());
+                        .call(this.drag(simulation));
 
                     label
                         .attr("x", (d: any) => d.x + 8)
