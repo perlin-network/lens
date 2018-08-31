@@ -14,12 +14,12 @@ import {
 } from "@blueprintjs/core";
 import {observer} from "mobx-react";
 import * as React from 'react';
-import {createRef} from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
 import ReactTable from "react-table";
 import {ITransaction} from "./Transaction";
+import {TransactionGraph} from "./TransactionGraph";
 import {NetworkGraph} from "./NetworkGraph";
 
 const recentColumns = [
@@ -52,74 +52,6 @@ const recentColumns = [
 
 @observer
 class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
-
-    private txGraphRef: React.RefObject<any> = createRef();
-
-    public componentDidMount() {
-
-
-
-
-        // this.txGraph = new Network(this.txGraphRef.current, {nodes: peerNodes, edges: peerEdges}, {
-        //     clickToUse: true,
-        //     width: '100%',
-        //     height: '640px',
-        //     layout: {
-        //         improvedLayout: false,
-        //         hierarchical: {
-        //             enabled: true,
-        //             direction: 'LR',
-        //             levelSeparation: 100,
-        //             sortMethod: "directed"
-        //         }
-        //     },
-        //     nodes: {
-        //         shape: 'dot',
-        //         size: 15,
-        //         font: {
-        //             color: 'white',
-        //             face: "monospace",
-        //             size: 12
-        //         },
-        //     },
-        //     interaction: {
-        //         hover: true,
-        //     },
-        // });
-        //
-        // when(
-        //     () => this.props.perlin.transactions.recent.length > 0,
-        //     () => {
-        //         const recent = this.props.perlin.transactions.recent;
-        //
-        //         recent.forEach((tx: ITransaction) => {
-        //             peerNodes.update({
-        //                 id: tx.id,
-        //                 label: tx.id.slice(0, 10)
-        //             });
-        //
-        //             if (tx.parents != null) {
-        //                 tx.parents.forEach(parent => {
-        //                     peerEdges.update({from: parent, to: tx.id});
-        //                 });
-        //             }
-        //         });
-        //     }
-        // );
-
-        // this.props.perlin.onPolledTransaction = (tx: ITransaction) => {
-        //     peerNodes.update({
-        //         id: tx.id,
-        //         label: tx.id.slice(0, 10)
-        //     });
-        //
-        //     if (tx.parents != null) {
-        //         tx.parents.forEach(parent => {
-        //             peerEdges.update({from: parent, to: tx.id});
-        //         });
-        //     }
-        // }
-    }
 
     public render() {
         return (
@@ -231,7 +163,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <Card>
                         <H5>Transactions</H5>
-                        <div ref={this.txGraphRef} style={{height: 640}}/>
+                        <TransactionGraph perlin={this.props.perlin}/>
                     </Card>
                 </div>
             </>
