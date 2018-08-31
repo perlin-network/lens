@@ -12,6 +12,7 @@
     "case-sensitive-paths-webpack-plugin": "2.1.1",
     "chalk": "1.1.3",
     "css-loader": "0.28.7",
+    "d3": "^5.7.0",
     "dotenv": "4.0.0",
     "dotenv-expand": "4.2.0",
     "extract-text-webpack-plugin": "3.0.2",
@@ -60,6 +61,7 @@
     "test": "node scripts/test.js --env=jsdom"
   },
   "devDependencies": {
+    "@types/d3": "^5.0.0",
     "@types/jest": "^23.3.1",
     "@types/lodash": "^4.14.116",
     "@types/node": "^10.9.2",

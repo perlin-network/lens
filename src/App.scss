@@ -30,9 +30,35 @@ html {
   text-align: center;
 }
 
-canvas {
+svg {
   border-radius: 3px;
   box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4);
   background: rgba(16, 22, 26, 0.3);
   color: #f5f8fa;
+}
+
+.link {
+  stroke: #777;
+  stroke-opacity: 0.3;
+  stroke-width: 1.5px;
+}
+
+.node circle {
+  fill: #ccc;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  display: none;
+  font: 10px monospace;
+  fill: white;
+}
+
+.node:hover circle {
+  fill: #000;
+}
+
+.node:hover text {
+  display: inline;
 }
