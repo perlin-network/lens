@@ -27,7 +27,6 @@ class NetworkGraph extends React.Component<{ perlin: Perlin }, {}> {
                 },
             },
             interaction: {
-                zoomView: false,
                 hover: true,
             },
             physics: {
