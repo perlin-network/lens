@@ -184,7 +184,7 @@ class TransactionGraphD3 extends React.Component<{ perlin: Perlin }, {}> {
     }
 
     public render() {
-        return <svg width={1100} height={400} ref={this.networkGraphRef}/>;
+        return <svg width={1020} height={400} ref={this.networkGraphRef}/>;
     }
 }
 

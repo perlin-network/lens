@@ -141,6 +141,9 @@ class Perlin {
             if (account != null) {
                 account.nonce = data.nonce;
                 account.balance = data.balance;
+            } else {
+                delete data.account;
+                this.ledger.state[data.account] = data;
             }
         }
     }

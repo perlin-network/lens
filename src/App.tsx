@@ -72,110 +72,126 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                         {i: "ledger", x: 0, y: 3, w: 5, h: 6, static: true},
 
-                        {i: "transactionGraph", x: 5, y: 3, w: 7, h: 8, static: true},
-
-                        {i: "sendTransaction", x: 0, y: 9, w: 5, h: 4, static: true},
-                        {i: "networkGraph", x: 5, y: 11, w: 7, h: 7.25, static: true},
-
-                        {i: "recentTransactions", x: 0, y: 13, w: 5, h: 16, static: true}
+                        {i: "graphs", x: 5, y: 3, w: 7, h: 8, static: true},
                     ]
                 }>
-                    <header key="logo" style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
-                        <img src={logo} style={{width: "12em"}}/>
-                    </header>
+                    <div key="logo" style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
+                        <header>
+                            <img src={logo} style={{width: "12em"}}/>
+                        </header>
+                    </div>
 
-                    <Navbar key="navbar" style={{marginTop: "1em", marginBottom: "1em"}}>
-                        <Navbar.Group align={Alignment.CENTER}>
-                            <Navbar.Heading>Statistics</Navbar.Heading>
 
-                            <div className="tag-list">
-                                <Tag minimal={true}>{`uptime: ${this.props.perlin.stats.Uptime}`}</Tag>
+                    <div key="navbar" style={{marginTop: "1em", marginBottom: "1em", paddingRight: "1.5em"}}>
+                        <Navbar>
+                            <Navbar.Group align={Alignment.CENTER}>
+                                <Navbar.Heading>Statistics</Navbar.Heading>
 
-                                <Tag
-                                    minimal={true}>{`tx latency: ${this.props.perlin.stats.ConsensusDuration.toFixed(3)} sec`}</Tag>
+                                <div className="tag-list">
+                                    <Tag minimal={true}>{`uptime: ${this.props.perlin.stats.Uptime}`}</Tag>
 
-                                <Tag
-                                    minimal={true}>{`num accepted tx: ${this.props.perlin.stats.NumAcceptedTransactions}`}</Tag>
+                                    <Tag
+                                        minimal={true}>{`tx latency: ${this.props.perlin.stats.ConsensusDuration.toFixed(3)} sec`}</Tag>
 
-                                <Tag
-                                    minimal={true}>{`accepted tx/sec: ${this.props.perlin.stats.NumAcceptedTransactionsPerSecond}`}</Tag>
+                                    <Tag
+                                        minimal={true}>{`num accepted tx: ${this.props.perlin.stats.NumAcceptedTransactions}`}</Tag>
+
+                                    <Tag
+                                        minimal={true}>{`accepted tx/sec: ${this.props.perlin.stats.NumAcceptedTransactionsPerSecond}`}</Tag>
+                                </div>
+                            </Navbar.Group>
+                        </Navbar>
+                    </div>
+
+                    <div key="connectStatus"
+                         style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
+                        <Callout intent={Intent.SUCCESS}>
+                            You're connected as: <Code
+                            style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
+                        </Callout>
+                    </div>
+
+                    <div key="peerStatus"
+                         style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
+                        <Callout intent={Intent.PRIMARY}>
+                            You're connected to: <Code
+                            style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Code>
+                        </Callout>
+                    </div>
+
+                    <div key="ledger" style={{marginTop: "1.5em", paddingBottom: "1em", marginLeft: "0.5em"}}>
+                        <Card>
+                            <H5>Ledger</H5>
+                            <Pre style={{
+                                overflow: "hidden",
+                                height: "90%",
+                                textOverflow: "ellipsis"
+                            }}>{JSON.stringify(this.props.perlin.ledger.state, null, 4)}</Pre>
+                        </Card>
+
+                        <br/>
+
+                        <Card>
+                            <H5>Send PERLs</H5>
+                            <FormGroup
+                                label="Recipient"
+                                labelFor="recipient"
+                                labelInfo="(required)">
+                                <InputGroup id="recipient"
+                                            placeholder="8f9b4ae0364280e6a0b988c149f65d1badaeefed2db582266494dd79aa7c821a"
+                                            onChange={this.onRecipient}/>
+
+                            </FormGroup>
+
+                            <FormGroup
+                                label="Amount"
+                                labelFor="amount"
+                                labelInfo="(required)">
+                                <InputGroup id="amount"
+                                            type="number"
+                                            placeholder="0 PERLs"
+                                            onChange={this.onAmount}/>
+                            </FormGroup>
+
+                            <Button onClick={this.onTransfer} text="Send PERLs"/>
+                        </Card>
+
+                        <br/>
+
+                        <Card>
+                            <H5>Recent Transactions</H5>
+
+                            <div>
+                                <ReactTable
+                                    data={this.props.perlin.recentTransactions}
+                                    columns={recentColumns}
+                                    className="-striped -highlight"
+                                    defaultPageSize={15}
+                                    defaultSorted={[
+                                        {
+                                            id: "index",
+                                            desc: true
+                                        }
+                                    ]}
+                                    SubComponent={this.recentSubComponent}
+                                />
                             </div>
-                        </Navbar.Group>
-                    </Navbar>
+                        </Card>
+                    </div>
 
-                    <Callout key="connectStatus" intent={Intent.SUCCESS}
-                             style={{marginTop: "1.5em", marginLeft: "0.5em", maxHeight: 42}}>
-                        You're connected as: <Code
-                        style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
-                    </Callout>
+                    <div key="graphs" style={{marginTop: "1.5em", marginLeft: "1em", paddingRight: "2.5em"}}>
+                        <Card>
+                            <H5>Transactions</H5>
+                            <TransactionGraphD3 perlin={this.props.perlin}/>
+                        </Card>
 
-                    <Callout key="peerStatus" intent={Intent.PRIMARY}
-                             style={{marginTop: "1.5em", marginLeft: "0.5em", maxHeight: 42}}>
-                        You're connected to: <Code
-                        style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Code>
-                    </Callout>
+                        <br/>
 
-                    <Card key="ledger" style={{marginTop: "1.5em", marginLeft: "0.5em"}}>
-                        <H5>Ledger</H5>
-                        <Pre style={{overflow: "hidden", height: "90%", textOverflow: "ellipsis"}}>
-                            {JSON.stringify(this.props.perlin.ledger.state, null, 4)}
-                        </Pre>
-                    </Card>
-
-                    <Card key="transactionGraph" style={{marginTop: "1.5em", marginLeft: "1em"}}>
-                        <H5>Transactions</H5>
-                        <TransactionGraphD3 perlin={this.props.perlin}/>
-                    </Card>
-
-                    <Card key="networkGraph" style={{marginTop: "2em", marginLeft: "1em"}}>
-                        <H5>Network</H5>
-                        <NetworkGraph perlin={this.props.perlin}/>
-                    </Card>
-
-                    <Card key="sendTransaction" style={{marginTop: "2em", marginLeft: "0.5em"}}>
-                        <H5>Send PERLs</H5>
-                        <FormGroup
-                            label="Recipient"
-                            labelFor="recipient"
-                            labelInfo="(required)">
-                            <InputGroup id="recipient"
-                                        placeholder="8f9b4ae0364280e6a0b988c149f65d1badaeefed2db582266494dd79aa7c821a"
-                                        onChange={this.onRecipient}/>
-
-                        </FormGroup>
-
-                        <FormGroup
-                            label="Amount"
-                            labelFor="amount"
-                            labelInfo="(required)">
-                            <InputGroup id="amount"
-                                        type="number"
-                                        placeholder="0 PERLs"
-                                        onChange={this.onAmount}/>
-                        </FormGroup>
-
-                        <Button onClick={this.onTransfer} text="Send PERLs"/>
-                    </Card>
-
-                    <Card key="recentTransactions" style={{marginTop: "2.5em", marginLeft: "0.5em"}}>
-                        <H5>Recent Transactions</H5>
-
-                        <div>
-                            <ReactTable
-                                data={this.props.perlin.recentTransactions}
-                                columns={recentColumns}
-                                className="-striped -highlight"
-                                defaultPageSize={15}
-                                defaultSorted={[
-                                    {
-                                        id: "index",
-                                        desc: true
-                                    }
-                                ]}
-                                SubComponent={this.recentSubComponent}
-                            />
-                        </div>
-                    </Card>
+                        <Card>
+                            <H5>Network</H5>
+                            <NetworkGraph perlin={this.props.perlin}/>
+                        </Card>
+                    </div>
                 </DecoratedGridLayout>
             </>
         );
