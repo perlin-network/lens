@@ -4,8 +4,10 @@ import * as d3 from "d3";
 import {Perlin} from "./Perlin";
 import {when} from "mobx";
 import {ITransaction} from "./Transaction";
+// @ts-ignore
+import * as sizeMe from "react-sizeme";
 
-class TransactionGraphD3 extends React.Component<{ perlin: Perlin }, {}> {
+class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
     private nodes: any[] = [];
     private nodeStore: Map<string, number> = new Map([]);
@@ -17,8 +19,9 @@ class TransactionGraphD3 extends React.Component<{ perlin: Perlin }, {}> {
 
         const networkGraph = svg.append("g");
 
-        const width = +svg.attr("width");
-        const height = +svg.attr("height");
+
+        const width = this.props.size.width;
+        const height = this.props.size.height;
 
         const simulation = d3.forceSimulation(this.nodes)
             .force("link", d3.forceLink(this.links).id((d: any) => d.id).distance(50).strength(1))
@@ -184,8 +187,12 @@ class TransactionGraphD3 extends React.Component<{ perlin: Perlin }, {}> {
     }
 
     public render() {
-        return <svg width={1020} height={400} ref={this.networkGraphRef}/>;
+        return (
+            <svg width="100%" height={400} ref={this.networkGraphRef}/>
+        );
     }
 }
 
-export {TransactionGraphD3};
+const TransactionGraphD3 = sizeMe()(Graph);
+
+export {TransactionGraphD3}
