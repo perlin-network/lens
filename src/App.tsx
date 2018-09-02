@@ -20,9 +20,9 @@ import logo from "./perlin-logo.svg"
 import {ITransaction} from "./Transaction";
 import * as GridLayout from "react-grid-layout";
 import {WidthProvider} from "react-grid-layout";
-import {TransactionGraphD3} from "./TransactionGraphD3";
 import ReactTable from "react-table";
 import {NetworkGraph} from "./NetworkGraph";
+import {TransactionGraphPixi} from "./TransactionGraphPixi";
 
 
 const DecoratedGridLayout = WidthProvider(GridLayout);
@@ -182,7 +182,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     <div key="graphs" style={{marginTop: "1.5em", marginLeft: "1em", paddingRight: "2.5em"}}>
                         <Card>
                             <H5>Transactions</H5>
-                            <TransactionGraphD3 perlin={this.props.perlin}/>
+                            <TransactionGraphPixi perlin={this.props.perlin}/>
                         </Card>
 
                         <br/>

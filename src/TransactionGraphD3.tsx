@@ -27,6 +27,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
             .force("link", d3.forceLink(this.links).id((d: any) => d.id))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("charge", d3.forceManyBody().strength(-100))
+            .alphaTarget(1)
 
         const drag = () => {
             const dragStarted = (d: any) => {
@@ -117,7 +118,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
             // @ts-ignore
             simulation.force("link").links(this.links);
 
-            simulation.restart();
+            simulation.alpha(1).restart();
         }
 
         when(
