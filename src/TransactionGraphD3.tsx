@@ -24,12 +24,9 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
         const height = this.props.size.height;
 
         const simulation = d3.forceSimulation(this.nodes)
-            .force("link", d3.forceLink(this.links).id((d: any) => d.id).distance(50).strength(1))
+            .force("link", d3.forceLink(this.links).id((d: any) => d.id))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-200))
-            .force("x", d3.forceX())
-            .force("y", d3.forceY())
-            .alphaTarget(1);
+            .force("charge", d3.forceManyBody().strength(-100))
 
         const drag = () => {
             const dragStarted = (d: any) => {
@@ -94,7 +91,9 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
                 .attr("class", "link")
                 .merge(link);
 
-            simulation.on("tick", () => {
+            requestAnimationFrame(function render() {
+                simulation.tick();
+
                 link
                     .attr("x1", (d: any) => d.source.x)
                     .attr("y1", (d: any) => d.source.y)
@@ -108,13 +107,17 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
                 label
                     .attr("x", (d: any) => d.x + 8)
                     .attr("y", (d: any) => d.y);
+
+                if (simulation.alpha() > 0) {
+                    requestAnimationFrame(render);
+                }
             });
 
             simulation.nodes(this.nodes);
             // @ts-ignore
             simulation.force("link").links(this.links);
 
-            simulation.alpha(1).restart();
+            simulation.restart();
         }
 
         when(
@@ -183,7 +186,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
 
                 buffer = [];
             }
-        }, 500);
+        }, 250);
     }
 
     public render() {
