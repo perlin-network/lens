@@ -135,6 +135,14 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
         );
 
         this.props.perlin.onPolledTransaction = (tx: ITransaction) => {
+            if (this.nodes.length === 50) {
+                const popped: any = this.nodes.shift();
+                popped.gfx.destroy();
+
+                this.links = this.links.filter(l => l.source.id !== popped.id && l.target.id !== popped.id);
+            }
+
+
             const node = {id: tx.id, gfx: new PIXI.Graphics()}
 
             node.gfx.lineStyle(1.5, 0xFFFFFF);
