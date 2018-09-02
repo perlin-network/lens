@@ -67,7 +67,8 @@ class TransactionGraphD3 extends React.Component<{ perlin: Perlin }, {}> {
             const newNodes = node.enter();
             const newNodesGroup = newNodes
                 .append("g")
-                .attr("class", "node");
+                .attr("class", "node")
+
 
             newNodesGroup.append("text")
             newNodesGroup.append("circle");
@@ -183,7 +184,7 @@ class TransactionGraphD3 extends React.Component<{ perlin: Perlin }, {}> {
     }
 
     public render() {
-        return <svg width={1000} height={500} ref={this.networkGraphRef}/>;
+        return <svg width={1100} height={400} ref={this.networkGraphRef}/>;
     }
 }
 
