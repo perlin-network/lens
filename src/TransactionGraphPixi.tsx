@@ -20,7 +20,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
         const height = this.props.size.height || 400;
 
         const stage = new PIXI.Container();
-        const renderer = PIXI.autoDetectRenderer({width, height, transparent: true});
+        const renderer = PIXI.autoDetectRenderer({width, height, transparent: true, antialias: true});
 
         const links = new PIXI.Graphics();
         stage.addChild(links);
@@ -107,7 +107,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
                     const node = {id: tx.id, gfx: new PIXI.Graphics()}
 
                     node.gfx.lineStyle(1.5, 0xFFFFFF);
-                    node.gfx.beginFill(0);
+                    node.gfx.beginFill(0xFFFFFFFF);
                     node.gfx.drawCircle(0, 0, 5);
                     stage.addChild(node.gfx);
 
