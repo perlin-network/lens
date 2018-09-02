@@ -146,7 +146,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
             const node = {id: tx.id, gfx: new PIXI.Graphics()}
 
             node.gfx.lineStyle(1.5, 0xFFFFFF);
-            node.gfx.beginFill(0);
+            node.gfx.beginFill(0xFFFFFF);
             node.gfx.drawCircle(0, 0, 5);
             stage.addChild(node.gfx);
 
