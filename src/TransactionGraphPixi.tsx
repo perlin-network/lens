@@ -27,45 +27,51 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
 
         this.networkGraphRef.current.appendChild(renderer.view);
 
+        // const drag = () => {
+        //     const dragStarted = () => {
+        //         if (!d3.event.active) {
+        //             simulation.alphaTarget(0.3).restart();
+        //         }
+        //         d3.event.subject.fx = d3.event.subject.x;
+        //         d3.event.subject.fy = d3.event.subject.y;
+        //     }
+        //
+        //     const dragged = () => {
+        //         d3.event.subject.fx = d3.event.x;
+        //         d3.event.subject.fy = d3.event.y;
+        //     }
+        //
+        //     const dragEnded = () => {
+        //         if (!d3.event.active) {
+        //             simulation.alphaTarget(0);
+        //         }
+        //         d3.event.subject.fx = null;
+        //         d3.event.subject.fy = null;
+        //     };
+        //
+        //     return d3.drag()
+        //         .container(renderer.view)
+        //         .subject(() => simulation.find(d3.event.x, d3.event.y))
+        //         .on("start", dragStarted)
+        //         .on("drag", dragged)
+        //         .on("end", dragEnded);
+        // }
+
+        d3.select(renderer.view)
+            .call(d3.zoom().on("zoom", () => {
+                stage.scale.set(d3.event.transform.k)
+                stage.position.set(d3.event.transform.x, d3.event.transform.y)
+            }))
+        // .call(drag())
+
         const simulation = d3.forceSimulation(this.nodes)
             .force("link", d3.forceLink(this.links).id((d: any) => d.id))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("charge", d3.forceManyBody().strength(-100))
+            .force('collision', d3.forceCollide().radius(3))
             .force("x", d3.forceX())
             .force("y", d3.forceY())
             .alphaTarget(1)
-        //
-        const drag = () => {
-            const dragStarted = () => {
-                if (!d3.event.active) {
-                    simulation.alphaTarget(0.3).restart();
-                }
-                d3.event.subject.fx = d3.event.subject.x;
-                d3.event.subject.fy = d3.event.subject.y;
-            }
-
-            const dragged = () => {
-                d3.event.subject.fx = d3.event.x;
-                d3.event.subject.fy = d3.event.y;
-            }
-
-            const dragEnded = () => {
-                if (!d3.event.active) {
-                    simulation.alphaTarget(0);
-                }
-                d3.event.subject.fx = null;
-                d3.event.subject.fy = null;
-            };
-
-            return d3.drag()
-                .container(renderer.view)
-                .subject(() => simulation.find(d3.event.x, d3.event.y))
-                .on("start", dragStarted)
-                .on("drag", dragged)
-                .on("end", dragEnded);
-        }
-
-        d3.select(renderer.view).call(drag());
 
         const render = () => {
             this.nodes.forEach((node) => {
@@ -108,7 +114,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
 
                     node.gfx.lineStyle(1.5, 0xFFFFFF);
                     node.gfx.beginFill(0xFFFFFFFF);
-                    node.gfx.drawCircle(0, 0, 5);
+                    node.gfx.drawCircle(0, 0, 3);
                     stage.addChild(node.gfx);
 
                     this.nodes.push(node);
@@ -147,7 +153,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
 
             node.gfx.lineStyle(1.5, 0xFFFFFF);
             node.gfx.beginFill(0xFFFFFF);
-            node.gfx.drawCircle(0, 0, 5);
+            node.gfx.drawCircle(0, 0, 3);
             stage.addChild(node.gfx);
 
             this.nodes.push(node);
