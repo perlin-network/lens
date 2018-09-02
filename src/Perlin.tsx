@@ -95,6 +95,16 @@ class Perlin {
 
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
+
+        Object.keys(this.ledger.state).forEach(publicKey => {
+            const account = this.ledger.state[publicKey];
+
+            Object.keys(account.State).forEach(key => {
+                console.log(new Buffer(account.State[key], 'base64'))
+                account.State[key] = this.decodeInt64(new Buffer(account.State[key], 'base64'))
+            })
+        })
+
         this.transactions.recent = await this.requestRecentTransactions();
     }
 
@@ -131,6 +141,10 @@ class Perlin {
         }
     }
 
+    private decodeInt64(buffer: Buffer) {
+        return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24) | (buffer[4] << 32) | (buffer[5] << 40) | (buffer[6] << 48) | ((buffer[7] << 56))
+    }
+
     private pollAccountUpdates() {
         const ws = new WebSocket(`ws://${this.api.host}/account/poll`, this.api.token)
 
@@ -139,11 +153,17 @@ class Perlin {
 
             const account = this.ledger.state[data.account]
             if (account != null) {
-                account.nonce = data.nonce;
-                account.balance = data.balance;
+                account.Nonce = data.nonce;
+
+                Object.keys(data.updates).forEach(key => {
+                    account.State[key] = this.decodeInt64(new Buffer(data.updates[key], 'base64'))
+                })
             } else {
-                delete data.account;
-                this.ledger.state[data.account] = data;
+                Object.keys(data.updates).forEach(key => {
+                    data.updates[key] = this.decodeInt64(new Buffer(data.updates[key], 'base64'))
+                })
+
+                this.ledger.state[data.account] = {Nonce: data.nonce, State: data.updates};
             }
         }
     }

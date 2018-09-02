@@ -84,6 +84,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
 
             this.links.forEach((link) => {
                 const {source, target} = link;
+
                 links.lineStyle(1, 0x999999);
                 links.moveTo(source.x, source.y);
                 links.lineTo(target.x, target.y);
