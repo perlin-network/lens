@@ -77,7 +77,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         {i: "sendTransaction", x: 0, y: 9, w: 5, h: 4, static: true},
                         {i: "networkGraph", x: 5, y: 11, w: 7, h: 7.25, static: true},
 
-                        {i: "recentTransactions", x: 0, y: 13, w: 5, h: 11, static: true}
+                        {i: "recentTransactions", x: 0, y: 13, w: 5, h: 16, static: true}
                     ]
                 }>
                     <header key="logo" style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
