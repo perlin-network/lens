@@ -67,12 +67,12 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         {i: "logo", x: 0, y: 0, w: 2, h: 1, static: true},
                         {i: "navbar", x: 3, y: 0, w: 10, h: 1, static: true},
 
-                        {i: "connectStatus", x: 0, y: 1, w: 12, h: 1, static: true},
-                        {i: "peerStatus", x: 0, y: 2, w: 12, h: 1, static: true},
+                        {i: "connectStatus", x: 0, y: 1, w: 6, h: 1, static: true},
+                        {i: "peerStatus", x: 6, y: 1, w: 6, h: 1, static: true},
 
-                        {i: "ledger", x: 0, y: 3, w: 5, h: 6, static: true},
+                        {i: "ledger", x: 0, y: 2, w: 5, h: 6, static: true},
 
-                        {i: "graphs", x: 5, y: 3, w: 7, h: 8, static: true},
+                        {i: "graphs", x: 5, y: 2, w: 7, h: 8, static: true},
                     ]
                 }>
                     <div key="logo" style={{margin: '1.5em 1.5em', marginBottom: '1em'}}>
@@ -83,7 +83,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
 
                     <div key="navbar" style={{marginTop: "1em", marginBottom: "1em", paddingRight: "1.5em"}}>
-                        <Navbar>
+                        <Navbar className="CardStyle">
                             <Navbar.Group align={Alignment.CENTER}>
                                 <Navbar.Heading>Statistics</Navbar.Heading>
 
@@ -103,24 +103,24 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         </Navbar>
                     </div>
 
-                    <div key="connectStatus"
+                    <div className="statusBox" key="connectStatus"
                          style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
-                        <Callout intent={Intent.SUCCESS}>
+                        <Callout className="innerBox" intent={Intent.SUCCESS}>
                             You're connected as: <Code
                             style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
                         </Callout>
                     </div>
 
-                    <div key="peerStatus"
+                    <div className="statusBox" key="peerStatus"
                          style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
-                        <Callout intent={Intent.PRIMARY}>
+                        <Callout className="innerBox" intent={Intent.PRIMARY}>
                             You're connected to: <Code
                             style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Code>
                         </Callout>
                     </div>
 
                     <div key="ledger" style={{marginTop: "1.5em", paddingBottom: "1em", marginLeft: "0.5em"}}>
-                        <Card>
+                        <Card className='CardStyle'>
                             <H5>Ledger</H5>
                             <Pre style={{
                                 overflow: "hidden",
@@ -131,7 +131,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                         <br/>
 
-                        <Card>
+                        <Card className='CardStyle'>
                             <H5>Send PERLs</H5>
                             <FormGroup
                                 label="Recipient"
@@ -152,13 +152,14 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                             placeholder="0 PERLs"
                                             onChange={this.onAmount}/>
                             </FormGroup>
-
-                            <Button onClick={this.onTransfer} text="Send PERLs"/>
+                            <div className='buttonOut'>
+                                <Button className='button' onClick={this.onTransfer} text="Send PERLs"/>
+                            </div>
                         </Card>
 
                         <br/>
 
-                        <Card>
+                        <Card className='CardStyle'>
                             <H5>Recent Transactions</H5>
 
                             <div>
@@ -180,14 +181,14 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     </div>
 
                     <div key="graphs" style={{marginTop: "1.5em", marginLeft: "1em", paddingRight: "2.5em"}}>
-                        <Card>
+                        <Card className='CardStyle'>
                             <H5>Transactions</H5>
                             <TransactionGraphPixi perlin={this.props.perlin}/>
                         </Card>
 
                         <br/>
 
-                        <Card>
+                        <Card className='CardStyle'>
                             <H5>Network</H5>
                             <NetworkGraph perlin={this.props.perlin}/>
                         </Card>

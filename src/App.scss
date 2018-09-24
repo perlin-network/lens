@@ -4,7 +4,11 @@
 @import "~react-resizable/css/styles.css";
 
 html {
-  background-color: $pt-dark-app-background-color;
+  background-color: #060b24;
+}
+
+.bp3-card {
+  background-color: #fffff!important;
 }
 
 .tag-list {
@@ -35,7 +39,7 @@ html {
 canvas, svg {
   border-radius: 3px;
   box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4);
-  background: rgba(16, 22, 26, 0.3);
+  background: #13162e;
   color: #f5f8fa;
 }
 
