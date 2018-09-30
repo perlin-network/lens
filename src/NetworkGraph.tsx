@@ -44,7 +44,13 @@ class NetworkGraph extends React.Component<{ perlin: Perlin }, {}> {
                     return;
                 }
 
-                const peers = this.props.perlin.ledger.peers.slice();
+                let peers = this.props.perlin.ledger.peers;
+
+                if (peers == null || peers.length === 0) {
+                    return;
+                }
+
+                peers = peers.slice();
 
                 // Add nodes.
                 networkNodes.add({id: self, label: self});

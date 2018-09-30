@@ -8,7 +8,11 @@ class Perlin {
     public static parseWiredTransaction(tx: any, index: number): ITransaction {
         tx = _.extend(tx, {index});
 
-        // tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || ""
+        try {
+            tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || "<error decoding>";
+        } catch (error) {
+            tx.payload = "<too large>";
+        }
 
         return tx;
     }
@@ -98,7 +102,6 @@ class Perlin {
             const account = this.ledger.state[publicKey];
 
             Object.keys(account.State).forEach(key => {
-                console.log(new Buffer(account.State[key], 'base64'))
                 account.State[key] = this.decodeInt64(new Buffer(account.State[key], 'base64'))
             })
         })

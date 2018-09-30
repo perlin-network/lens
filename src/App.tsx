@@ -108,7 +108,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                          style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
                         <Callout className="innerBox" intent={Intent.PRIMARY}>
                             You're connected to: <Code
-                            style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers.join(", ") || "Loading..."}</Code>
+                            style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers && this.props.perlin.ledger.peers.length > 0 && this.props.perlin.ledger.peers.join(", ") || "N/A"}</Code>
                         </Callout>
                     </div>
 
