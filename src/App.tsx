@@ -60,7 +60,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         {i: "logo", x: 0, y: 0, w: 2, h: 1, static: true},
                         {i: "navbar", x: 3, y: 0, w: 10, h: 1, static: true},
 
-                        {i: "connectStatus", x: 0, y: 1, w: 6, h: 1, static: true},
+                        {i: "status", x: 0, y: 1, w: 12, h: 1, static: true},
                         {i: "peerStatus", x: 6, y: 1, w: 6, h: 1, static: true},
 
                         {i: "ledger", x: 0, y: 2, w: 5, h: 6, static: true},
@@ -96,21 +96,24 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         </Navbar>
                     </div>
 
-                    <div className="statusBox" key="connectStatus"
-                         style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
-                        <Callout className="innerBox" intent={Intent.SUCCESS}>
-                            You're connected as: <Code
-                            style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
-                        </Callout>
+                    <div key="status" style={{marginTop: "1.5em", maxHeight: 42, marginLeft: "0.5em"}}>
+                        <div className="statuses">
+                            <div className="statusContainer">
+                                <Callout className="status" intent={Intent.SUCCESS}>
+                                    You're connected as: <Code
+                                    style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
+                                </Callout>
+                            </div>
+
+                            <div className="statusContainer">
+                                <Callout className="status" intent={Intent.PRIMARY}>
+                                    You're connected to: <Code
+                                    style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers && this.props.perlin.ledger.peers.length > 0 && this.props.perlin.ledger.peers.join(", ") || "N/A"}</Code>
+                                </Callout>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="statusBox" key="peerStatus"
-                         style={{marginTop: "1.5em", marginLeft: "0.5em", paddingRight: "2em", maxHeight: 42}}>
-                        <Callout className="innerBox" intent={Intent.PRIMARY}>
-                            You're connected to: <Code
-                            style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers && this.props.perlin.ledger.peers.length > 0 && this.props.perlin.ledger.peers.join(", ") || "N/A"}</Code>
-                        </Callout>
-                    </div>
 
                     <div key="ledger" style={{marginTop: "1.5em", paddingBottom: "1em", marginLeft: "0.5em"}}>
                         <Card className='CardStyle'>
@@ -145,7 +148,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                             placeholder="0 PERLs"
                                             onChange={this.onAmount}/>
                             </FormGroup>
-                            <div className='buttonOut'>
+                            <div className='buttonContainer'>
                                 <Button className='button' onClick={this.onTransfer} text="Send PERLs"/>
                             </div>
                         </Card>
