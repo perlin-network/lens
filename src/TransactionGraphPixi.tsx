@@ -11,21 +11,38 @@ import {ITransaction} from "./Transaction";
 class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
 
+    private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
+
     private store: Map<string, number> = new Map([]);
     private nodes: any[] = [];
     private links: any[] = [];
 
+    public updateDimensions() {
+        if (this.renderer != null) {
+            const parent = this.renderer.view.parentNode;
+
+            // @ts-ignore
+            this.renderer.resize(parent.clientWidth, parent.clientHeight);
+        }
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("resize", this.updateDimensions.bind(this));
+    }
+
     public componentDidMount() {
+        window.addEventListener("resize", this.updateDimensions.bind(this));
+
         const width = this.props.size.width;
         const height = this.props.size.height || 400;
 
         const stage = new PIXI.Container();
-        const renderer = PIXI.autoDetectRenderer({width, height, transparent: true, antialias: true});
+        this.renderer = PIXI.autoDetectRenderer({width, height, transparent: true, antialias: true});
 
         const links = new PIXI.Graphics();
         stage.addChild(links);
 
-        this.networkGraphRef.current.appendChild(renderer.view);
+        this.networkGraphRef.current.appendChild(this.renderer.view);
 
         // const drag = () => {
         //     const dragStarted = () => {
@@ -57,7 +74,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
         //         .on("end", dragEnded);
         // }
 
-        d3.select(renderer.view)
+        d3.select(this.renderer.view)
             .call(d3.zoom().on("zoom", () => {
                 stage.scale.set(d3.event.transform.k)
                 stage.position.set(d3.event.transform.x, d3.event.transform.y)
@@ -92,7 +109,7 @@ class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
 
             links.endFill();
 
-            renderer.render(stage);
+            this.renderer.render(stage);
 
         }
 
