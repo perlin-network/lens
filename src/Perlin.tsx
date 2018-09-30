@@ -7,10 +7,8 @@ import {ITransaction} from "./Transaction";
 class Perlin {
     public static parseWiredTransaction(tx: any, index: number): ITransaction {
         tx = _.extend(tx, {index});
-        tx = _.merge(tx, tx.body);
-        delete tx.body;
 
-        tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || ""
+        // tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || ""
 
         return tx;
     }

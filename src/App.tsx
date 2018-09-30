@@ -17,7 +17,6 @@ import * as React from 'react';
 import {Perlin} from "./Perlin";
 import {Store} from "./Store";
 import logo from "./perlin-logo.svg"
-import {ITransaction} from "./Transaction";
 import * as GridLayout from "react-grid-layout";
 import {WidthProvider} from "react-grid-layout";
 import ReactTable from "react-table";
@@ -47,12 +46,6 @@ const recentColumns = [
         maxWidth: 80,
         className: "text-center"
     },
-    {
-        Header: "Payload",
-        id: "payload",
-        accessor: (tx: ITransaction) => tx.payload && JSON.stringify(tx.payload) || undefined,
-        className: "text-center"
-    }
 ]
 
 
