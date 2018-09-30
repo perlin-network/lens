@@ -88,16 +88,16 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                 <Navbar.Heading>Statistics</Navbar.Heading>
 
                                 <div className="tag-list">
-                                    <Tag minimal={true}>{`uptime: ${this.props.perlin.stats.Uptime}`}</Tag>
+                                    <Tag minimal={true}>{`uptime: ${this.props.perlin.stats.uptime}`}</Tag>
 
                                     <Tag
-                                        minimal={true}>{`tx latency: ${this.props.perlin.stats.ConsensusDuration.toFixed(3)} sec`}</Tag>
+                                        minimal={true}>{`tx latency: ${this.props.perlin.stats.consensusDuration.toFixed(3)} sec`}</Tag>
 
                                     <Tag
-                                        minimal={true}>{`num accepted tx: ${this.props.perlin.stats.NumAcceptedTransactions}`}</Tag>
+                                        minimal={true}>{`num accepted tx: ${this.props.perlin.stats.numAcceptedTransactions}`}</Tag>
 
                                     <Tag
-                                        minimal={true}>{`accepted tx/sec: ${this.props.perlin.stats.NumAcceptedTransactionsPerSecond}`}</Tag>
+                                        minimal={true}>{`accepted tx/sec: ${this.props.perlin.stats.numAcceptedTransactionsPerSecond}`}</Tag>
                                 </div>
                             </Navbar.Group>
                         </Navbar>

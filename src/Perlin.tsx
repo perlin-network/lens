@@ -16,7 +16,7 @@ class Perlin {
     }
 
     @observable public api = {
-        host: "127.0.0.1:3902",
+        host: "127.0.0.1:9000",
         token: ""
     };
 
@@ -28,10 +28,10 @@ class Perlin {
     };
 
     @observable public stats = {
-        ConsensusDuration: 0,
-        NumAcceptedTransactions: 0,
-        NumAcceptedTransactionsPerSecond: 0,
-        Uptime: "0s",
+        consensusDuration: 0,
+        numAcceptedTransactions: 0,
+        numAcceptedTransactionsPerSecond: 0,
+        uptime: "0s",
         cmdline: []
     }
 
@@ -119,7 +119,7 @@ class Perlin {
             }
         );
 
-        this.api.token = response.Token;
+        this.api.token = response.token;
 
         console.log(`Session token: ${this.api.token}`);
     }
@@ -183,7 +183,13 @@ class Perlin {
             const response = await fetch(`http://${this.api.host}/debug/vars`)
             const data = await response.json()
 
-            this.stats = data;
+            this.stats = {
+                consensusDuration: data.perlin_consensus_duration || 0,
+                numAcceptedTransactions: data.perlin_num_accepted_transactions || 0,
+                numAcceptedTransactionsPerSecond: data.perlin_num_accepted_transactions_per_sec || 0,
+                uptime: data.perlin_uptime || "0s",
+                cmdline: data.cmdline || [""]
+            }
         }, 250);
     }
 }
