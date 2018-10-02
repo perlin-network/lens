@@ -98,8 +98,8 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                     <div key="status" style={{marginTop: "1.5em", maxHeight: 42, marginLeft: "0.5em"}}>
                         <div className="statuses">
-                            <div className="statusBorder">
-                                <div className="statusContainer">
+                            <div className="status-border">
+                                <div className="status-container">
                                     <Callout className="status" intent={Intent.SUCCESS}>
                                         You're connected as: <Code
                                         style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.public_key}</Code>
@@ -107,8 +107,8 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                 </div>
                             </div>
 
-                             <div className="statusBorder">
-                                <div className="statusContainer">
+                            <div className="status-border">
+                                <div className="status-container">
                                     <Callout className="status" intent={Intent.PRIMARY}>
                                         You're connected to: <Code
                                         style={{marginLeft: '0.5em'}}>{this.props.perlin.ledger.peers && this.props.perlin.ledger.peers.length > 0 && this.props.perlin.ledger.peers.join(", ") || "N/A"}</Code>
@@ -152,7 +152,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                                             placeholder="0 PERLs"
                                             onChange={this.onAmount}/>
                             </FormGroup>
-                            <div className='buttonContainer'>
+                            <div className='button-container'>
                                 <Button className='button' onClick={this.onTransfer} text="Send PERLs"/>
                             </div>
                         </Card>

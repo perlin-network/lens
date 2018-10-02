@@ -90,7 +90,7 @@ canvas, svg {
   margin-right: 1em;
 }
 
-.statusBorder {
+.status-border {
   flex: 1;
   display: flex;
   border-radius: 1em;
@@ -101,11 +101,12 @@ canvas, svg {
   padding-right: 3px;
 }
 
-.statusContainer {
+.status-container {
   flex: 1;
   display: flex;
   border-radius: calc(1em - 5px);
   background: #060B24;
+  margin-left: -0.175em;
 }
 
 .status {
@@ -115,14 +116,14 @@ canvas, svg {
   border-radius: 1em;
 }
 
-.buttonContainer {
+.button-container {
   background: linear-gradient(135deg, rgb(255, 165, 165) 0%, rgb(255, 149, 149) 10%, rgb(160, 120, 255) 45%, rgb(116, 255, 228) 100%);
   padding: 2px;
   width: 12em;
   border-radius: 1em;
 }
 
-.buttonContainer > button {
+.button-container > button {
   position: relative;
   display: flex;
   cursor: pointer;
@@ -132,6 +133,6 @@ canvas, svg {
   background-color: #1f2137 !important;
 }
 
-.statusContainer > div {
+.status-container > div {
   background-color: #060B24!important;
 }
