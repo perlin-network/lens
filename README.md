@@ -23,6 +23,17 @@ $(cd build; python3 -m http.server)
 # browser visit localhost:8000
 ```
 
+### Docker Build
+
+If you want to build the website without installing the tools locally, use the CI build script:
+
+```bash
+bash build-ci/build.sh
+
+$(cd build; python3 -m http.server)
+# browser visit localhost:8000
+```
+
 ## Common errors
 
 ```bash

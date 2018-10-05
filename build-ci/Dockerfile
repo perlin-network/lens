@@ -1,12 +1,17 @@
-FROM node:10-slim
+FROM node:10-alpine
 
 ENV REPO_DIR=/lens
 ENV BUILD_DIR=${REPO_DIR}/build
 
-COPY . ${REPO_DIR}
 WORKDIR ${REPO_DIR}
 
-RUN yarn && \
-    yarn build
+COPY package.json ${REPO_DIR}/
+COPY yarn.lock ${REPO_DIR}/
 
-CMD bash
+RUN yarn
+
+COPY . ${REPO_DIR}
+
+RUN yarn build
+
+CMD sh
