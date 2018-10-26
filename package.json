@@ -117,7 +117,7 @@
     ],
     "globals": {
       "ts-jest": {
-        "tsConfigFile": "/home/kenta/Desktop/lens/tsconfig.test.json"
+        "tsConfigFile": "<rootDir>/tsconfig.test.json"
       }
     }
   },

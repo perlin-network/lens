@@ -18,7 +18,7 @@ class Perlin {
     }
 
     @observable public api = {
-        host: "127.0.0.1:9000",
+        host: location.hostname + ":9000",
         token: ""
     };
 
