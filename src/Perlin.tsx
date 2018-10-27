@@ -64,6 +64,21 @@ class Perlin {
         return await this.request("/transaction/send", params);
     }
 
+    public async sendContract(contractFile: any): Promise<any> {
+        const formData = new FormData();
+        formData.append('uploadFile', contractFile);
+        const response = await fetch(`http://${this.api.host}/contract/send`, {
+            method: 'post',
+            headers: {
+                "X-Session-Token": this.api.token,
+            },
+            body: formData,
+        })
+
+
+        return await response.json();
+    }
+
     @computed get recentTransactions() {
         return this.transactions.recent.slice();
     }
@@ -191,7 +206,7 @@ class Perlin {
                 uptime: data.perlin_uptime || "0s",
                 cmdline: data.cmdline || [""]
             }
-        }, 250);
+        }, 1000);
     }
 }
 

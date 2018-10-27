@@ -160,6 +160,24 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         <br/>
 
                         <Card className='CardStyle'>
+                            <H5>Send Contract</H5>
+
+                            <FormGroup
+                                label="Smart Contract"
+                                labelFor="selectContract"
+                                labelInfo="(required)">
+                                <InputGroup id="selectContract"
+                                            type="file"
+                                            onChange={this.onSelectContract}/>
+                            </FormGroup>
+                            <div className='button-container'>
+                                <Button className='button' onClick={this.onSendContract} text="Send Contract"/>
+                            </div>
+                        </Card>
+
+                        <br/>
+
+                        <Card className='CardStyle'>
                             <H5>Recent Transactions</H5>
 
                             <div>
@@ -223,6 +241,16 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     // @ts-ignore
     private onTransfer = async (event: any) => {
         await this.props.perlin.transfer(this.props.store.recipient, this.props.store.amount);
+    }
+
+    // @ts-ignore
+    private onSelectContract = (event: any) => {
+        this.props.store.contract = event.target.files[0];
+    }
+
+    // @ts-ignore
+    private onSendContract = async (event: any) => {
+        await this.props.perlin.sendContract(this.props.store.contract);
     }
 }
 
