@@ -75,7 +75,6 @@ class Perlin {
             body: formData,
         })
 
-
         return await response.json();
     }
 
