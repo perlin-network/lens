@@ -4,6 +4,7 @@ import {
     Callout,
     Card,
     Code,
+    FileInput,
     FormGroup,
     H5,
     InputGroup,
@@ -160,6 +161,25 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         <br/>
 
                         <Card className='CardStyle'>
+                            <H5>Create Smart Contract</H5>
+
+                            <FormGroup
+                                label="WebAssembly (.wasm) file"
+                                labelFor="selectContract"
+                                labelInfo="(required)">
+                                <FileInput id="selectContract" large={true} fill={true}
+                                           text={this.props.store.contractFile && this.props.store.contractFile.name}
+                                           onChange={this.onSelectContract}/>
+                            </FormGroup>
+
+                            <div className='button-container'>
+                                <Button className='button' onClick={this.onCreateContract} text="Create"/>
+                            </div>
+                        </Card>
+
+                        <br/>
+
+                        <Card className='CardStyle'>
                             <H5>Recent Transactions</H5>
 
                             <div>
@@ -223,6 +243,16 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     // @ts-ignore
     private onTransfer = async (event: any) => {
         await this.props.perlin.transfer(this.props.store.recipient, this.props.store.amount);
+    }
+
+    // @ts-ignore
+    private onSelectContract = (event: any) => {
+        this.props.store.contractFile = event.target.files[0];
+    }
+
+    // @ts-ignore
+    private onCreateContract = async (event: any) => {
+        await this.props.perlin.createSmartContract(this.props.store.contractFile);
     }
 }
 
