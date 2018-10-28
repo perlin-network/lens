@@ -95,10 +95,7 @@ canvas, svg {
   display: flex;
   border-radius: 1em;
   background: linear-gradient(135deg, rgb(255, 165, 165) 0%, rgb(255, 149, 149) 10%, rgb(160, 120, 255) 45%, rgb(116, 255, 228) 100%);
-  padding-top: 8px;
-  padding-bottom: 3px;
-  padding-left: 4px;
-  padding-right: 3px;
+  padding: 8px 3px 3px 4px;
 }
 
 .status-container {

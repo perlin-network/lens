@@ -4,6 +4,7 @@ import {
     Callout,
     Card,
     Code,
+    FileInput,
     FormGroup,
     H5,
     InputGroup,
@@ -160,18 +161,19 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                         <br/>
 
                         <Card className='CardStyle'>
-                            <H5>Send Contract</H5>
+                            <H5>Create Smart Contract</H5>
 
                             <FormGroup
-                                label="Smart Contract"
+                                label="WebAssembly (.wasm) file"
                                 labelFor="selectContract"
                                 labelInfo="(required)">
-                                <InputGroup id="selectContract"
-                                            type="file"
-                                            onChange={this.onSelectContract}/>
+                                <FileInput id="selectContract" large={true} fill={true}
+                                           text={this.props.store.contractFile && this.props.store.contractFile.name}
+                                           onChange={this.onSelectContract}/>
                             </FormGroup>
+
                             <div className='button-container'>
-                                <Button className='button' onClick={this.onSendContract} text="Send Contract"/>
+                                <Button className='button' onClick={this.onCreateContract} text="Create"/>
                             </div>
                         </Card>
 
@@ -245,12 +247,12 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
     // @ts-ignore
     private onSelectContract = (event: any) => {
-        this.props.store.contract = event.target.files[0];
+        this.props.store.contractFile = event.target.files[0];
     }
 
     // @ts-ignore
-    private onSendContract = async (event: any) => {
-        await this.props.perlin.sendContract(this.props.store.contract);
+    private onCreateContract = async (event: any) => {
+        await this.props.perlin.createSmartContract(this.props.store.contractFile);
     }
 }
 
