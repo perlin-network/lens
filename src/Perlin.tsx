@@ -226,7 +226,6 @@ class Perlin {
     }
 
     private pollStatistics() {
-        return;
         setInterval(async () => {
             const response = await fetch(`http://${this.api.host}/debug/vars`)
             const data = await response.json()
