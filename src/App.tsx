@@ -222,10 +222,18 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     private recentSubComponent = (row: any) => {
         const data = row.original;
         delete data.index;
+        const isContract = data.tag === "create_contract";
 
         return (
             <div style={{paddingLeft: 10, paddingRight: 10}}>
                 <Pre style={{overflow: "hidden", textOverflow: "ellipsis"}}>{JSON.stringify(data, null, 4)}</Pre>
+                { isContract ?
+                    // show a download button from the smart contract
+                    <div className='button-container' style={{marginLeft: 20}}>
+                        <Button className='button' onClick={this.onDownloadContract} value={data.id} text="Download"/>
+                    </div>
+                    : null
+                }
             </div>
         );
     }
@@ -253,6 +261,12 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
     // @ts-ignore
     private onCreateContract = async (event: any) => {
         await this.props.perlin.createSmartContract(this.props.store.contractFile);
+    }
+
+    // @ts-ignore
+    private onDownloadContract = (event: any) => {
+        const txID: string = event.target.value;
+        this.props.perlin.downloadContract(txID);
     }
 }
 
