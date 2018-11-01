@@ -231,7 +231,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     isContract ?
                         // show a download button from the smart contract
                         <div className='button-container' style={{marginLeft: 20}}>
-                            <Button className='button' onClick={this.onDownloadContract} id={data.id} text="Download"/>
+                            <Button className='button' onClick={this.onDownloadContract} value={data.id} text="Download"/>
                         </div>
                     : null
                 }
@@ -266,7 +266,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
     // @ts-ignore
     private onDownloadContract = (event: any) => {
-        const txID: string = event.target.id;
+        const txID: string = event.target.value;
         this.props.perlin.downloadContract(txID);
     }
 }
