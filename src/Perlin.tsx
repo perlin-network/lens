@@ -59,7 +59,35 @@ class Perlin {
                     recipient, amount
                 }
             ))
-        }
+        };
+
+        return await this.request("/transaction/send", params);
+    }
+
+    // @ts-ignore
+    public async placeStake(amount: number): Promise<any> {
+        const params = {
+            tag: "place_stake",
+            payload: btoa(JSON.stringify(
+                {
+                    amount
+                }
+            ))
+        };
+
+        return await this.request("/transaction/send", params);
+    }
+
+    // @ts-ignore
+    public async withdrawStake(amount: number): Promise<any> {
+        const params = {
+            tag: "withdraw_stake",
+            payload: btoa(JSON.stringify(
+                {
+                    amount
+                }
+            ))
+        };
 
         return await this.request("/transaction/send", params);
     }
@@ -112,6 +140,8 @@ class Perlin {
 
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
+
+        console.log(await this.getAccount(this.ledger.public_key));
 
         Object.keys(this.ledger.state).forEach(publicKey => {
             const account = this.ledger.state[publicKey];
@@ -191,7 +221,17 @@ class Perlin {
 
     // @ts-ignore
     private async listTransactions(offset: number, limit: number): Promise<any> {
-        return await this.request("/transaction/list", {offset, limit})
+        return await this.request("/transaction/list", {offset, limit});
+    }
+
+    // @ts-ignore
+    private async getTransaction(id: string): Promise<any> {
+        return await this.request("/transaction", id);
+    }
+
+    // @ts-ignore
+    private async getAccount(id: string): Promise<any> {
+        return await this.request("/account/get", id);
     }
 
     private pollStatistics() {
