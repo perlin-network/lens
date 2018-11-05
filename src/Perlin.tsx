@@ -79,6 +79,37 @@ class Perlin {
         return await response.json();
     }
 
+    public async downloadContract(txID: string): Promise<void> {
+        const params = {
+            transaction_id: txID,
+        }
+
+        // get the contract payload
+        const contract = await this.request("/contract/get", params);
+
+        if (contract.hasOwnProperty("code")) {
+            // convert the contract.code into bytes
+            const byteCharacters = atob(contract.code);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+
+            // convert bytes into a download dialog
+            const blob = new Blob([byteArray], {type: 'application/wasm'});
+            const fileName: string = `${txID}.wasm`;
+            const objectUrl: string = URL.createObjectURL(blob);
+            const a: HTMLAnchorElement = document.createElement('a') as HTMLAnchorElement;
+            a.href = objectUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectUrl);
+        }
+    }
+
     @computed get recentTransactions() {
         return this.transactions.recent.slice();
     }
