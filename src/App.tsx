@@ -1,18 +1,4 @@
-import {
-    Alignment,
-    Button,
-    Callout,
-    Card,
-    Code,
-    FileInput,
-    FormGroup,
-    H5,
-    InputGroup,
-    Intent,
-    Navbar,
-    Pre,
-    Tag
-} from "@blueprintjs/core";
+import {Alignment, Button, Callout, Card, Code, H5, Intent, Navbar, Pre, Tab, Tabs, Tag} from "@blueprintjs/core";
 import {observer} from "mobx-react";
 import * as React from 'react';
 import {Perlin} from "./Perlin";
@@ -23,6 +9,9 @@ import {WidthProvider} from "react-grid-layout";
 import ReactTable from "react-table";
 import {NetworkGraph} from "./NetworkGraph";
 import {TransactionGraphPixi} from "./TransactionGraphPixi";
+import {MoneyPanel} from "./MoneyPanel";
+import {ContractPanel} from "./ContractPanel";
+import {StakePanel} from "./StakePanel";
 
 
 const DecoratedGridLayout = WidthProvider(GridLayout);
@@ -77,7 +66,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
 
                     <div key="navbar" style={{marginTop: "1em", marginBottom: "1em", paddingRight: "1.5em"}}>
-                        <Navbar className="CardStyle">
+                        <Navbar className="cardStyle">
                             <Navbar.Group align={Alignment.CENTER}>
                                 <Navbar.Heading>Statistics</Navbar.Heading>
 
@@ -121,7 +110,7 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
 
                     <div key="ledger" style={{marginTop: "1.5em", paddingBottom: "1em", marginLeft: "0.5em"}}>
-                        <Card className='CardStyle'>
+                        <Card className='cardStyle'>
                             <H5>Ledger</H5>
                             <Pre style={{
                                 overflow: "hidden",
@@ -132,54 +121,20 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
 
                         <br/>
 
-                        <Card className='CardStyle'>
-                            <H5>Send PERLs</H5>
-                            <FormGroup
-                                label="Recipient"
-                                labelFor="recipient"
-                                labelInfo="(required)">
-                                <InputGroup id="recipient"
-                                            placeholder="8f9b4ae0364280e6a0b988c149f65d1badaeefed2db582266494dd79aa7c821a"
-                                            onChange={this.onRecipient}/>
+                        <Card className='cardStyle'>
+                            <H5>Send Transaction</H5>
 
-                            </FormGroup>
-
-                            <FormGroup
-                                label="Amount"
-                                labelFor="amount"
-                                labelInfo="(required)">
-                                <InputGroup id="amount"
-                                            type="number"
-                                            placeholder="0 PERLs"
-                                            onChange={this.onAmount}/>
-                            </FormGroup>
-                            <div className='button-container'>
-                                <Button className='button' onClick={this.onTransfer} text="Send PERLs"/>
-                            </div>
+                            <Tabs>
+                                <Tab id="money" title="Money" panel={<MoneyPanel perlin={this.props.perlin}/>}/>
+                                <Tab id="stake" title="Stake" panel={<StakePanel perlin={this.props.perlin}/>}/>
+                                <Tab id="contract" title="Smart Contract"
+                                     panel={<ContractPanel perlin={this.props.perlin}/>}/>
+                            </Tabs>
                         </Card>
 
                         <br/>
 
-                        <Card className='CardStyle'>
-                            <H5>Create Smart Contract</H5>
-
-                            <FormGroup
-                                label="WebAssembly (.wasm) file"
-                                labelFor="selectContract"
-                                labelInfo="(required)">
-                                <FileInput id="selectContract" large={true} fill={true}
-                                           text={this.props.store.contractFile && this.props.store.contractFile.name}
-                                           onChange={this.onSelectContract}/>
-                            </FormGroup>
-
-                            <div className='button-container'>
-                                <Button className='button' onClick={this.onCreateContract} text="Create"/>
-                            </div>
-                        </Card>
-
-                        <br/>
-
-                        <Card className='CardStyle'>
+                        <Card className='cardStyle'>
                             <H5>Recent Transactions</H5>
 
                             <div>
@@ -201,14 +156,14 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     </div>
 
                     <div key="graphs" style={{marginTop: "1.5em", marginLeft: "1em", paddingRight: "2.5em"}}>
-                        <Card className='CardStyle'>
+                        <Card className='cardStyle'>
                             <H5>Transactions</H5>
                             <TransactionGraphPixi perlin={this.props.perlin}/>
                         </Card>
 
                         <br/>
 
-                        <Card className='CardStyle'>
+                        <Card className='cardStyle'>
                             <H5>Network</H5>
                             <NetworkGraph perlin={this.props.perlin}/>
                         </Card>
@@ -231,37 +186,13 @@ class App extends React.Component<{ store: Store, perlin: Perlin }, {}> {
                     isContract ?
                         // show a download button from the smart contract
                         <div className='button-container' style={{marginLeft: 20}}>
-                            <Button className='button' onClick={this.onDownloadContract} value={data.id} text="Download"/>
+                            <Button className='button' onClick={this.onDownloadContract} value={data.id}
+                                    text="Download"/>
                         </div>
-                    : null
+                        : null
                 }
             </div>
         );
-    }
-
-    // @ts-ignore
-    private onRecipient = (event: any) => {
-        this.props.store.recipient = event.target.value;
-    }
-
-    // @ts-ignore
-    private onAmount = (event: any) => {
-        this.props.store.amount = parseInt(event.target.value, 10);
-    }
-
-    // @ts-ignore
-    private onTransfer = async (event: any) => {
-        await this.props.perlin.transfer(this.props.store.recipient, this.props.store.amount);
-    }
-
-    // @ts-ignore
-    private onSelectContract = (event: any) => {
-        this.props.store.contractFile = event.target.files[0];
-    }
-
-    // @ts-ignore
-    private onCreateContract = async (event: any) => {
-        await this.props.perlin.createSmartContract(this.props.store.contractFile);
     }
 
     // @ts-ignore

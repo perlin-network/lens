@@ -172,8 +172,6 @@ class Perlin {
     private async initLedger() {
         this.ledger = await this.request("/ledger/state", {});
 
-        console.log(await this.getAccount(this.ledger.public_key));
-
         Object.keys(this.ledger.state).forEach(publicKey => {
             const account = this.ledger.state[publicKey];
 
@@ -190,9 +188,9 @@ class Perlin {
         const auth = nacl.sign.detached(new Buffer(`perlin_session_init_${time}`), this.keys.secretKey)
 
         const response = await this.request("/session/init", {
-                "PublicKey": Buffer.from(this.keys.publicKey).toString('hex'),
-                "TimeMillis": time,
-                "Sig": Buffer.from(auth).toString('hex'),
+            "public_key": Buffer.from(this.keys.publicKey).toString('hex'),
+            "time_millis": time,
+            "signature": Buffer.from(auth).toString('hex'),
             }
         );
 
