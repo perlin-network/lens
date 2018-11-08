@@ -2,6 +2,10 @@
 
 A TypeScript/React/MobX web interface to a Perlin node's API.
 
+By default, Lens connects to a node whose HTTP API is hosted on port 9000 locally (location.hostname + ":9000"). Should you wish to change the HTTP API endpoint which Lens will connect to, you may change it at `src/Perlin.tsx`.
+
+The module `src/Perlin.tsx` additionally holds a MobX API interface in TypeScript that you may use in building misc. web/backend applications which interact with a Wavelet node.
+
 ## Setup
 
 ```bash
