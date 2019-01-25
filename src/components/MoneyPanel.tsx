@@ -1,7 +1,7 @@
 import * as React from "react";
-import {Perlin} from "./Perlin";
+import {Perlin} from "../Perlin";
 import {Button, FormGroup, InputGroup} from "@blueprintjs/core";
-import {MoneyPanelStore} from "./MoneyPanelStore";
+import {MoneyPanelStore} from "../stores/MoneyPanelStore";
 
 class MoneyPanel extends React.Component<{ perlin: Perlin }, {}> {
     private store: MoneyPanelStore = new MoneyPanelStore();

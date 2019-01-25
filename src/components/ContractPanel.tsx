@@ -1,7 +1,7 @@
 import * as React from "react";
-import {Perlin} from "./Perlin";
+import {Perlin} from "../Perlin";
 import {Button, FileInput, FormGroup} from "@blueprintjs/core";
-import {ContractPanelStore} from "./ContractPanelStore";
+import {ContractPanelStore} from "../stores/ContractPanelStore";
 
 class ContractPanel extends React.Component<{ perlin: Perlin }, {}> {
     private store: ContractPanelStore = new ContractPanelStore();

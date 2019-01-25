@@ -1,12 +1,12 @@
 import * as React from "react";
 import {createRef} from "react";
-import {Perlin} from "./Perlin";
+import {Perlin} from "../Perlin";
 // @ts-ignore
 import * as sizeMe from "react-sizeme";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import {when} from "mobx";
-import {ITransaction} from "./Transaction";
+import {ITransaction} from "../Transaction";
 
 class Graph extends React.Component<{ perlin: Perlin, size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
