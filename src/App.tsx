@@ -2,16 +2,16 @@ import {Alignment, Button, Callout, Card, Code, H5, Intent, Navbar, Pre, Tab, Ta
 import {observer} from "mobx-react";
 import * as React from 'react';
 import {Perlin} from "./Perlin";
-import {Store} from "./Store";
+import {Store} from "./stores/Store";
 import logo from "./perlin-logo.svg"
 import * as GridLayout from "react-grid-layout";
 import {WidthProvider} from "react-grid-layout";
 import ReactTable from "react-table";
-import {NetworkGraph} from "./NetworkGraph";
-import {TransactionGraphPixi} from "./TransactionGraphPixi";
-import {MoneyPanel} from "./MoneyPanel";
-import {ContractPanel} from "./ContractPanel";
-import {StakePanel} from "./StakePanel";
+import {NetworkGraph} from "./graphs/NetworkGraph";
+import {TransactionGraphPixi} from "./graphs/TransactionGraphPixi";
+import {MoneyPanel} from "./components/MoneyPanel";
+import {ContractPanel} from "./components/ContractPanel";
+import {StakePanel} from "./components/StakePanel";
 
 
 const DecoratedGridLayout = WidthProvider(GridLayout);

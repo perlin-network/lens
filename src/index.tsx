@@ -5,7 +5,7 @@ import App from './App';
 import './App.scss';
 import {Perlin} from "./Perlin";
 import registerServiceWorker from './registerServiceWorker';
-import {Store} from "./Store";
+import {Store} from "./stores/Store";
 
 
 ReactDOM.render(

@@ -1,7 +1,7 @@
 import * as React from "react";
-import {Perlin} from "./Perlin";
+import {Perlin} from "../Perlin";
 import {Button, ButtonGroup, FormGroup, InputGroup} from "@blueprintjs/core";
-import {StakePanelStore} from "./StakePanelStore";
+import {StakePanelStore} from "../stores/StakePanelStore";
 
 class StakePanel extends React.Component<{ perlin: Perlin }, {}> {
     private store: StakePanelStore = new StakePanelStore();
