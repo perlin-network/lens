@@ -24,6 +24,7 @@ import { ContractPanel } from "./components/ContractPanel";
 import { StakePanel } from "./components/StakePanel";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
+import { Tag as PerlinTag } from "./constants";
 
 const Layout = styled(Flex)`
     margin-left: 2em;
@@ -260,7 +261,7 @@ class App extends React.Component<{}, {}> {
     private recentSubComponent = (row: any) => {
         const data = row.original;
         delete data.index;
-        const isContract = data.tag === "create_contract";
+        const isContract = data.tag === PerlinTag.CreateContract;
 
         return (
             <div style={{ paddingLeft: 10, paddingRight: 10 }}>
@@ -275,8 +276,7 @@ class App extends React.Component<{}, {}> {
                     >
                         <Button
                             className="button"
-                            onClick={this.onDownloadContract}
-                            value={data.id}
+                            onClick={this.onDownloadContract(data.id)}
                             text="Download"
                         />
                     </div>
@@ -286,8 +286,7 @@ class App extends React.Component<{}, {}> {
     };
 
     // @ts-ignore
-    private onDownloadContract = (event: any) => {
-        const txID: string = event.target.value;
+    private onDownloadContract = (txID: string) => () => {
         perlin.downloadContract(txID);
     };
 }
