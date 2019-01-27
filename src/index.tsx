@@ -6,15 +6,16 @@ import * as ReactDOM from "react-dom";
 import App from "./App";
 import { Perlin } from "./Perlin";
 import registerServiceWorker from "./registerServiceWorker";
-import { Store } from "./stores/Store";
 import { ThemeProvider } from "styled-components";
 import { theme, GlobalStyle } from "./theme";
+
+Perlin.getInstance(); // Initialize Perlin Instance
 
 ReactDOM.render(
     <ThemeProvider theme={theme}>
         <>
             <GlobalStyle />
-            <App perlin={new Perlin()} store={new Store()} />
+            <App />
         </>
     </ThemeProvider>,
     document.getElementById("root") as HTMLElement

@@ -5,6 +5,17 @@ import { ITransaction } from "./Transaction";
 import { Tag } from "./constants";
 
 class Perlin {
+    @computed get recentTransactions() {
+        return this.transactions.recent.slice();
+    }
+
+    public static getInstance(): Perlin {
+        if (Perlin.singleton === undefined) {
+            Perlin.singleton = new Perlin();
+        }
+        return Perlin.singleton;
+    }
+
     public static parseWiredTransaction(tx: any, index: number): ITransaction {
         tx = _.extend(tx, { index });
 
@@ -18,6 +29,7 @@ class Perlin {
 
         return tx;
     }
+    private static singleton: Perlin;
 
     @observable public api = {
         host: location.hostname + ":9000",
@@ -146,10 +158,6 @@ class Perlin {
             document.body.removeChild(a);
             URL.revokeObjectURL(objectUrl);
         }
-    }
-
-    @computed get recentTransactions() {
-        return this.transactions.recent.slice();
     }
 
     private async init() {
