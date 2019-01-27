@@ -104,7 +104,7 @@ class Perlin {
             tag: Tag.Stake,
             payload: btoa(
                 JSON.stringify({
-                    amount
+                    amount: amount * -1
                 })
             )
         };

@@ -1,10 +1,12 @@
 import * as React from "react";
+import { observer } from "mobx-react";
 import { Perlin } from "../Perlin";
 import { Button, ButtonGroup, FormGroup, InputGroup } from "@blueprintjs/core";
 import { StakePanelStore } from "../stores/StakePanelStore";
 
 const perlin = Perlin.getInstance();
 
+@observer
 class StakePanel extends React.Component<{}, {}> {
     private store: StakePanelStore = new StakePanelStore();
 
@@ -20,6 +22,7 @@ class StakePanel extends React.Component<{}, {}> {
                         id="amount"
                         type="number"
                         placeholder="0 PERLs"
+                        value={this.store.amount.toString()}
                         onChange={this.onAmount}
                     />
                 </FormGroup>
@@ -50,13 +53,14 @@ class StakePanel extends React.Component<{}, {}> {
 
     // @ts-ignore
     private onAmount = (event: any) => {
-        this.store.amount = parseInt(event.target.value, 10);
+        this.store.amount = event.target.value || 0;
     };
 
     // @ts-ignore
     private onPlaceStake = async (event: any) => {
         if (this.store.amount > 0) {
             await perlin.placeStake(this.store.amount);
+            this.store.clearAmount();
         }
     };
 
@@ -64,6 +68,7 @@ class StakePanel extends React.Component<{}, {}> {
     private onWithdrawStake = async (event: any) => {
         if (this.store.amount > 0) {
             await perlin.withdrawStake(this.store.amount);
+            this.store.clearAmount();
         }
     };
 }
