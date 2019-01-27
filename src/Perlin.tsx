@@ -322,12 +322,12 @@ class Perlin {
             const data = await response.json();
 
             this.stats = {
-                consensusDuration: data.perlin_consensus_duration || 0,
+                consensusDuration: data.wavelet.consensus_duration || 0,
                 numAcceptedTransactions:
-                    data.perlin_num_accepted_transactions || 0,
+                    data.wavelet.num_accepted_transactions || 0,
                 numAcceptedTransactionsPerSecond:
-                    data.perlin_num_accepted_transactions_per_sec || 0,
-                uptime: data.perlin_uptime || "0s",
+                    data.wavelet.num_accepted_transactions_per_sec || 0,
+                uptime: data.wavelet.uptime || "0s",
                 cmdline: data.cmdline || [""]
             };
         }, 1000);
