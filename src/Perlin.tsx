@@ -1,8 +1,8 @@
-import { computed, observable } from "mobx";
+import {computed, observable} from "mobx";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
-import { ITransaction } from "./Transaction";
-import { Tag } from "./constants";
+import {ITransaction} from "./Transaction";
+import {Tag} from "./constants";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -17,7 +17,7 @@ class Perlin {
     }
 
     public static parseWiredTransaction(tx: any, index: number): ITransaction {
-        tx = _.extend(tx, { index });
+        tx = _.extend(tx, {index});
 
         try {
             tx.payload =
@@ -29,6 +29,7 @@ class Perlin {
 
         return tx;
     }
+
     private static singleton: Perlin;
 
     @observable public api = {
@@ -145,7 +146,7 @@ class Perlin {
             const byteArray = new Uint8Array(byteNumbers);
 
             // convert bytes into a download dialog
-            const blob = new Blob([byteArray], { type: "application/wasm" });
+            const blob = new Blob([byteArray], {type: "application/wasm"});
             const fileName: string = `${txID}.wasm`;
             const objectUrl: string = URL.createObjectURL(blob);
             const a: HTMLAnchorElement = document.createElement(
@@ -231,7 +232,7 @@ class Perlin {
             this.api.token
         );
 
-        ws.onmessage = ({ data }) => {
+        ws.onmessage = ({data}) => {
             data = Perlin.parseWiredTransaction(
                 JSON.parse(data),
                 this.transactions.recent.length
@@ -267,7 +268,7 @@ class Perlin {
             this.api.token
         );
 
-        ws.onmessage = ({ data }) => {
+        ws.onmessage = ({data}) => {
             data = JSON.parse(data);
             const account = this.ledger.state[data.account];
             if (account != null) {
@@ -303,7 +304,7 @@ class Perlin {
         offset: number,
         limit: number
     ): Promise<any> {
-        return await this.request("/transaction/list", { offset, limit });
+        return await this.request("/transaction/list", {offset, limit});
     }
 
     // @ts-ignore
@@ -334,4 +335,4 @@ class Perlin {
     }
 }
 
-export { Perlin };
+export {Perlin};
