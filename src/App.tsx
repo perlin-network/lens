@@ -15,7 +15,6 @@ import {
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Perlin } from "./Perlin";
-import { Store } from "./stores/Store";
 import logo from "./perlin-logo.svg";
 import ReactTable from "react-table";
 import { NetworkGraph } from "./graphs/NetworkGraph";
@@ -25,6 +24,7 @@ import { ContractPanel } from "./components/ContractPanel";
 import { StakePanel } from "./components/StakePanel";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
+import { Tag as PerlinTag } from "./constants";
 
 const Layout = styled(Flex)`
     margin-left: 2em;
@@ -62,8 +62,10 @@ const recentColumns = [
     }
 ];
 
+const perlin = Perlin.getInstance();
+
 @observer
-class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
+class App extends React.Component<{}, {}> {
     public render() {
         return (
             <>
@@ -94,26 +96,25 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
 
                                     <div className="tag-list">
                                         <Tag minimal={true}>{`uptime: ${
-                                            this.props.perlin.stats.uptime
+                                            perlin.stats.uptime
                                         }`}</Tag>
 
                                         <Tag
                                             minimal={true}
-                                        >{`tx latency: ${this.props.perlin.stats.consensusDuration.toFixed(
+                                        >{`tx latency: ${perlin.stats.consensusDuration.toFixed(
                                             3
                                         )} sec`}</Tag>
 
                                         <Tag
                                             minimal={true}
                                         >{`num accepted tx: ${
-                                            this.props.perlin.stats
-                                                .numAcceptedTransactions
+                                            perlin.stats.numAcceptedTransactions
                                         }`}</Tag>
 
                                         <Tag
                                             minimal={true}
                                         >{`accepted tx/sec: ${
-                                            this.props.perlin.stats
+                                            perlin.stats
                                                 .numAcceptedTransactionsPerSecond
                                         }`}</Tag>
                                     </div>
@@ -132,10 +133,7 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
                                     >
                                         You're connected as:{" "}
                                         <Code style={{ marginLeft: "0.5em" }}>
-                                            {
-                                                this.props.perlin.ledger
-                                                    .public_key
-                                            }
+                                            {perlin.ledger.public_key}
                                         </Code>
                                     </Callout>
                                 </div>
@@ -149,10 +147,10 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
                                     >
                                         You're connected to:{" "}
                                         <Code style={{ marginLeft: "0.5em" }}>
-                                            {(this.props.perlin.ledger.peers &&
-                                                this.props.perlin.ledger.peers
-                                                    .length > 0 &&
-                                                this.props.perlin.ledger.peers.join(
+                                            {(perlin.ledger.peers &&
+                                                perlin.ledger.peers.length >
+                                                    0 &&
+                                                perlin.ledger.peers.join(
                                                     ", "
                                                 )) ||
                                                 "N/A"}
@@ -180,7 +178,7 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
                                     }}
                                 >
                                     {JSON.stringify(
-                                        this.props.perlin.ledger.state,
+                                        perlin.ledger.state,
                                         null,
                                         4
                                     )}
@@ -196,29 +194,17 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
                                     <Tab
                                         id="money"
                                         title="Money"
-                                        panel={
-                                            <MoneyPanel
-                                                perlin={this.props.perlin}
-                                            />
-                                        }
+                                        panel={<MoneyPanel />}
                                     />
                                     <Tab
                                         id="stake"
                                         title="Stake"
-                                        panel={
-                                            <StakePanel
-                                                perlin={this.props.perlin}
-                                            />
-                                        }
+                                        panel={<StakePanel />}
                                     />
                                     <Tab
                                         id="contract"
                                         title="Smart Contract"
-                                        panel={
-                                            <ContractPanel
-                                                perlin={this.props.perlin}
-                                            />
-                                        }
+                                        panel={<ContractPanel />}
                                     />
                                 </Tabs>
                             </Card>
@@ -230,9 +216,7 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
 
                                 <div>
                                     <ReactTable
-                                        data={
-                                            this.props.perlin.recentTransactions
-                                        }
+                                        data={perlin.recentTransactions}
                                         columns={recentColumns}
                                         className="-striped -highlight"
                                         defaultPageSize={15}
@@ -257,16 +241,14 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
                         >
                             <Card className="cardStyle">
                                 <H5>Transactions</H5>
-                                <TransactionGraphPixi
-                                    perlin={this.props.perlin}
-                                />
+                                <TransactionGraphPixi />
                             </Card>
 
                             <br />
 
                             <Card className="cardStyle">
                                 <H5>Network</H5>
-                                <NetworkGraph perlin={this.props.perlin} />
+                                <NetworkGraph />
                             </Card>
                         </Box>
                     </Flex>
@@ -279,7 +261,7 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
     private recentSubComponent = (row: any) => {
         const data = row.original;
         delete data.index;
-        const isContract = data.tag === "create_contract";
+        const isContract = data.tag === PerlinTag.CreateContract;
 
         return (
             <div style={{ paddingLeft: 10, paddingRight: 10 }}>
@@ -294,8 +276,7 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
                     >
                         <Button
                             className="button"
-                            onClick={this.onDownloadContract}
-                            value={data.id}
+                            onClick={this.onDownloadContract(data.id)}
                             text="Download"
                         />
                     </div>
@@ -305,9 +286,8 @@ class App extends React.Component<{ store: Store; perlin: Perlin }, {}> {
     };
 
     // @ts-ignore
-    private onDownloadContract = (event: any) => {
-        const txID: string = event.target.value;
-        this.props.perlin.downloadContract(txID);
+    private onDownloadContract = (txID: string) => () => {
+        perlin.downloadContract(txID);
     };
 }
 

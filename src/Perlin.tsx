@@ -1,21 +1,36 @@
 import {computed, observable} from "mobx";
-import * as nacl from "tweetnacl"
+import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import {ITransaction} from "./Transaction";
-
+import {Tag} from "./constants";
 
 class Perlin {
+    @computed get recentTransactions() {
+        return this.transactions.recent.slice();
+    }
+
+    public static getInstance(): Perlin {
+        if (Perlin.singleton === undefined) {
+            Perlin.singleton = new Perlin();
+        }
+        return Perlin.singleton;
+    }
+
     public static parseWiredTransaction(tx: any, index: number): ITransaction {
         tx = _.extend(tx, {index});
 
         try {
-            tx.payload = tx.payload && JSON.parse(atob(tx.payload)) || "<error decoding>";
+            tx.payload =
+                (tx.payload && JSON.parse(atob(tx.payload))) ||
+                "<error decoding>";
         } catch (error) {
             tx.payload = "<too large>";
         }
 
         return tx;
     }
+
+    private static singleton: Perlin;
 
     @observable public api = {
         host: location.hostname + ":9000",
@@ -35,30 +50,36 @@ class Perlin {
         numAcceptedTransactionsPerSecond: 0,
         uptime: "0s",
         cmdline: []
-    }
+    };
 
     @observable public transactions = {
         recent: [] as ITransaction[]
-    }
+    };
 
     public onPolledTransaction: (tx: ITransaction) => void;
 
     private keys: nacl.SignKeyPair;
 
-    constructor() {
-        this.keys = nacl.sign.keyPair.fromSecretKey(Buffer.from("6d6fe0c2bc913c0e3e497a0328841cf4979f932e01d2030ad21e649fca8d47fe71e6c9b83a7ef02bae6764991eefe53360a0a09be53887b2d3900d02c00a3858", "hex"));
+    private constructor() {
+        this.keys = nacl.sign.keyPair.fromSecretKey(
+            Buffer.from(
+                "6d6fe0c2bc913c0e3e497a0328841cf4979f932e01d2030ad21e649fca8d47fe71e6c9b83a7ef02bae6764991eefe53360a0a09be53887b2d3900d02c00a3858",
+                "hex"
+            )
+        );
 
         this.init().catch(err => console.error(err));
     }
 
     public async transfer(recipient: string, amount: number): Promise<any> {
         const params = {
-            tag: "transfer",
-            payload: btoa(JSON.stringify(
-                {
-                    recipient, amount
-                }
-            ))
+            tag: Tag.Stake,
+            payload: btoa(
+                JSON.stringify({
+                    recipient,
+                    amount
+                })
+            )
         };
 
         return await this.request("/transaction/send", params);
@@ -67,12 +88,12 @@ class Perlin {
     // @ts-ignore
     public async placeStake(amount: number): Promise<any> {
         const params = {
-            tag: "place_stake",
-            payload: btoa(JSON.stringify(
-                {
+            tag: Tag.Stake,
+            payload: btoa(
+                JSON.stringify({
                     amount
-                }
-            ))
+                })
+            )
         };
 
         return await this.request("/transaction/send", params);
@@ -81,12 +102,12 @@ class Perlin {
     // @ts-ignore
     public async withdrawStake(amount: number): Promise<any> {
         const params = {
-            tag: "withdraw_stake",
-            payload: btoa(JSON.stringify(
-                {
-                    amount
-                }
-            ))
+            tag: Tag.Stake,
+            payload: btoa(
+                JSON.stringify({
+                    amount: amount * -1
+                })
+            )
         };
 
         return await this.request("/transaction/send", params);
@@ -94,23 +115,23 @@ class Perlin {
 
     public async createSmartContract(contractFile: any): Promise<any> {
         const formData = new FormData();
-        formData.append('uploadFile', contractFile);
+        formData.append("uploadFile", contractFile);
 
         const response = await fetch(`http://${this.api.host}/contract/send`, {
-            method: 'post',
+            method: "post",
             headers: {
-                "X-Session-Token": this.api.token,
+                "X-Session-Token": this.api.token
             },
-            body: formData,
-        })
+            body: formData
+        });
 
         return await response.json();
     }
 
     public async downloadContract(txID: string): Promise<void> {
         const params = {
-            transaction_id: txID,
-        }
+            transaction_id: txID
+        };
 
         // get the contract payload
         const contract = await this.request("/contract/get", params);
@@ -125,10 +146,12 @@ class Perlin {
             const byteArray = new Uint8Array(byteNumbers);
 
             // convert bytes into a download dialog
-            const blob = new Blob([byteArray], {type: 'application/wasm'});
+            const blob = new Blob([byteArray], {type: "application/wasm"});
             const fileName: string = `${txID}.wasm`;
             const objectUrl: string = URL.createObjectURL(blob);
-            const a: HTMLAnchorElement = document.createElement('a') as HTMLAnchorElement;
+            const a: HTMLAnchorElement = document.createElement(
+                "a"
+            ) as HTMLAnchorElement;
             a.href = objectUrl;
             a.download = fileName;
             document.body.appendChild(a);
@@ -136,10 +159,6 @@ class Perlin {
             document.body.removeChild(a);
             URL.revokeObjectURL(objectUrl);
         }
-    }
-
-    @computed get recentTransactions() {
-        return this.transactions.recent.slice();
     }
 
     private async init() {
@@ -152,19 +171,23 @@ class Perlin {
             this.pollStatistics();
             this.pollAccountUpdates();
         } catch (err) {
-            console.error(err)
+            console.error(err);
         }
     }
 
-    private async request(endpoint: string, body?: any, headers?: any): Promise<any> {
+    private async request(
+        endpoint: string,
+        body?: any,
+        headers?: any
+    ): Promise<any> {
         const response = await fetch(`http://${this.api.host}${endpoint}`, {
-            method: 'post',
+            method: "post",
             headers: {
                 "X-Session-Token": this.api.token,
                 ...headers
             },
             body: JSON.stringify(body)
-        })
+        });
 
         return await response.json();
     }
@@ -176,23 +199,27 @@ class Perlin {
             const account = this.ledger.state[publicKey];
 
             Object.keys(account.State).forEach(key => {
-                account.State[key] = this.decodeInt64(new Buffer(account.State[key], 'base64'))
-            })
-        })
+                account.State[key] = this.decodeInt64(
+                    new Buffer(account.State[key], "base64")
+                );
+            });
+        });
 
         this.transactions.recent = await this.requestRecentTransactions();
     }
 
     private async initSession() {
         const time = new Date().getTime();
-        const auth = nacl.sign.detached(new Buffer(`perlin_session_init_${time}`), this.keys.secretKey)
+        const auth = nacl.sign.detached(
+            new Buffer(`perlin_session_init_${time}`),
+            this.keys.secretKey
+        );
 
         const response = await this.request("/session/init", {
-            "public_key": Buffer.from(this.keys.publicKey).toString('hex'),
-            "time_millis": time,
-            "signature": Buffer.from(auth).toString('hex'),
-            }
-        );
+            public_key: Buffer.from(this.keys.publicKey).toString("hex"),
+            time_millis: time,
+            signature: Buffer.from(auth).toString("hex")
+        });
 
         this.api.token = response.token;
 
@@ -200,47 +227,71 @@ class Perlin {
     }
 
     private pollTransactions(event: string = "accepted") {
-        const ws = new WebSocket(`ws://${this.api.host}/transaction/poll?event=${event}`, this.api.token)
+        const ws = new WebSocket(
+            `ws://${this.api.host}/transaction/poll?event=${event}`,
+            this.api.token
+        );
 
         ws.onmessage = ({data}) => {
-            data = Perlin.parseWiredTransaction(JSON.parse(data), this.transactions.recent.length)
-            this.transactions.recent.push(data)
+            data = Perlin.parseWiredTransaction(
+                JSON.parse(data),
+                this.transactions.recent.length
+            );
+            this.transactions.recent.push(data);
 
             if (this.onPolledTransaction != null) {
                 this.onPolledTransaction(data);
             }
 
             if (this.transactions.recent.length > 50) {
-                this.transactions.recent.shift()
+                this.transactions.recent.shift();
             }
-        }
+        };
     }
 
     private decodeInt64(buffer: Buffer) {
-        return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24) | (buffer[4] << 32) | (buffer[5] << 40) | (buffer[6] << 48) | ((buffer[7] << 56))
+        return (
+            buffer[0] |
+            (buffer[1] << 8) |
+            (buffer[2] << 16) |
+            (buffer[3] << 24) |
+            (buffer[4] << 32) |
+            (buffer[5] << 40) |
+            (buffer[6] << 48) |
+            (buffer[7] << 56)
+        );
     }
 
     private pollAccountUpdates() {
-        const ws = new WebSocket(`ws://${this.api.host}/account/poll`, this.api.token)
+        const ws = new WebSocket(
+            `ws://${this.api.host}/account/poll`,
+            this.api.token
+        );
 
         ws.onmessage = ({data}) => {
-            data = JSON.parse(data)
-
-            const account = this.ledger.state[data.account]
+            data = JSON.parse(data);
+            const account = this.ledger.state[data.account];
             if (account != null) {
                 account.Nonce = data.nonce;
 
                 Object.keys(data.updates).forEach(key => {
-                    account.State[key] = this.decodeInt64(new Buffer(data.updates[key], 'base64'))
-                })
+                    account.State[key] = this.decodeInt64(
+                        new Buffer(data.updates[key], "base64")
+                    );
+                });
             } else {
                 Object.keys(data.updates).forEach(key => {
-                    data.updates[key] = this.decodeInt64(new Buffer(data.updates[key], 'base64'))
-                })
+                    data.updates[key] = this.decodeInt64(
+                        new Buffer(data.updates[key], "base64")
+                    );
+                });
 
-                this.ledger.state[data.account] = {Nonce: data.nonce, State: data.updates};
+                this.ledger.state[data.account] = {
+                    Nonce: data.nonce,
+                    State: data.updates
+                };
             }
-        }
+        };
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
@@ -249,7 +300,10 @@ class Perlin {
     }
 
     // @ts-ignore
-    private async listTransactions(offset: number, limit: number): Promise<any> {
+    private async listTransactions(
+        offset: number,
+        limit: number
+    ): Promise<any> {
         return await this.request("/transaction/list", {offset, limit});
     }
 
@@ -265,16 +319,18 @@ class Perlin {
 
     private pollStatistics() {
         setInterval(async () => {
-            const response = await fetch(`http://${this.api.host}/debug/vars`)
-            const data = await response.json()
+            const response = await fetch(`http://${this.api.host}/debug/vars`);
+            const data = await response.json();
 
             this.stats = {
-                consensusDuration: data.perlin_consensus_duration || 0,
-                numAcceptedTransactions: data.perlin_num_accepted_transactions || 0,
-                numAcceptedTransactionsPerSecond: data.perlin_num_accepted_transactions_per_sec || 0,
-                uptime: data.perlin_uptime || "0s",
+                consensusDuration: data.wavelet.consensus_duration || 0,
+                numAcceptedTransactions:
+                    data.wavelet.num_accepted_transactions || 0,
+                numAcceptedTransactionsPerSecond:
+                    data.wavelet.num_accepted_transactions_per_sec || 0,
+                uptime: data.wavelet.uptime || "0s",
                 cmdline: data.cmdline || [""]
-            }
+            };
         }, 1000);
     }
 }
