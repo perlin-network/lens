@@ -17,6 +17,7 @@ interface IProps {
 interface IState {
     host: string;
     items: IEndpointItem[];
+    selectedItem: IEndpointItem | null;
 }
 
 interface IEndpointItem {
@@ -46,7 +47,8 @@ const renderInputValue = (item: IEndpointItem) => {
 export default class EndpointHostInput extends React.Component<IProps, IState> {
     public state = {
         host: Perlin.getCurrentHost(),
-        items: getHostItems()
+        items: getHostItems(),
+        selectedItem: null
     };
     private storedHostsListenerId: string;
 
@@ -55,7 +57,7 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
     };
 
     public render() {
-        const { host, items } = this.state;
+        const { host, items, selectedItem } = this.state;
         const { disabled } = this.props;
 
         return (
@@ -69,9 +71,13 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
                     itemPredicate={filterItem}
                     onItemSelect={this.onSelect}
                     items={items}
+                    selectedItem={selectedItem}
                     query={host}
                     onQueryChange={this.handleQueryChange}
-                    inputProps={{ id: "endpoint-host-input" }}
+                    inputProps={{
+                        id: "endpoint-host-input",
+                        placeholder: "localhost:9000"
+                    }}
                     popoverProps={{ minimal: true }}
                 />
             </FormGroup>
@@ -97,6 +103,9 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
 
     private removeItemHandler = (host: string) => () => {
         Perlin.removeStoredHost(host);
+        this.setState(() => ({
+            host: ""
+        }));
     };
 
     private renderItem: ItemRenderer<IEndpointItem> = (
@@ -115,14 +124,16 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
     };
 
     private handleQueryChange = (query: string) => {
-        this.setState({
-            host: query
-        });
+        this.setState(() => ({
+            host: query,
+            selectedItem: null
+        }));
     };
 
     private onSelect = (item: IEndpointItem) => {
-        this.setState({
-            host: item.value
-        });
+        this.setState(() => ({
+            host: item.value,
+            selectedItem: item
+        }));
     };
 }
