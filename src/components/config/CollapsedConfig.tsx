@@ -66,6 +66,14 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
     };
 
     private onToggleCollapse = () => {
-        this.setState(({ isCollapsed }) => ({ isCollapsed: !isCollapsed }));
+        this.setState(({ isCollapsed }) => {
+            if (!isCollapsed) {
+                this.hostInputRef.current!.resetHostValue();
+            }
+            return {
+                disabled: true,
+                isCollapsed: !isCollapsed
+            };
+        });
     };
 }

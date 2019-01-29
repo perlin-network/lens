@@ -52,6 +52,11 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
     };
     private storedHostsListenerId: string;
 
+    public resetHostValue = () => {
+        this.setState(() => ({
+            host: Perlin.getCurrentHost()
+        }));
+    };
     public getHostValue = () => {
         return this.state.host;
     };
