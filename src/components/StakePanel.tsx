@@ -1,8 +1,9 @@
 import * as React from "react";
 import { observer } from "mobx-react";
 import { Perlin } from "../Perlin";
-import { Button, ButtonGroup, FormGroup, InputGroup } from "@blueprintjs/core";
+import { ButtonGroup, FormGroup, InputGroup } from "@blueprintjs/core";
 import { StakePanelStore } from "../stores/StakePanelStore";
+import Button from "./Button";
 
 const perlin = Perlin.getInstance();
 
@@ -28,20 +29,9 @@ class StakePanel extends React.Component<{}, {}> {
                 </FormGroup>
 
                 <ButtonGroup>
-                    <div className="button-container">
+                    <Button onClick={this.onPlaceStake} text="Place Stake" />
+                    <div style={{ marginLeft: "0.5em" }}>
                         <Button
-                            className="button"
-                            onClick={this.onPlaceStake}
-                            text="Place Stake"
-                        />
-                    </div>
-
-                    <div
-                        className="button-container"
-                        style={{ marginLeft: "0.5em" }}
-                    >
-                        <Button
-                            className="button"
                             onClick={this.onWithdrawStake}
                             text="Withdraw Stake"
                         />

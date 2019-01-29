@@ -1,8 +1,9 @@
 import * as React from "react";
 import { observer } from "mobx-react";
 import { Perlin } from "../Perlin";
-import { Button, FormGroup, InputGroup } from "@blueprintjs/core";
+import { FormGroup, InputGroup } from "@blueprintjs/core";
 import { MoneyPanelStore } from "../stores/MoneyPanelStore";
+import Button from "../components/Button";
 
 const perlin = Perlin.getInstance();
 
@@ -39,14 +40,7 @@ class MoneyPanel extends React.Component<{}, {}> {
                         onChange={this.onAmount}
                     />
                 </FormGroup>
-
-                <div className="button-container">
-                    <Button
-                        className="button"
-                        onClick={this.onTransfer}
-                        text="Send PERLs"
-                    />
-                </div>
+                <Button onClick={this.onTransfer} text="Send PERLs" />
             </>
         );
     }

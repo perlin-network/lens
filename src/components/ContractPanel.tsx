@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Perlin } from "../Perlin";
-import { Button, FileInput, FormGroup } from "@blueprintjs/core";
+import { FileInput, FormGroup } from "@blueprintjs/core";
 import { ContractPanelStore } from "../stores/ContractPanelStore";
+import Button from "../components/Button";
 
 const perlin = Perlin.getInstance();
 
@@ -27,14 +28,7 @@ class ContractPanel extends React.Component<{}, {}> {
                         onChange={this.onSelectContract}
                     />
                 </FormGroup>
-
-                <div className="button-container">
-                    <Button
-                        className="button"
-                        onClick={this.onCreateContract}
-                        text="Upload"
-                    />
-                </div>
+                <Button onClick={this.onCreateContract} text="Upload" />
             </>
         );
     }
