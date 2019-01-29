@@ -5,7 +5,7 @@ import { ITransaction } from "./Transaction";
 import { Tag } from "./constants";
 import * as store from "store";
 
-const DEFAULT_HOST = location.hostname;
+const DEFAULT_HOST = location.hostname + ":9000";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -62,7 +62,7 @@ class Perlin {
     private static singleton: Perlin;
 
     @observable public api = {
-        host: Perlin.getCurrentHost() + ":9000",
+        host: Perlin.getCurrentHost(),
         token: ""
     };
 
