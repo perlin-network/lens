@@ -23,7 +23,11 @@ class StakePanel extends React.Component<{}, {}> {
                         id="amount"
                         type="number"
                         placeholder="0 PERLs"
-                        value={this.store.amount.toString()}
+                        value={
+                            this.store.amount
+                                ? this.store.amount.toString()
+                                : ""
+                        }
                         onChange={this.onAmount}
                     />
                 </FormGroup>
@@ -41,14 +45,14 @@ class StakePanel extends React.Component<{}, {}> {
         );
     }
 
-    // @ts-ignore
     private onAmount = (event: any) => {
-        this.store.amount = event.target.value;
+        this.store.amount = event.target.value
+            ? parseInt(event.target.value, 10)
+            : 0;
     };
 
-    // @ts-ignore
     private onPlaceStake = async (event: any) => {
-        if (typeof this.store.amount !== "string" && this.store.amount > 0) {
+        if (this.store.amount > 0) {
             await perlin.placeStake(this.store.amount);
             this.store.clearAmount();
         }
@@ -56,7 +60,7 @@ class StakePanel extends React.Component<{}, {}> {
 
     // @ts-ignore
     private onWithdrawStake = async (event: any) => {
-        if (typeof this.store.amount !== "string" && this.store.amount > 0) {
+        if (this.store.amount > 0) {
             await perlin.withdrawStake(this.store.amount);
             this.store.clearAmount();
         }

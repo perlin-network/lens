@@ -36,7 +36,11 @@ class MoneyPanel extends React.Component<{}, {}> {
                         id="amount"
                         type="number"
                         placeholder="0 PERLs"
-                        value={this.store.amount.toString()}
+                        value={
+                            this.store.amount
+                                ? this.store.amount.toString()
+                                : ""
+                        }
                         onChange={this.onAmount}
                     />
                 </FormGroup>
@@ -45,23 +49,18 @@ class MoneyPanel extends React.Component<{}, {}> {
         );
     }
 
-    // @ts-ignore
     private onRecipient = (event: any) => {
         this.store.recipient = event.target.value;
     };
 
-    // @ts-ignore
     private onAmount = (event: any) => {
-        this.store.amount = event.target.value;
+        this.store.amount = event.target.value
+            ? parseInt(event.target.value, 10)
+            : 0;
     };
 
-    // @ts-ignore
     private onTransfer = async (event: any) => {
-        if (
-            typeof this.store.amount !== "string" &&
-            this.store.amount > 0 &&
-            this.store.recipient.length > 0
-        ) {
+        if (this.store.amount > 0 && this.store.recipient.length > 0) {
             await perlin.transfer(this.store.recipient, this.store.amount);
             this.store.clearFields();
         }
