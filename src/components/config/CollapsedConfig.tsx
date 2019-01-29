@@ -1,49 +1,73 @@
 import * as React from "react";
 import Button from "../Button";
-import styled from "styled-components";
-import {
-    Collapse,
-    FormGroup,
-    ButtonGroup,
-    InputGroup
-} from "@blueprintjs/core";
+import { ButtonGroup } from "@blueprintjs/core";
+import EndpointHostInput from "./EndpointHostInput";
+import { Perlin } from "../../Perlin";
 
-const Wrapper = styled.div``;
+const perlin = Perlin.getInstance();
 
 interface IState {
     isCollapsed: boolean;
+    disabled: boolean;
 }
 
 export default class CollapsedConfig extends React.Component<{}, IState> {
     public state = {
-        isCollapsed: true
+        isCollapsed: true,
+        disabled: true
     };
 
+    private hostInputRef = React.createRef<EndpointHostInput>();
+
     public render() {
-        const { isCollapsed } = this.state;
+        const { isCollapsed, disabled } = this.state;
 
         return (
             <>
                 {isCollapsed && (
-                    <Button text="Show Config" onClick={this.onExpandClick} />
+                    <Button
+                        text="Show Config"
+                        onClick={this.onToggleCollapse}
+                    />
                 )}
-                <Collapse isOpen={!isCollapsed}>
-                    <ButtonGroup>
-                        <Button text="Hide" onClick={this.onCollapseClick} />
-                        <div style={{ marginLeft: "0.5em" }}>
-                            <Button text="Edit" />
-                        </div>
-                    </ButtonGroup>
-                </Collapse>
+                {!isCollapsed && (
+                    <div style={{ marginTop: "20px" }}>
+                        <EndpointHostInput
+                            disabled={disabled}
+                            ref={this.hostInputRef}
+                        />
+                        <ButtonGroup>
+                            <Button
+                                text="Hide Config"
+                                onClick={this.onToggleCollapse}
+                            />
+                            <div style={{ marginLeft: "0.5em" }}>
+                                <Button
+                                    text={disabled ? "Edit" : "Save"}
+                                    onClick={this.onToggleSave}
+                                />
+                            </div>
+                        </ButtonGroup>
+                    </div>
+                )}
             </>
         );
     }
 
-    private onExpandClick = () => {
-        this.setState(() => ({ isCollapsed: false }));
+    private onToggleSave = () => {
+        if (this.state.disabled) {
+            this.setState(() => ({ disabled: false }));
+        } else {
+            const newHost = this.hostInputRef.current!.getHostValue();
+            if (newHost !== perlin.api.host) {
+                perlin.setCurrentHost(newHost);
+            }
+            this.setState(() => ({ disabled: true }));
+            // reload dialog
+        }
     };
 
-    private onCollapseClick = () => {
-        this.setState(() => ({ isCollapsed: true }));
+    private onToggleCollapse = () => {
+        this.setState(({ isCollapsed }) => ({ isCollapsed: !isCollapsed }));
     };
 }

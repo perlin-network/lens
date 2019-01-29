@@ -1,4 +1,4 @@
-import { computed, observable } from "mobx";
+import { computed, observable, action } from "mobx";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction } from "./Transaction";
@@ -36,8 +36,8 @@ class Perlin {
     public static getStoredHosts(): string[] {
         const storedHosts = store.get("storedHosts");
         if (!storedHosts) {
-            Perlin.setStoredHosts([]);
-            return [];
+            Perlin.setStoredHosts([DEFAULT_HOST]);
+            return [DEFAULT_HOST];
         }
         return storedHosts;
     }
@@ -100,9 +100,15 @@ class Perlin {
         this.init().catch(err => console.error(err));
     }
 
-    public setAPIHost = (host: string) => {
+    @action.bound
+    public setCurrentHost(host: string) {
+        Perlin.setCurrentHost(host);
         this.api.host = host;
-    };
+        const storedHosts = Perlin.getStoredHosts();
+        if (storedHosts.indexOf(host) === -1) {
+            Perlin.setStoredHosts(storedHosts.concat(host));
+        }
+    }
 
     public async transfer(recipient: string, amount: number): Promise<any> {
         const params = {
