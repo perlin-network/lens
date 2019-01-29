@@ -42,8 +42,13 @@ class Perlin {
         return storedHosts;
     }
 
-    public static setStoredHosts(hosts: string[]) {
-        store.set("storedHosts", hosts);
+    public static removeStoredHost(host: string) {
+        const storedHosts = Perlin.getStoredHosts();
+        const idx = storedHosts.indexOf(host);
+        if (idx !== -1) {
+            storedHosts.splice(idx);
+            Perlin.setStoredHosts(storedHosts);
+        }
     }
 
     public static getCurrentHost(): string {
@@ -60,6 +65,10 @@ class Perlin {
     }
 
     private static singleton: Perlin;
+
+    private static setStoredHosts(hosts: string[]) {
+        store.set("storedHosts", hosts);
+    }
 
     @observable public api = {
         host: Perlin.getCurrentHost(),
