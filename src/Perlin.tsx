@@ -2,7 +2,7 @@ import { computed, observable, action } from "mobx";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction } from "./Transaction";
-import { Tag } from "./constants";
+import { Tag, STORAGE_KEYS } from "./constants";
 import * as store from "store";
 
 const DEFAULT_HOST = location.hostname + ":9000";
@@ -34,7 +34,7 @@ class Perlin {
     }
 
     public static getStoredHosts(): string[] {
-        const storedHosts = store.get("storedHosts");
+        const storedHosts = store.get(STORAGE_KEYS.STORED_HOSTS);
         if (!storedHosts) {
             Perlin.setStoredHosts([DEFAULT_HOST]);
             return [DEFAULT_HOST];
@@ -46,13 +46,13 @@ class Perlin {
         const storedHosts = Perlin.getStoredHosts();
         const idx = storedHosts.indexOf(host);
         if (idx !== -1) {
-            storedHosts.splice(idx);
+            storedHosts.splice(idx, 1);
             Perlin.setStoredHosts(storedHosts);
         }
     }
 
     public static getCurrentHost(): string {
-        const currentHost = store.get("currentHost");
+        const currentHost = store.get(STORAGE_KEYS.CURRENT_HOST);
         if (!currentHost) {
             Perlin.setCurrentHost(DEFAULT_HOST);
             return DEFAULT_HOST;
@@ -61,13 +61,13 @@ class Perlin {
     }
 
     public static setCurrentHost(host: string) {
-        store.set("currentHost", host);
+        store.set(STORAGE_KEYS.CURRENT_HOST, host);
     }
 
     private static singleton: Perlin;
 
     private static setStoredHosts(hosts: string[]) {
-        store.set("storedHosts", hosts);
+        store.set(STORAGE_KEYS.STORED_HOSTS, hosts);
     }
 
     @observable public api = {

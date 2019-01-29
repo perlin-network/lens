@@ -59,9 +59,7 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
             this.setState(() => ({ disabled: false }));
         } else {
             const newHost = this.hostInputRef.current!.getHostValue();
-            if (newHost !== perlin.api.host) {
-                perlin.setCurrentHost(newHost);
-            }
+            perlin.setCurrentHost(newHost);
             this.setState(() => ({ disabled: true }));
             // reload dialog
         }

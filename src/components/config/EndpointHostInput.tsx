@@ -4,6 +4,11 @@ import { Suggest, ItemRenderer, ItemPredicate } from "@blueprintjs/select";
 import { Perlin } from "../../Perlin";
 import { observer } from "mobx-react";
 import styled from "styled-components";
+import * as store from "store";
+import * as eventsPlugin from "store/plugins/events";
+import { STORAGE_KEYS } from "src/constants";
+
+store.addPlugin(eventsPlugin);
 
 interface IProps {
     disabled: boolean;
@@ -11,6 +16,7 @@ interface IProps {
 
 interface IState {
     host: string;
+    items: IEndpointItem[];
 }
 
 interface IEndpointItem {
@@ -24,12 +30,11 @@ const EndpointSuggest = styled(Suggest.ofType<IEndpointItem>())`
     }
 `;
 
-const renderItem: ItemRenderer<IEndpointItem> = (
-    item: IEndpointItem,
-    { handleClick, modifiers, query }
-) => {
-    return <MenuItem text={item.value} onClick={handleClick} key={item.id} />;
-};
+const getHostItems = () =>
+    Perlin.getStoredHosts().map((item, idx) => ({
+        id: idx,
+        value: item
+    }));
 const filterItem: ItemPredicate<IEndpointItem> = (query, item) => {
     return item.value.toLowerCase().indexOf(query.toLowerCase()) >= 0;
 };
@@ -40,20 +45,18 @@ const renderInputValue = (item: IEndpointItem) => {
 @observer
 export default class EndpointHostInput extends React.Component<IProps, IState> {
     public state = {
-        host: Perlin.getCurrentHost()
+        host: Perlin.getCurrentHost(),
+        items: getHostItems()
     };
+    private storedHostsListenerId: string;
 
     public getHostValue = () => {
         return this.state.host;
     };
 
     public render() {
-        const { host } = this.state;
+        const { host, items } = this.state;
         const { disabled } = this.props;
-        const items = Perlin.getStoredHosts().map((item, idx) => ({
-            id: idx,
-            value: item
-        }));
 
         return (
             <FormGroup label="Endpoint Host" labelFor="endpoint-host-input">
@@ -62,7 +65,7 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
                     resetOnQuery={false}
                     openOnKeyDown={true}
                     inputValueRenderer={renderInputValue}
-                    itemRenderer={renderItem}
+                    itemRenderer={this.renderItem}
                     itemPredicate={filterItem}
                     onItemSelect={this.onSelect}
                     items={items}
@@ -74,6 +77,42 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
             </FormGroup>
         );
     }
+
+    public componentDidMount() {
+        // @ts-ignore
+        this.storedHostsListenerId = store.watch(
+            STORAGE_KEYS.STORED_HOSTS,
+            () => {
+                this.setState(() => ({
+                    items: getHostItems()
+                }));
+            }
+        );
+    }
+
+    public componentWillUnmount() {
+        // @ts-ignore
+        store.unwatch(this.storedHostsListenerId);
+    }
+
+    private removeItemHandler = (host: string) => () => {
+        Perlin.removeStoredHost(host);
+    };
+
+    private renderItem: ItemRenderer<IEndpointItem> = (
+        item: IEndpointItem,
+        { handleClick }
+    ) => {
+        return (
+            <MenuItem text={item.value} onClick={handleClick} key={item.id}>
+                <MenuItem
+                    text="Delete"
+                    key={1}
+                    onClick={this.removeItemHandler(item.value)}
+                />
+            </MenuItem>
+        );
+    };
 
     private handleQueryChange = (query: string) => {
         this.setState({

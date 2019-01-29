@@ -7,4 +7,9 @@ enum Tag {
     Stake
 }
 
-export { Tag };
+const STORAGE_KEYS = {
+    STORED_HOSTS: "storedHosts",
+    CURRENT_HOST: "currentHost"
+};
+
+export { Tag, STORAGE_KEYS };
