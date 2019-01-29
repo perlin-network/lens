@@ -3,6 +3,9 @@ import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction } from "./Transaction";
 import { Tag } from "./constants";
+import * as store from "store";
+
+const DEFAULT_HOST = location.hostname;
 
 class Perlin {
     @computed get recentTransactions() {
@@ -30,10 +33,36 @@ class Perlin {
         return tx;
     }
 
+    public static getStoredHosts(): string[] {
+        const storedHosts = store.get("storedHosts");
+        if (!storedHosts) {
+            Perlin.setStoredHosts([]);
+            return [];
+        }
+        return storedHosts;
+    }
+
+    public static setStoredHosts(hosts: string[]) {
+        store.set("storedHosts", hosts);
+    }
+
+    public static getCurrentHost(): string {
+        const currentHost = store.get("currentHost");
+        if (!currentHost) {
+            Perlin.setCurrentHost(DEFAULT_HOST);
+            return DEFAULT_HOST;
+        }
+        return currentHost;
+    }
+
+    public static setCurrentHost(host: string) {
+        store.set("currentHost", host);
+    }
+
     private static singleton: Perlin;
 
     @observable public api = {
-        host: location.hostname + ":9000",
+        host: Perlin.getCurrentHost() + ":9000",
         token: ""
     };
 
