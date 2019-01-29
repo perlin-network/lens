@@ -52,12 +52,16 @@ class MoneyPanel extends React.Component<{}, {}> {
 
     // @ts-ignore
     private onAmount = (event: any) => {
-        this.store.amount = event.target.value || 0;
+        this.store.amount = event.target.value;
     };
 
     // @ts-ignore
     private onTransfer = async (event: any) => {
-        if (this.store.amount > 0) {
+        if (
+            typeof this.store.amount !== "string" &&
+            this.store.amount > 0 &&
+            this.store.recipient.length > 0
+        ) {
             await perlin.transfer(this.store.recipient, this.store.amount);
             this.store.clearFields();
         }

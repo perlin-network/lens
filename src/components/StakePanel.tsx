@@ -43,12 +43,12 @@ class StakePanel extends React.Component<{}, {}> {
 
     // @ts-ignore
     private onAmount = (event: any) => {
-        this.store.amount = event.target.value || 0;
+        this.store.amount = event.target.value;
     };
 
     // @ts-ignore
     private onPlaceStake = async (event: any) => {
-        if (this.store.amount > 0) {
+        if (typeof this.store.amount !== "string" && this.store.amount > 0) {
             await perlin.placeStake(this.store.amount);
             this.store.clearAmount();
         }
@@ -56,7 +56,7 @@ class StakePanel extends React.Component<{}, {}> {
 
     // @ts-ignore
     private onWithdrawStake = async (event: any) => {
-        if (this.store.amount > 0) {
+        if (typeof this.store.amount !== "string" && this.store.amount > 0) {
             await perlin.withdrawStake(this.store.amount);
             this.store.clearAmount();
         }
