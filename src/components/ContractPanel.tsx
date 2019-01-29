@@ -2,7 +2,7 @@ import * as React from "react";
 import { Perlin } from "../Perlin";
 import { FileInput, FormGroup } from "@blueprintjs/core";
 import { ContractPanelStore } from "../stores/ContractPanelStore";
-import Button from "../components/Button";
+import Button from "./Button";
 
 const perlin = Perlin.getInstance();
 

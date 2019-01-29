@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { Perlin } from "../Perlin";
 import { FormGroup, InputGroup } from "@blueprintjs/core";
 import { MoneyPanelStore } from "../stores/MoneyPanelStore";
-import Button from "../components/Button";
+import Button from "./Button";
 
 const perlin = Perlin.getInstance();
 
