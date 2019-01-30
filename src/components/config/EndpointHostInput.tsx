@@ -112,10 +112,15 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
 
     private renderItem: ItemRenderer<IEndpointItem> = (
         item: IEndpointItem,
-        { handleClick }
+        { handleClick, modifiers }
     ) => {
         return (
-            <MenuItem text={item.value} onClick={handleClick} key={item.id}>
+            <MenuItem
+                text={item.value}
+                onClick={handleClick}
+                key={item.id}
+                active={modifiers.active}
+            >
                 <MenuItem
                     text="Delete"
                     key={1}
