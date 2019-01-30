@@ -1,5 +1,5 @@
 import * as React from "react";
-import { FormGroup, MenuItem } from "@blueprintjs/core";
+import { FormGroup, MenuItem, Intent } from "@blueprintjs/core";
 import { Suggest, ItemRenderer, ItemPredicate } from "@blueprintjs/select";
 import { Perlin } from "../../Perlin";
 import { observer } from "mobx-react";
@@ -124,6 +124,8 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
                 <MenuItem
                     text="Delete"
                     key={1}
+                    icon="trash"
+                    intent={Intent.DANGER}
                     onClick={this.removeItemHandler(item.value)}
                 />
             </MenuItem>
