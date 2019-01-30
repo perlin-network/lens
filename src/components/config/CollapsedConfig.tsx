@@ -1,7 +1,7 @@
 import * as React from "react";
 import Button from "../Button";
 import { ButtonGroup, Alert, Intent } from "@blueprintjs/core";
-import EndpointHostInput from "./EndpointHostInput";
+import HostnameInput from "./HostnameInput";
 import { Perlin } from "../../Perlin";
 
 const perlin = Perlin.getInstance();
@@ -21,7 +21,7 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
         isDiscardAlertOpen: false
     };
 
-    private hostInputRef = React.createRef<EndpointHostInput>();
+    private hostInputRef = React.createRef<HostnameInput>();
 
     public render() {
         const {
@@ -39,7 +39,7 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
                 />
                 {!isCollapsed && (
                     <div style={{ marginTop: "20px" }}>
-                        <EndpointHostInput
+                        <HostnameInput
                             disabled={disabled}
                             ref={this.hostInputRef}
                         />
