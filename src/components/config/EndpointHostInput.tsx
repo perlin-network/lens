@@ -108,9 +108,6 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
 
     private removeItemHandler = (host: string) => () => {
         Perlin.removeStoredHost(host);
-        this.setState(() => ({
-            host: ""
-        }));
     };
 
     private renderItem: ItemRenderer<IEndpointItem> = (
