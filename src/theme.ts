@@ -129,7 +129,9 @@ const theme = {
         m: "900px",
         l: "1200px"
     },
-    colors: {}
+    colors: {
+        bgDark: "#14162d"
+    }
 };
 
 const invertTheme = {

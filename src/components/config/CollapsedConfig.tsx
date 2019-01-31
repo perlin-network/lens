@@ -7,11 +7,28 @@ import * as storage from "../../storage";
 import styled from "styled-components";
 
 const perlin = Perlin.getInstance();
-const StyledIcon = styled(Icon)`
+const ConfigWrapper = styled.div`
+    padding: 20px;
+    margin-top: 20px;
+    background-color: ${props => props.theme.colors.bgDark};
+    border-bottom-left-radius: 1em;
+    border-bottom-right-radius: 1em;
     margin-left: -20px;
-    margin-right 17px;
+    margin-right: -20px;
+    margin-bottom: -20px;
 `;
+const CollapseButton = styled.div`
+    margin-top: 1em;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.1em
+    cursor: pointer;
 
+    .bp3-icon {
+        margin-right: 0.5em;
+    }
+`;
 interface IState {
     isCollapsed: boolean;
     disabled: boolean;
@@ -39,19 +56,16 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
 
         return (
             <>
-                <Button
-                    icon={
-                        isCollapsed ? (
-                            <StyledIcon icon="caret-right" />
-                        ) : (
-                            <StyledIcon icon="caret-down" />
-                        )
-                    }
-                    text={isCollapsed ? "Show Config" : "Hide Config"}
-                    onClick={this.toggleCollapsed}
-                />
+                <CollapseButton onClick={this.toggleCollapsed}>
+                    {isCollapsed ? (
+                        <Icon icon="caret-right" />
+                    ) : (
+                        <Icon icon="caret-down" />
+                    )}
+                    {isCollapsed ? "Show Config" : "Hide Config"}
+                </CollapseButton>
                 {!isCollapsed && (
-                    <div style={{ marginTop: "20px" }}>
+                    <ConfigWrapper>
                         <HostnameInputContainer
                             disabled={disabled}
                             initialHost={perlin.api.host}
@@ -61,6 +75,7 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
                             {!disabled && (
                                 <div style={{ marginRight: "0.5em" }}>
                                     <Button
+                                        noBorder={true}
                                         text="Discard Changes"
                                         onClick={this.showDiscardAlert}
                                     />
@@ -100,7 +115,7 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
                                 configuration changes?
                             </p>
                         </Alert>
-                    </div>
+                    </ConfigWrapper>
                 )}
             </>
         );
