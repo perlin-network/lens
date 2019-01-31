@@ -1,11 +1,16 @@
 import * as React from "react";
 import Button from "../Button";
-import { ButtonGroup, Alert, Intent } from "@blueprintjs/core";
+import { ButtonGroup, Alert, Intent, Icon } from "@blueprintjs/core";
 import HostnameInputContainer from "./HostnameInput/Container";
 import { Perlin } from "../../Perlin";
 import * as storage from "../../storage";
+import styled from "styled-components";
 
 const perlin = Perlin.getInstance();
+const StyledIcon = styled(Icon)`
+    margin-left: -20px;
+    margin-right 17px;
+`;
 
 interface IState {
     isCollapsed: boolean;
@@ -35,6 +40,13 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
         return (
             <>
                 <Button
+                    icon={
+                        isCollapsed ? (
+                            <StyledIcon icon="caret-right" />
+                        ) : (
+                            <StyledIcon icon="caret-down" />
+                        )
+                    }
                     text={isCollapsed ? "Show Config" : "Hide Config"}
                     onClick={this.toggleCollapsed}
                 />
