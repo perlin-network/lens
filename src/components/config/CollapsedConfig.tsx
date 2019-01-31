@@ -1,7 +1,7 @@
 import * as React from "react";
 import Button from "../Button";
 import { ButtonGroup, Alert, Intent } from "@blueprintjs/core";
-import HostnameInput from "./HostnameInput";
+import HostnameInputContainer from "./HostnameInput/Container";
 import { Perlin } from "../../Perlin";
 import * as storage from "../../storage";
 
@@ -21,12 +21,8 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
         isChangeAlertOpen: false,
         isDiscardAlertOpen: false
     };
-    private initialHosts: string[];
 
-    private hostInputRef = React.createRef<HostnameInput>();
-    public componentDidMount() {
-        this.initialHosts = storage.getStoredHosts();
-    }
+    private hostInputRef = React.createRef<HostnameInputContainer>();
 
     public render() {
         const {
@@ -44,10 +40,9 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
                 />
                 {!isCollapsed && (
                     <div style={{ marginTop: "20px" }}>
-                        <HostnameInput
+                        <HostnameInputContainer
                             disabled={disabled}
                             initialHost={perlin.api.host}
-                            initialHosts={this.initialHosts}
                             ref={this.hostInputRef}
                         />
                         <ButtonGroup>
