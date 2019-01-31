@@ -1,11 +1,9 @@
 import { computed, observable, action } from "mobx";
+import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction } from "./Transaction";
-import { Tag, STORAGE_KEYS } from "./constants";
-import * as store from "store";
-
-const DEFAULT_HOST = location.hostname + ":9000";
+import { Tag } from "./constants";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -32,46 +30,10 @@ class Perlin {
 
         return tx;
     }
-
-    public static getStoredHosts(): string[] {
-        const storedHosts = store.get(STORAGE_KEYS.STORED_HOSTS);
-        if (!storedHosts) {
-            Perlin.setStoredHosts([DEFAULT_HOST]);
-            return [DEFAULT_HOST];
-        }
-        return storedHosts;
-    }
-
-    public static removeStoredHost(host: string) {
-        const storedHosts = Perlin.getStoredHosts();
-        const idx = storedHosts.indexOf(host);
-        if (idx !== -1) {
-            storedHosts.splice(idx, 1);
-            Perlin.setStoredHosts(storedHosts);
-        }
-    }
-
-    public static getCurrentHost(): string {
-        const currentHost = store.get(STORAGE_KEYS.CURRENT_HOST);
-        if (!currentHost) {
-            Perlin.setCurrentHost(DEFAULT_HOST);
-            return DEFAULT_HOST;
-        }
-        return currentHost;
-    }
-
-    public static setCurrentHost(host: string) {
-        store.set(STORAGE_KEYS.CURRENT_HOST, host);
-    }
-
     private static singleton: Perlin;
 
-    private static setStoredHosts(hosts: string[]) {
-        store.set(STORAGE_KEYS.STORED_HOSTS, hosts);
-    }
-
     @observable public api = {
-        host: Perlin.getCurrentHost(),
+        host: storage.getCurrentHost(),
         token: ""
     };
 
@@ -105,18 +67,7 @@ class Perlin {
                 "hex"
             )
         );
-
         this.init().catch(err => console.error(err));
-    }
-
-    @action.bound
-    public setCurrentHost(host: string) {
-        Perlin.setCurrentHost(host);
-        this.api.host = host;
-        const storedHosts = Perlin.getStoredHosts();
-        if (storedHosts.indexOf(host) === -1) {
-            Perlin.setStoredHosts(storedHosts.concat(host));
-        }
     }
 
     public async transfer(recipient: string, amount: number): Promise<any> {
@@ -216,6 +167,7 @@ class Perlin {
 
             await this.pollTransactions();
 
+            storage.watchCurrentHost(this.handleHostChange);
             this.pollStatistics();
             this.pollAccountUpdates();
         } catch (err) {
@@ -272,6 +224,11 @@ class Perlin {
         this.api.token = response.token;
 
         console.log(`Session token: ${this.api.token}`);
+    }
+
+    @action.bound
+    private handleHostChange(host: string) {
+        this.api.host = host;
     }
 
     private pollTransactions(event: string = "accepted") {
