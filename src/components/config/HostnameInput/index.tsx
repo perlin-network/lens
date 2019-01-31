@@ -4,7 +4,7 @@ import { Suggest, ItemRenderer, ItemPredicate } from "@blueprintjs/select";
 import styled from "styled-components";
 import { IHostItem } from "./Container";
 
-const EndpointSuggest = styled(Suggest.ofType<IHostItem>())`
+const HostSuggest = styled(Suggest.ofType<IHostItem>())`
     .bp3-popover-target {
         width: 100%;
     }
@@ -58,8 +58,8 @@ const HostnameInput: React.FC<IProps> = ({
         );
     };
     return (
-        <FormGroup label="Endpoint Host" labelFor="endpoint-host-input">
-            <EndpointSuggest
+        <FormGroup label="API Hostname" labelFor="config-host-input">
+            <HostSuggest
                 disabled={disabled}
                 resetOnQuery={false}
                 openOnKeyDown={true}
@@ -72,7 +72,7 @@ const HostnameInput: React.FC<IProps> = ({
                 query={host}
                 onQueryChange={onQueryChange}
                 inputProps={{
-                    id: "endpoint-host-input",
+                    id: "config-host-input",
                     placeholder: "localhost:9000"
                 }}
                 popoverProps={{ minimal: true }}

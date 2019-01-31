@@ -19,7 +19,7 @@ interface IHostItem {
     value: string;
 }
 
-const toEndpointItems = (hosts: string[]): IHostItem[] =>
+const toHostItems = (hosts: string[]): IHostItem[] =>
     hosts.map((host, idx) => ({ value: host, id: idx }));
 
 @observer
@@ -33,7 +33,7 @@ export default class HostnameInputContainer extends React.Component<
         super(props);
         this.state = {
             host: props.initialHost,
-            items: toEndpointItems(storage.getStoredHosts()),
+            items: toHostItems(storage.getStoredHosts()),
             selectedItem: null
         };
     }
@@ -68,7 +68,7 @@ export default class HostnameInputContainer extends React.Component<
         this.unwatchStoredHosts = storage.watchStoredHosts(
             (hosts: string[]) => {
                 this.setState({
-                    items: toEndpointItems(hosts)
+                    items: toHostItems(hosts)
                 });
             }
         );
