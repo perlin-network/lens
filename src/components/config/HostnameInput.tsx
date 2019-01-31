@@ -1,17 +1,14 @@
 import * as React from "react";
 import { FormGroup, MenuItem, Intent } from "@blueprintjs/core";
 import { Suggest, ItemRenderer, ItemPredicate } from "@blueprintjs/select";
-import { Perlin } from "../../Perlin";
 import { observer } from "mobx-react";
 import styled from "styled-components";
-import * as store from "store";
-import * as eventsPlugin from "store/plugins/events";
-import { STORAGE_KEYS } from "src/constants";
-
-store.addPlugin(eventsPlugin);
+import * as storage from "../../storage";
 
 interface IProps {
     disabled: boolean;
+    initialHost: string;
+    initialHosts: string[];
 }
 
 interface IState {
@@ -31,11 +28,6 @@ const EndpointSuggest = styled(Suggest.ofType<IEndpointItem>())`
     }
 `;
 
-const getHostItems = () =>
-    Perlin.getStoredHosts().map((item, idx) => ({
-        id: idx,
-        value: item
-    }));
 const filterItem: ItemPredicate<IEndpointItem> = (query, item) => {
     return item.value.toLowerCase().indexOf(query.toLowerCase()) >= 0;
 };
@@ -43,18 +35,25 @@ const renderInputValue = (item: IEndpointItem) => {
     return item.value;
 };
 
+const toEndpointItems = (hosts: string[]): IEndpointItem[] =>
+    hosts.map((host, idx) => ({ value: host, id: idx }));
+
 @observer
 export default class EndpointHostInput extends React.Component<IProps, IState> {
-    public state = {
-        host: Perlin.getCurrentHost(),
-        items: getHostItems(),
-        selectedItem: null
-    };
-    private storedHostsListenerId: string;
+    private unwatchStoredHosts: () => void;
+
+    constructor(props: IProps) {
+        super(props);
+        this.state = {
+            host: props.initialHost,
+            items: toEndpointItems(props.initialHosts),
+            selectedItem: null
+        };
+    }
 
     public resetHostValue = () => {
-        this.setState(() => ({
-            host: Perlin.getCurrentHost()
+        this.setState((_, props) => ({
+            host: props.initialHost
         }));
     };
     public getHostValue = () => {
@@ -91,23 +90,21 @@ export default class EndpointHostInput extends React.Component<IProps, IState> {
 
     public componentDidMount() {
         // @ts-ignore
-        this.storedHostsListenerId = store.watch(
-            STORAGE_KEYS.STORED_HOSTS,
-            () => {
-                this.setState(() => ({
-                    items: getHostItems()
-                }));
+        this.unwatchStoredHosts = storage.watchStoredHosts(
+            (hosts: string[]) => {
+                this.setState({
+                    items: toEndpointItems(hosts)
+                });
             }
         );
     }
 
     public componentWillUnmount() {
-        // @ts-ignore
-        store.unwatch(this.storedHostsListenerId);
+        this.unwatchStoredHosts();
     }
 
     private removeItemHandler = (host: string) => () => {
-        Perlin.removeStoredHost(host);
+        storage.removeStoredHost(host);
     };
 
     private renderItem: ItemRenderer<IEndpointItem> = (

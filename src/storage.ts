@@ -53,7 +53,7 @@ const watchCurrentHost = (cb: (newHost: string) => void) => {
         store.unwatch(watchId);
     };
 };
-const watchStoredHosts = (cb: (storedHosts: string) => void) => {
+const watchStoredHosts = (cb: (storedHosts: string[]) => void) => {
     // @ts-ignore
     const watchId = store.watch(STORAGE_KEYS.STORED_HOSTS, cb);
     return () => {
