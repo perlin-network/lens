@@ -8,6 +8,9 @@ const HostSuggest = styled(Suggest.ofType<IHostItem>())`
     .bp3-popover-target {
         width: 100%;
     }
+    .bp3-input-group input {
+        background: ${props => props.theme.colors.bgLight};
+    }
 `;
 
 const filterItem: ItemPredicate<IHostItem> = (query, item) => {

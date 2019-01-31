@@ -130,7 +130,8 @@ const theme = {
         l: "1200px"
     },
     colors: {
-        bgDark: "#14162d"
+        bgDark: "#14162d",
+        bgLight: "#1f2137"
     }
 };
 
