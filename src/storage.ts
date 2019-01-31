@@ -30,6 +30,10 @@ const removeStoredHost = (host: string) => {
 
 const setCurrentHost = (host: string) => {
     store.set(STORAGE_KEYS.CURRENT_HOST, host);
+    const storedHosts = getStoredHosts();
+    if (storedHosts.indexOf(host) === -1) {
+        setStoredHosts(storedHosts.concat(host));
+    }
 };
 
 const getCurrentHost = (): string => {
