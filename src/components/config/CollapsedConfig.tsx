@@ -1,8 +1,8 @@
 import * as React from "react";
 import Button from "../Button";
-import { ButtonGroup, Alert, Intent, Icon } from "@blueprintjs/core";
+import {Alert, ButtonGroup, Icon, Intent} from "@blueprintjs/core";
 import HostnameInputContainer from "./HostnameInput/Container";
-import { Perlin } from "../../Perlin";
+import {Perlin} from "../../Perlin";
 import * as storage from "../../storage";
 import styled from "styled-components";
 
@@ -137,14 +137,26 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
         }));
     };
 
+    private get wereChangesMade(): boolean {
+        let changesMade = storage.getCurrentHost() !== this.hostInputRef.current!.getHostValue();
+
+        return changesMade;
+    }
+
     private onToggleSave = () => {
         if (this.state.disabled) {
             this.setState(() => ({ disabled: false }));
         } else {
-            // Show Alert
-            this.setState(() => ({
-                isChangeAlertOpen: true
-            }));
+            if (this.wereChangesMade) {
+                this.setState(() => ({
+                    isChangeAlertOpen: true
+                }));
+            } else {
+                this.setState(() => ({
+                    disabled: true,
+                    isCollapsed: true
+                }))
+            }
         }
     };
 
@@ -155,9 +167,16 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
     };
 
     private showDiscardAlert = () => {
-        this.setState(() => ({
-            isDiscardAlertOpen: true
-        }));
+        if (this.wereChangesMade) {
+            this.setState(() => ({
+                isDiscardAlertOpen: true
+            }));
+        } else {
+            this.setState(() => ({
+                disabled: true,
+                isCollapsed: true
+            }))
+        }
     };
 
     private handleDiscardAlertClose = () => {
