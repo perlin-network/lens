@@ -1,8 +1,9 @@
 import * as React from "react";
 import { observer } from "mobx-react";
 import { Perlin } from "../Perlin";
-import { Button, ButtonGroup, FormGroup, InputGroup } from "@blueprintjs/core";
+import { ButtonGroup, FormGroup, InputGroup } from "@blueprintjs/core";
 import { StakePanelStore } from "../stores/StakePanelStore";
+import Button from "./Button";
 
 const perlin = Perlin.getInstance();
 
@@ -22,26 +23,19 @@ class StakePanel extends React.Component<{}, {}> {
                         id="amount"
                         type="number"
                         placeholder="0 PERLs"
-                        value={this.store.amount.toString()}
+                        value={
+                            this.store.amount
+                                ? this.store.amount.toString()
+                                : ""
+                        }
                         onChange={this.onAmount}
                     />
                 </FormGroup>
 
                 <ButtonGroup>
-                    <div className="button-container">
+                    <Button onClick={this.onPlaceStake} text="Place Stake" />
+                    <div style={{ marginLeft: "0.5em" }}>
                         <Button
-                            className="button"
-                            onClick={this.onPlaceStake}
-                            text="Place Stake"
-                        />
-                    </div>
-
-                    <div
-                        className="button-container"
-                        style={{ marginLeft: "0.5em" }}
-                    >
-                        <Button
-                            className="button"
                             onClick={this.onWithdrawStake}
                             text="Withdraw Stake"
                         />
@@ -51,12 +45,12 @@ class StakePanel extends React.Component<{}, {}> {
         );
     }
 
-    // @ts-ignore
     private onAmount = (event: any) => {
-        this.store.amount = event.target.value || 0;
+        this.store.amount = event.target.value
+            ? parseInt(event.target.value, 10)
+            : 0;
     };
 
-    // @ts-ignore
     private onPlaceStake = async (event: any) => {
         if (this.store.amount > 0) {
             await perlin.placeStake(this.store.amount);

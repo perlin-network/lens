@@ -25,6 +25,7 @@ import { StakePanel } from "./components/StakePanel";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import { Tag as PerlinTag } from "./constants";
+import CollapsedConfig from "./components/config/CollapsedConfig";
 
 const Layout = styled(Flex)`
     margin-left: 2em;
@@ -183,6 +184,7 @@ class App extends React.Component<{}, {}> {
                                         4
                                     )}
                                 </Pre>
+                                <CollapsedConfig />
                             </Card>
 
                             <br />
