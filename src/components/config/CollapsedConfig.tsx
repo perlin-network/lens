@@ -138,8 +138,7 @@ export default class CollapsedConfig extends React.Component<{}, IState> {
     };
 
     private get wereChangesMade(): boolean {
-        let changesMade = storage.getCurrentHost() !== this.hostInputRef.current!.getHostValue();
-
+        const changesMade = storage.getCurrentHost() !== this.hostInputRef.current!.getHostValue();
         return changesMade;
     }
 
