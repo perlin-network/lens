@@ -7,4 +7,4 @@ interface ITransaction {
     signature: string;
 }
 
-export {ITransaction};
+export { ITransaction };

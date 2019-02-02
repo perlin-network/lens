@@ -69,7 +69,8 @@
     "scripts": {
         "start": "node scripts/start.js",
         "build": "node scripts/build.js",
-        "test": "node scripts/test.js --env=jsdom"
+        "test": "node scripts/test.js --env=jsdom",
+        "lint:prettier": "prettier --write src/**/*.{js,jsx,ts,tsx}"
     },
     "devDependencies": {
         "@types/d3": "^5.0.0",

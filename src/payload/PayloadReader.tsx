@@ -1,4 +1,4 @@
-import {SmartBuffer} from "smart-buffer"
+import { SmartBuffer } from "smart-buffer";
 import * as Long from "long";
 
 class PayloadReader {
@@ -30,9 +30,10 @@ class PayloadReader {
     }
 
     public readUint64(): Long {
-        return Long.fromBytesLE(Array.prototype.slice.call(this.buffer.readBuffer(8), 0));
+        return Long.fromBytesLE(
+            Array.prototype.slice.call(this.buffer.readBuffer(8), 0)
+        );
     }
 }
-
 
 export default PayloadReader;
