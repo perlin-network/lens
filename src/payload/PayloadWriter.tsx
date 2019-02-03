@@ -1,4 +1,4 @@
-import {SmartBuffer} from "smart-buffer";
+import { SmartBuffer } from "smart-buffer";
 import * as Long from "long";
 
 class PayloadWriter {
@@ -40,6 +40,5 @@ class PayloadWriter {
         return Array.prototype.slice.call(this.buffer.toBuffer(), 0);
     }
 }
-
 
 export default PayloadWriter;

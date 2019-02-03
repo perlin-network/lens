@@ -1,7 +1,7 @@
-import {observable} from "mobx";
+import { observable } from "mobx";
 
 class ContractPanelStore {
     @observable public contractFile: string | any;
 }
 
-export {ContractPanelStore}
+export { ContractPanelStore };
