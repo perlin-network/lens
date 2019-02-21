@@ -133,9 +133,7 @@ module.exports = {
                         use: {
                             loader: require.resolve("file-loader"),
                             options: {
-                                name: "[name].[ext]",
-                                // required for fonts to be reference properly in dist
-                                outputPath: "fonts/"
+                                name: "[name].[ext]"
                             }
                         }
                     },
