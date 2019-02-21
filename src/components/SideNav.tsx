@@ -21,6 +21,7 @@ const NavItem = styled.div<INavItemProps>`
     margin-bottom: 12px;
     cursor: pointer;
     position: relative;
+    width: 135px;
     ${props =>
         props.active &&
         `&::before {
@@ -58,7 +59,6 @@ const items: INavItem[] = [
 class SideNav extends React.Component<RouteComponentProps, {}> {
     public render() {
         const { pathname } = this.props.history.location;
-        console.log(pathname);
 
         return (
             <>

@@ -24,7 +24,9 @@ const ContentWrapper = styled(Flex)`
 `;
 const SideWrapper = styled(Box).attrs({
     width: 1 / 6
-})``;
+})`
+    min-width: 150px;
+`;
 const Content = styled(Box).attrs({
     width: 5 / 6
 })`
