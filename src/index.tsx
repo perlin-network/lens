@@ -8,15 +8,18 @@ import { Perlin } from "./Perlin";
 import registerServiceWorker from "./registerServiceWorker";
 import { ThemeProvider } from "styled-components";
 import { theme, GlobalStyle } from "./theme";
+import { BrowserRouter as Router } from "react-router-dom";
 
 Perlin.getInstance(); // Initialize Perlin Instance
 
 ReactDOM.render(
     <ThemeProvider theme={theme}>
-        <>
-            <GlobalStyle />
-            <App />
-        </>
+        <Router>
+            <>
+                <GlobalStyle />
+                <App />
+            </>
+        </Router>
     </ThemeProvider>,
     document.getElementById("root") as HTMLElement
 );

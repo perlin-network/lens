@@ -1,33 +1,40 @@
-import {
-    Alignment,
-    Button,
-    Callout,
-    Card,
-    Code,
-    H5,
-    Intent,
-    Pre,
-    Tab,
-    Tabs,
-    Tag
-} from "@blueprintjs/core";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Perlin } from "./Perlin";
-import logo from "./perlin-logo.svg";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
+import { Switch, Route } from "react-router";
+import Dashboard from "./components/dashboard/DashboardContainer";
+import Wallet from "./components/wallet/WalletContainer";
+import Network from "./components/network/NetworkContainer";
+import Validator from "./components/validator/ValidatorContainer";
+import Contract from "./components/contract/ContractContainer";
+import Settings from "./components/settings/SettingsContainer";
 
-const Layout = styled(Flex)`
-    margin-left: 2em;
-    margin-right: 2em;
-    > div {
-        width: 100%;
-    }
+const ContentWrapper = styled(Flex)`
+    margin: 1em 64px;
 `;
+const SideNav = styled(Box).attrs({
+    width: 1 / 6
+})``;
+const Content = styled(Box).attrs({
+    width: 5 / 6
+})``;
 
 const perlin = Perlin.getInstance();
+
+const routes = [
+    { path: "/", component: Dashboard },
+    {
+        path: "/wallet",
+        component: Wallet
+    },
+    { path: "/network", component: Network },
+    { path: "/validator", component: Validator },
+    { path: "/contracts", component: Contract },
+    { path: "/settings", component: Settings }
+];
 
 @observer
 class App extends React.Component<{}, {}> {
@@ -35,7 +42,21 @@ class App extends React.Component<{}, {}> {
         return (
             <>
                 <Navbar />
-                <Layout flexDirection="column" alignItems="center" />
+                <ContentWrapper flexDirection="column" alignItems="center">
+                    <SideNav />
+                    <Content>
+                        <Switch>
+                            {routes.map(route => (
+                                <Route
+                                    key={route.path}
+                                    exact={true}
+                                    path={route.path}
+                                    component={route.component}
+                                />
+                            ))}
+                        </Switch>
+                    </Content>
+                </ContentWrapper>
             </>
         );
     }
