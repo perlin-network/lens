@@ -9,20 +9,17 @@ const columns = [
     {
         Header: "Sender",
         accessor: "sender",
-        maxWidth: 300,
-        className: "text-center"
+        maxWidth: 300
     },
     {
         Header: "Nonce",
         accessor: "nonce",
-        maxWidth: 80,
-        className: "text-center"
+        maxWidth: 80
     },
     {
         Header: "Tag",
         accessor: "tag",
-        maxWidth: 80,
-        className: "text-center"
+        maxWidth: 80
     }
 ];
 const perlin = Perlin.getInstance();

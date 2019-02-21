@@ -1,6 +1,4 @@
 import "normalize.css/normalize.css";
-import "@blueprintjs/core/src/blueprint.scss";
-import "react-table/react-table.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import App from "./App";
