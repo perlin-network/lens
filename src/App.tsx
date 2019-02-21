@@ -4,7 +4,14 @@ import { Perlin } from "./Perlin";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
-import { Switch, Route } from "react-router";
+import SideNav from "./components/SideNav";
+import {
+    Switch,
+    Route,
+    withRouter,
+    RouteComponentProps,
+    Redirect
+} from "react-router";
 import Dashboard from "./components/dashboard/DashboardContainer";
 import Wallet from "./components/wallet/WalletContainer";
 import Network from "./components/network/NetworkContainer";
@@ -15,12 +22,14 @@ import Settings from "./components/settings/SettingsContainer";
 const ContentWrapper = styled(Flex)`
     margin: 1em 64px;
 `;
-const SideNav = styled(Box).attrs({
+const SideWrapper = styled(Box).attrs({
     width: 1 / 6
 })``;
 const Content = styled(Box).attrs({
     width: 5 / 6
-})``;
+})`
+    padding-left: 25px;
+`;
 
 const perlin = Perlin.getInstance();
 
@@ -37,13 +46,15 @@ const routes = [
 ];
 
 @observer
-class App extends React.Component<{}, {}> {
+class App extends React.Component<RouteComponentProps, {}> {
     public render() {
         return (
             <>
                 <Navbar />
-                <ContentWrapper flexDirection="column" alignItems="center">
-                    <SideNav />
+                <ContentWrapper>
+                    <SideWrapper>
+                        <SideNav />
+                    </SideWrapper>
                     <Content>
                         <Switch>
                             {routes.map(route => (
@@ -54,6 +65,7 @@ class App extends React.Component<{}, {}> {
                                     component={route.component}
                                 />
                             ))}
+                            <Redirect to={{ pathname: "/" }} />
                         </Switch>
                     </Content>
                 </ContentWrapper>
@@ -62,4 +74,4 @@ class App extends React.Component<{}, {}> {
     }
 }
 
-export default App;
+export default withRouter(App);
