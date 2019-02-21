@@ -131,9 +131,10 @@ module.exports = {
                     {
                         test: /\.(otf|ttf|eot|woff|woff2)$/,
                         use: {
-                            loader: require.resolve("file-loader"),
+                            loader: require.resolve("url-loader"),
                             options: {
-                                name: "[name].[ext]"
+                                name: "[name].[ext]",
+                                limit: 10000
                             }
                         }
                     },
