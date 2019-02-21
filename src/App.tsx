@@ -29,9 +29,7 @@ const SideWrapper = styled(Box).attrs({
 `;
 const Content = styled(Box).attrs({
     width: 5 / 6
-})`
-    padding-left: 25px;
-`;
+})``;
 
 const perlin = Perlin.getInstance();
 

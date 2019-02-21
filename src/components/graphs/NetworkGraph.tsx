@@ -1,4 +1,4 @@
-import { Perlin } from "../Perlin";
+import { Perlin } from "../../Perlin";
 import { DataSet, Edge, Network } from "vis";
 import * as React from "react";
 import { createRef } from "react";
