@@ -8,6 +8,9 @@ const theme = {
     colors: {
         bgDark: "#14162d",
         bgLight: "#1f2137"
+    },
+    margin: {
+        row: "30px"
     }
 };
 

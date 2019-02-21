@@ -7,7 +7,7 @@ import { SectionTitle } from "../Titles";
 import TransactionsTable from "../TransactionsTable";
 
 const Row = styled(Flex)`
-    margin-bottom: 30px;
+    margin-bottom: ${props => props.theme.margin.row};
 `;
 
 export default class DashboardContainer extends React.Component<{}, {}> {
