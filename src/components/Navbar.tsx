@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import perlinLogo from "../perlin-logo.svg";
+import perlinLogo from "../assets/svg/perlin-logo.svg";
 import { Flex, Box } from "@rebass/grid";
 
 const Wrapper = styled(Flex)`

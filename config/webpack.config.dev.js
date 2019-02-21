@@ -129,11 +129,12 @@ module.exports = {
                 // back to the "file" loader at the end of the loader list.
                 oneOf: [
                     {
-                        test: /\.(ttf|eot|woff|woff2)$/,
+                        test: /\.(otf|ttf|eot|woff|woff2)$/,
                         use: {
                             loader: require.resolve("file-loader"),
                             options: {
                                 name: "[name].[ext]",
+                                // required for fonts to be reference properly in dist
                                 outputPath: "fonts/"
                             }
                         }

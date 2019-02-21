@@ -7,8 +7,9 @@ import App from "./App";
 import { Perlin } from "./Perlin";
 import registerServiceWorker from "./registerServiceWorker";
 import { ThemeProvider } from "styled-components";
-import { theme, GlobalStyle } from "./theme";
+import { theme } from "./theme";
 import { BrowserRouter as Router } from "react-router-dom";
+import "./index.scss";
 
 Perlin.getInstance(); // Initialize Perlin Instance
 
@@ -16,7 +17,6 @@ ReactDOM.render(
     <ThemeProvider theme={theme}>
         <Router>
             <>
-                <GlobalStyle />
                 <App />
             </>
         </Router>

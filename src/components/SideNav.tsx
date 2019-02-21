@@ -8,6 +8,7 @@ const NavIcon = styled(Icon)`
     margin-right: 10px;
 `;
 const NavItem = styled.div`
+    font-family: Montserrat;
     display: flex;
     align-items: center;
     height: 36.5px;
