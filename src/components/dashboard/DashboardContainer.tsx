@@ -4,8 +4,11 @@ import { Flex, Box } from "@rebass/grid";
 import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../Titles";
+import TransactionsTable from "../TransactionsTable";
 
-const Row = styled(Flex)``;
+const Row = styled(Flex)`
+    margin-bottom: 30px;
+`;
 
 export default class DashboardContainer extends React.Component<{}, {}> {
     public render() {
@@ -21,6 +24,11 @@ export default class DashboardContainer extends React.Component<{}, {}> {
                         <NetworkGraph />
                     </Box>
                 </Row>
+                <Box width={1}>
+                    <SectionTitle>Transactions</SectionTitle>
+                    <TransactionsTable />
+                </Box>
+                <Row />
             </>
         );
     }
