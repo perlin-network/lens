@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="22px" viewBox="0 0 20 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>Dashboard Icon</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+        <g id="option-3" transform="translate(-82.000000, -151.000000)" stroke="#FFFFFF" stroke-width="2">
+            <g id="Dashboard-Icon" transform="translate(83.000000, 152.000000)">
+                <path d="M17.8407771,8.34165208 L9.38435859,15.8584685 C9.17206135,16.0471772 8.82793865,16.0471772 8.61564141,15.8584685 L0.15922293,8.34165208 C-0.0530743099,8.15294343 -0.0530743099,7.84705657 0.15922293,7.65834792 L8.61564141,0.141531493 C8.82793865,-0.0471771644 9.17206135,-0.0471771644 9.38435859,0.141531493 L17.8407771,7.65834792 C18.0530743,7.84705657 18.0530743,8.15294343 17.8407771,8.34165208 L17.8407771,8.34165208 Z" id="Stroke-433"></path>
+                <path d="M18,12 L9.39128092,19.8521545 C9.17516019,20.0492818 8.82483981,20.0492818 8.60871908,19.8521545 L0,12" id="Stroke-434"></path>
+            </g>
+        </g>
+    </g>
+</svg>
