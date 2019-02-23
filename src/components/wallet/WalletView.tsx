@@ -1,10 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Flex, Box } from "@rebass/grid";
+import { Box } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import SendPerlsForm from "./SendPerlsForm";
 import PerlMiniIcon from "../../assets/svg/perl-mini-icon.svg";
+import { Card } from "../common/layout";
 
 const Text = styled.p`
     display: flex;
@@ -25,15 +26,6 @@ const Icon = styled.img.attrs({ src: PerlMiniIcon })`
     margin-right: 5px;
 `;
 
-const Wrapper = styled(Flex)`
-    background-color: #0e1a49;
-    border-radius: 2px;
-    box-shadow: 0 0 12px 6px rgba(155, 155, 155, 0.045);
-    width: 100%;
-    padding: 15px 20px;
-    min-height: 100px;
-`;
-
 const perlin = Perlin.getInstance();
 const handleSendPerls = async (recipient: string, amount: number) => {
     try {
@@ -47,7 +39,7 @@ const WalletView: React.SFC<{}> = observer(() => {
     const balance = useWalletBalance();
 
     return (
-        <Wrapper justifyContent="space-between">
+        <Card justifyContent="space-between">
             <Box>
                 <Title>Wallet Balance</Title>
                 <Text>
@@ -58,7 +50,7 @@ const WalletView: React.SFC<{}> = observer(() => {
             <Box>
                 <SendPerlsForm onSubmit={handleSendPerls} />
             </Box>
-        </Wrapper>
+        </Card>
     );
 });
 

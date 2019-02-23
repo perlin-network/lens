@@ -3,7 +3,7 @@ import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
-import { SectionTitle } from "../Titles";
+import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
 
 const Row = styled(Flex)`

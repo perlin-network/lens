@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
-import { SectionTitle } from "../Titles";
+import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
 import WalletView from "../wallet/WalletView";
 

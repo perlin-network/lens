@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
-import { SectionTitle } from "../Titles";
+import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
 import WalletView from "./WalletView";
 
