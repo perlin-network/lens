@@ -55,7 +55,7 @@ module.exports = {
     ],
     output: {
         // Add /* filename */ comments to generated require()s in the output.
-        pathinfo: true,
+        pathinfo: false,
         // This does not produce a real file. It's just the virtual path that is
         // served by WebpackDevServer in development. This is the JS bundle
         // containing code from all our entry points, and the Webpack runtime.
@@ -167,7 +167,8 @@ module.exports = {
                                 loader: require.resolve("ts-loader"),
                                 options: {
                                     // disable type checker - we will use it in fork plugin
-                                    transpileOnly: true
+                                    transpileOnly: true,
+                                    experimentalWatchApi: true
                                 }
                             }
                         ]
@@ -283,7 +284,9 @@ module.exports = {
             watch: paths.appSrc,
             tsconfig: paths.appTsConfig,
             tslint: paths.appTsLint
-        })
+        }),
+        // Ignore generated .js and .d.ts files
+        new webpack.WatchIgnorePlugin([/\.js$/, /\.d\.ts$/])
     ],
     // Some libraries import Node modules but don't use them in the browser.
     // Tell Webpack to provide empty mocks for them so importing them works.
