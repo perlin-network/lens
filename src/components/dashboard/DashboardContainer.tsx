@@ -5,6 +5,7 @@ import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../Titles";
 import TransactionsTable from "../TransactionsTable";
+import WalletView from "../wallet/WalletView";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -14,6 +15,11 @@ export default class DashboardContainer extends React.Component<{}, {}> {
     public render() {
         return (
             <>
+                <Row>
+                    <Box width={1}>
+                        <WalletView />
+                    </Box>
+                </Row>
                 <Row>
                     <Box width={1 / 2}>
                         <SectionTitle>Transaction Graph</SectionTitle>
