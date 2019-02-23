@@ -26,6 +26,7 @@
         "long": "^4.0.0",
         "mobx": "^5.1.0",
         "mobx-react": "^5.2.5",
+        "mobx-react-lite": "^1.0.1",
         "node-sass": "^4.9.3",
         "normalize.css": "^8.0.0",
         "object-assign": "4.1.1",
