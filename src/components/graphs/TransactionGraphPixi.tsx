@@ -6,7 +6,7 @@ import * as sizeMe from "react-sizeme";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { when } from "mobx";
-import { ITransaction } from "../../Transaction";
+import { ITransaction } from "../../types/Transaction";
 
 const perlin = Perlin.getInstance();
 

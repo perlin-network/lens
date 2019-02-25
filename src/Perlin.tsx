@@ -2,7 +2,7 @@ import { computed, observable, action } from "mobx";
 import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
-import { ITransaction } from "./Transaction";
+import { ITransaction } from "./types/Transaction";
 import { Tag } from "./constants";
 
 class Perlin {

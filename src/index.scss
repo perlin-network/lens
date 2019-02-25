@@ -57,14 +57,6 @@ body {
     justify-content: space-between;
 }
 
-.ReactTable .-pagination .-btn {
-    color: #f5f8fa; // $pt-dark-text-color
-}
-
-.ReactTable .rt-expander:after {
-    border-top: 7px solid #f5f8fa; // $pt-dark-text-color
-}
-
 canvas,
 svg {
     border-radius: 3px;
@@ -160,7 +152,6 @@ svg {
 /* Custom ReactTable styles */
 
 .ReactTable {
-    box-shadow: 0 7px 36px 0 rgba(48, 48, 48, 0.13);
     border-radius: 3px;
     background-color: #0d193f;
     padding: 25px 32px;
@@ -188,4 +179,12 @@ svg {
 }
 .ReactTable .rt-tbody .rt-tr.-even {
     background-color: #253052;
+}
+
+.ReactTable .-pagination .-btn {
+    color: #f5f8fa; // $pt-dark-text-color
+}
+
+.ReactTable .rt-expander:after {
+    border-top: 7px solid #f5f8fa; // $pt-dark-text-color
 }
