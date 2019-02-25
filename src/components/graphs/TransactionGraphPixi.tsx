@@ -24,7 +24,7 @@ var trans_tooltip_amount = new PIXI.Text("", {
     align: "left"
 });
 
-class Graph extends React.Component<{ size: any }, {}> {
+class TGraph extends React.Component<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
 
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
@@ -232,6 +232,6 @@ function get_node_size(payload: number): number {
     return Math.log(payload) + 5;
 }
 
-const TransactionGraphPixi = sizeMe()(Graph);
+const TransactionGraphPixi = sizeMe()(TGraph);
 
 export { TransactionGraphPixi };
