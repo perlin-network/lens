@@ -2,7 +2,7 @@ import * as React from "react";
 import { createRef } from "react";
 import { Perlin } from "../../Perlin";
 // @ts-ignore
-import * as sizeMe from "react-sizeme";
+import { withSize } from "react-sizeme";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { when } from "mobx";
@@ -10,36 +10,28 @@ import { ITransaction } from "../../types/Transaction";
 
 const perlin = Perlin.getInstance();
 
-const trans_tooltip = new PIXI.Text("Transaction:", {
+const transTooltip = new PIXI.Text("Transaction:", {
     fontFamily: "Montserrat,HKGrotesk,Roboto",
     fontSize: 12,
     fill: "white",
     align: "left"
 });
-trans_tooltip.visible = false;
-const trans_tooltip_amount = new PIXI.Text("", {
+transTooltip.visible = false;
+const transTooltipAmount = new PIXI.Text("", {
     fontFamily: "Montserrat,HKGrotesk,Roboto",
     fontSize: 16,
     fill: "white",
     align: "left"
 });
-trans_tooltip_amount.visible = false;
-const trans_tooltip_status = new PIXI.Text("", {
+transTooltipAmount.visible = false;
+const transTooltipStatus = new PIXI.Text("", {
     fontFamily: "Montserrat,HKGrotesk,Roboto",
     fontSize: 12,
     align: "left"
 });
-trans_tooltip_status.visible = false;
+transTooltipStatus.visible = false;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 class TGraph extends React.Component<{ size: any }, {}> {
-=======
-class Graph extends React.Component<{ size: any }, {}> {
->>>>>>> Initial commit
-=======
-class TGraph extends React.Component<{ size: any }, {}> {
->>>>>>> Baseline network graph, and conversion from vis.js to pixi.js and d3
     private networkGraphRef: React.RefObject<any> = createRef();
 
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
@@ -131,9 +123,9 @@ class TGraph extends React.Component<{ size: any }, {}> {
             () => perlin.transactions.recent.length > 0,
             () => {
                 const recent = perlin.transactions.recent;
-                stage.addChild(trans_tooltip);
-                stage.addChild(trans_tooltip_amount);
-                stage.addChild(trans_tooltip_status);
+                stage.addChild(transTooltip);
+                stage.addChild(transTooltipAmount);
+                stage.addChild(transTooltipStatus);
 
                 recent.forEach((tx: ITransaction, index: number) => {
                     const node = getInteractiveNode(tx);
@@ -201,65 +193,65 @@ class TGraph extends React.Component<{ size: any }, {}> {
 function getInteractiveNode(tx: ITransaction) {
     const node = {
         id: tx.id,
-        payload: tx.payload.amount,
+        payload: tx.payload ? tx.payload.amount : undefined,
         gfx: new PIXI.Graphics()
     };
 
     console.log("Id", node.id, "with status", tx.status);
 
-    var node_size = node.payload == undefined ? 1 : get_node_size(node.payload);
+    const nodeSize = node.payload === undefined ? 1 : getNodeSize(node.payload);
     node.gfx.lineStyle(1, 0xffffff);
-    if (tx.status == "Applied") {
+    if (tx.status === "Applied") {
         node.gfx.beginFill(0x7b62d2);
-        trans_tooltip_status.text = "Applied";
-        trans_tooltip_status.style.fill = 0x7b62d2;
-    } else if (tx.status == "Accepted") {
+        transTooltipStatus.text = "Applied";
+        transTooltipStatus.style.fill = 0x7b62d2;
+    } else if (tx.status === "Accepted") {
         node.gfx.beginFill(0x78c77a);
-        trans_tooltip_status.text = "Accepted";
-        trans_tooltip_status.style.fill = 0x78c77a;
-    } else if (tx.status == "Failed") {
+        transTooltipStatus.text = "Accepted";
+        transTooltipStatus.style.fill = 0x78c77a;
+    } else if (tx.status === "Failed") {
         node.gfx.beginFill(0xce6262);
-        trans_tooltip_status.text = "Failed";
-        trans_tooltip_status.style.fill = 0xce6262;
+        transTooltipStatus.text = "Failed";
+        transTooltipStatus.style.fill = 0xce6262;
     } else {
         node.gfx.beginFill(0x7b62d2);
-        trans_tooltip_status.text = "Applied";
-        trans_tooltip_status.style.fill = 0x7b62d2;
+        transTooltipStatus.text = "Applied";
+        transTooltipStatus.style.fill = 0x7b62d2;
     }
-    node.gfx.drawCircle(0, 0, node_size);
+    node.gfx.drawCircle(0, 0, nodeSize);
 
-    if (node.payload != undefined) {
+    if (node.payload !== undefined) {
         node.gfx.interactive = true;
         node.gfx.buttonMode = true;
-        node.gfx.hitArea = new PIXI.Circle(0, 0, node_size);
+        node.gfx.hitArea = new PIXI.Circle(0, 0, nodeSize);
 
-        //on node mouseover
-        node.gfx.on("mouseover", function() {
+        // on node mouseover
+        node.gfx.on("mouseover", () => {
             node.gfx.lineStyle(5, 0xffffff);
-            node.gfx.drawCircle(0, 0, node_size);
+            node.gfx.drawCircle(0, 0, nodeSize);
 
-            trans_tooltip.x = node.gfx.x + (node_size + 15);
-            trans_tooltip.y = node.gfx.y - 20;
+            transTooltip.x = node.gfx.x + (nodeSize + 15);
+            transTooltip.y = node.gfx.y - 20;
 
-            trans_tooltip_amount.text = node.payload + " PERLs";
-            trans_tooltip_amount.x = node.gfx.x + (node_size + 15);
-            trans_tooltip_amount.y = node.gfx.y - 5;
+            transTooltipAmount.text = node.payload + " PERLs";
+            transTooltipAmount.x = node.gfx.x + (nodeSize + 15);
+            transTooltipAmount.y = node.gfx.y - 5;
 
-            trans_tooltip_status.x = node.gfx.x + (node_size + 15);
-            trans_tooltip_status.y = node.gfx.y + 15;
+            transTooltipStatus.x = node.gfx.x + (nodeSize + 15);
+            transTooltipStatus.y = node.gfx.y + 15;
 
-            trans_tooltip.visible = true;
-            trans_tooltip_amount.visible = true;
-            trans_tooltip_status.visible = true;
+            transTooltip.visible = true;
+            transTooltipAmount.visible = true;
+            transTooltipStatus.visible = true;
         });
 
-        //on node mouseout
-        node.gfx.on("mouseout", function() {
+        // on node mouseout
+        node.gfx.on("mouseout", () => {
             node.gfx.lineStyle(0, 0xffffff);
-            node.gfx.drawCircle(0, 0, node_size);
-            trans_tooltip.visible = false;
-            trans_tooltip_amount.visible = false;
-            trans_tooltip_status.visible = false;
+            node.gfx.drawCircle(0, 0, nodeSize);
+            transTooltip.visible = false;
+            transTooltipAmount.visible = false;
+            transTooltipStatus.visible = false;
         });
     }
 
@@ -267,18 +259,10 @@ function getInteractiveNode(tx: ITransaction) {
 }
 
 // TODO: allocate node sizes based on the overall payload distribution, updated with every added transaction
-function get_node_size(payload: number): number {
+function getNodeSize(payload: number): number {
     return Math.log(payload) + 5;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-const TransactionGraphPixi = sizeMe()(TGraph);
-=======
-const TransactionGraphPixi = sizeMe()(Graph);
->>>>>>> Initial commit
-=======
-const TransactionGraphPixi = sizeMe()(TGraph);
->>>>>>> Baseline network graph, and conversion from vis.js to pixi.js and d3
+const TransactionGraphPixi = withSize()(TGraph);
 
 export { TransactionGraphPixi };

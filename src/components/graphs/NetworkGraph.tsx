@@ -1,13 +1,13 @@
 import { Perlin } from "../../Perlin";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
-import * as sizeMe from "react-sizeme";
+import { withSize } from "react-sizeme";
 import * as React from "react";
 import { createRef } from "react";
 import { when } from "mobx";
 
 const perlin = Perlin.getInstance();
-var network_tooltip = new PIXI.Text("", {
+const networkTooltip = new PIXI.Text("", {
     fontFamily: "Montserrat,HKGrotesk,Roboto",
     fontSize: 12,
     fill: "white",
@@ -104,7 +104,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
         when(
             () => perlin.ledger.address.length > 0,
             () => {
-                stage.addChild(network_tooltip);
+                stage.addChild(networkTooltip);
 
                 // Add nodes
                 const self = perlin.ledger.address;
@@ -135,12 +135,12 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
                 // If peer node doesn't already exist, make a new node and link it
                 peers.forEach(peer => {
-                    if (this.peerMap.get(peer) == undefined) {
+                    if (this.peerMap.get(peer) === undefined) {
                         const peerNode = getInteractiveNode(peer);
                         this.nodes.push(peerNode);
                         stage.addChild(peerNode.gfx);
 
-                        //Add the temporary peer node to the map
+                        // Add the temporary peer node to the map
                         this.peerMap.set(peer, [
                             {
                                 id: node.id,
@@ -174,33 +174,33 @@ function getInteractiveNode(self: string) {
         label: self,
         gfx: new PIXI.Graphics()
     };
-    const node_size = 10;
+    const nodeSize = 10;
     node.gfx.lineStyle(1, 0xffffff);
     node.gfx.beginFill(0x7667cb);
-    node.gfx.drawCircle(0, 0, node_size);
+    node.gfx.drawCircle(0, 0, nodeSize);
     node.gfx.interactive = true;
     node.gfx.buttonMode = true;
-    node.gfx.hitArea = new PIXI.Circle(0, 0, node_size);
+    node.gfx.hitArea = new PIXI.Circle(0, 0, nodeSize);
 
-    //on node mouseover
-    node.gfx.on("mouseover", function() {
+    // on node mouseover
+    node.gfx.on("mouseover", () => {
         node.gfx.lineStyle(2, 0xffffff);
-        node.gfx.drawCircle(0, 0, node_size);
+        node.gfx.drawCircle(0, 0, nodeSize);
 
-        network_tooltip.text = self;
-        network_tooltip.x = node.gfx.x + 20;
-        network_tooltip.y = node.gfx.y - 5;
-        network_tooltip.visible = true;
+        networkTooltip.text = self;
+        networkTooltip.x = node.gfx.x + 20;
+        networkTooltip.y = node.gfx.y - 5;
+        networkTooltip.visible = true;
     });
 
-    //on node mouseout
-    node.gfx.on("mouseout", function() {
+    // on node mouseout
+    node.gfx.on("mouseout", () => {
         node.gfx.lineStyle(0, 0xffffff);
-        node.gfx.drawCircle(0, 0, node_size);
-        network_tooltip.visible = false;
+        node.gfx.drawCircle(0, 0, nodeSize);
+        networkTooltip.visible = false;
     });
     return node;
 }
 
-const NetworkGraph = sizeMe()(NGraph);
+const NetworkGraph = withSize()(NGraph);
 export { NetworkGraph };
