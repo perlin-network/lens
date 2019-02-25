@@ -1,86 +1,206 @@
 import { Perlin } from "../../Perlin";
-import { DataSet, Edge, Network } from "vis";
+import * as PIXI from "pixi.js";
+import * as d3 from "d3";
+import * as sizeMe from "react-sizeme";
 import * as React from "react";
 import { createRef } from "react";
 import { when } from "mobx";
 
 const perlin = Perlin.getInstance();
+var network_tooltip = new PIXI.Text("", {
+    fontFamily: "Montserrat,HKGrotesk,Roboto",
+    fontSize: 12,
+    fill: "white",
+    align: "left"
+});
 
-class NetworkGraph extends React.Component<{}, {}> {
+class NGraph extends React.Component<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
-    // @ts-ignore
-    private networkGraph: Network;
+    private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
+
+    private peerMap: Map<string, any[]> = new Map([]);
+    private nodes: any[] = [];
+    private edges: any[] = [];
+
+    public updateDimensions() {
+        if (this.renderer != null) {
+            const parent = this.renderer.view.parentNode;
+
+            // @ts-ignore
+            this.renderer.resize(parent.clientWidth, parent.clientHeight);
+        }
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("resize", this.updateDimensions.bind(this));
+    }
 
     public componentDidMount() {
-        // @ts-ignore
-        const networkNodes = new DataSet<Node>();
-        const networkEdges = new DataSet<Edge>();
+        window.addEventListener("resize", this.updateDimensions.bind(this));
 
-        this.networkGraph = new Network(
-            this.networkGraphRef.current,
-            { nodes: networkNodes, edges: networkEdges },
-            {
-                width: "100%",
-                height: "360px",
-                nodes: {
-                    shape: "dot",
-                    size: 15,
-                    font: {
-                        color: "white",
-                        face: "monospace",
-                        size: 12
-                    }
-                },
-                interaction: {
-                    hover: true
-                },
-                physics: {
-                    solver: "forceAtlas2Based",
-                    minVelocity: 1.5,
-                    maxVelocity: 15
-                }
-            }
+        const width = this.props.size.width;
+        const height = this.props.size.height || 400;
+
+        const stage = new PIXI.Container();
+        this.renderer = PIXI.autoDetectRenderer({
+            width,
+            height,
+            transparent: true,
+            antialias: true
+        });
+
+        const links = new PIXI.Graphics();
+        stage.addChild(links);
+
+        this.networkGraphRef.current.appendChild(this.renderer.view);
+
+        d3.select(this.renderer.view).call(
+            d3.zoom().on("zoom", () => {
+                stage.scale.set(d3.event.transform.k);
+                stage.position.set(d3.event.transform.x, d3.event.transform.y);
+            })
         );
+
+        const simulation = d3
+            .forceSimulation(this.nodes)
+            .force(
+                "link",
+                d3.forceLink(this.edges).id((d: any) => d.id)
+                //            .distance(100)
+            )
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("charge", d3.forceManyBody().strength(-200))
+            .force("collide", d3.forceCollide().radius(3))
+            .force("x", d3.forceX())
+            .force("y", d3.forceY())
+            .alphaTarget(1);
+
+        const render = () => {
+            this.nodes.forEach(node => {
+                const { x, y, gfx } = node;
+                gfx.position = new PIXI.Point(x, y);
+            });
+
+            links.clear();
+            links.alpha = 0.6;
+            this.edges.forEach(link => {
+                const { source, target } = link;
+                links.lineStyle(3, 0x57305e);
+                links.moveTo(source.x, source.y);
+                links.lineTo(target.x, target.y);
+            });
+
+            links.endFill();
+            this.renderer.render(stage);
+        };
+
+        const update = () => {
+            simulation.nodes(this.nodes).on("tick", render);
+            // @ts-ignore
+            simulation.force("link").links(this.edges);
+            simulation.alpha(1).restart();
+        };
 
         when(
             () => perlin.ledger.address.length > 0,
             () => {
+                stage.addChild(network_tooltip);
+
+                // Add nodes
                 const self = perlin.ledger.address;
                 if (self.length === 0) {
                     return;
                 }
+                const node = getInteractiveNode(perlin.ledger.address);
+                this.nodes.push(node);
+                stage.addChild(node.gfx);
 
+                // Check peers
                 let peers = perlin.ledger.peers;
-
                 if (peers == null || peers.length === 0) {
                     return;
                 }
-
                 peers = peers.slice();
-
-                // Add nodes.
-                networkNodes.add({ id: self, label: self });
-                networkNodes.add(
+                peers.forEach(peer => {
+                    if (node.id !== peer) {
+                        this.edges.push({ source: node.id, target: peer });
+                    }
+                });
+                this.peerMap.set(
+                    node.id,
                     peers.map(peer => {
                         return { id: peer, label: peer };
                     })
                 );
 
-                // Add edges.
-                networkNodes.forEach((x: any) => {
-                    networkNodes.forEach((y: any) => {
-                        if (x.id !== y.id) {
-                            networkEdges.add({ from: x.id, to: y.id });
-                        }
-                    });
+                // If peer node doesn't already exist, make a new node and link it
+                peers.forEach(peer => {
+                    if (this.peerMap.get(peer) == undefined) {
+                        const peerNode = getInteractiveNode(peer);
+                        this.nodes.push(peerNode);
+                        stage.addChild(peerNode.gfx);
+
+                        //Add the temporary peer node to the map
+                        this.peerMap.set(peer, [
+                            {
+                                id: node.id,
+                                label: node.id
+                            }
+                        ]);
+
+                        // Add edges
+                        this.edges.push({ source: peer, target: node.id });
+                    }
                 });
+
+                update();
             }
         );
     }
 
     public render() {
-        return <div ref={this.networkGraphRef} style={{ height: 360 }} />;
+        return (
+            <div
+                style={{ width: "100%", height: 400, marginBottom: 0 }}
+                ref={this.networkGraphRef}
+            />
+        );
     }
 }
 
+function getInteractiveNode(self: string) {
+    const node = {
+        id: self,
+        label: self,
+        gfx: new PIXI.Graphics()
+    };
+    const node_size = 10;
+    node.gfx.lineStyle(1, 0xffffff);
+    node.gfx.beginFill(0x7667cb);
+    node.gfx.drawCircle(0, 0, node_size);
+    node.gfx.interactive = true;
+    node.gfx.buttonMode = true;
+    node.gfx.hitArea = new PIXI.Circle(0, 0, node_size);
+
+    //on node mouseover
+    node.gfx.on("mouseover", function() {
+        node.gfx.lineStyle(2, 0xffffff);
+        node.gfx.drawCircle(0, 0, node_size);
+
+        network_tooltip.text = self;
+        network_tooltip.x = node.gfx.x + 20;
+        network_tooltip.y = node.gfx.y - 5;
+        network_tooltip.visible = true;
+    });
+
+    //on node mouseout
+    node.gfx.on("mouseout", function() {
+        node.gfx.lineStyle(0, 0xffffff);
+        node.gfx.drawCircle(0, 0, node_size);
+        network_tooltip.visible = false;
+    });
+    return node;
+}
+
+const NetworkGraph = sizeMe()(NGraph);
 export { NetworkGraph };
