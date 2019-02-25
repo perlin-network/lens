@@ -10,19 +10,26 @@ import { ITransaction } from "../../types/Transaction";
 
 const perlin = Perlin.getInstance();
 
-const trans_tooltip = new PIXI.Text("", {
+const trans_tooltip = new PIXI.Text("Transaction:", {
     fontFamily: "Montserrat,HKGrotesk,Roboto",
     fontSize: 12,
     fill: "white",
     align: "left"
 });
-trans_tooltip.text = "Transaction:";
-var trans_tooltip_amount = new PIXI.Text("", {
+trans_tooltip.visible = false;
+const trans_tooltip_amount = new PIXI.Text("", {
     fontFamily: "Montserrat,HKGrotesk,Roboto",
     fontSize: 16,
     fill: "white",
     align: "left"
 });
+trans_tooltip_amount.visible = false;
+const trans_tooltip_status = new PIXI.Text("", {
+    fontFamily: "Montserrat,HKGrotesk,Roboto",
+    fontSize: 12,
+    align: "left"
+});
+trans_tooltip_status.visible = false;
 
 class TGraph extends React.Component<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
@@ -118,6 +125,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
                 const recent = perlin.transactions.recent;
                 stage.addChild(trans_tooltip);
                 stage.addChild(trans_tooltip_amount);
+                stage.addChild(trans_tooltip_status);
 
                 recent.forEach((tx: ITransaction, index: number) => {
                     const node = getInteractiveNode(tx);
@@ -189,9 +197,27 @@ function getInteractiveNode(tx: ITransaction) {
         gfx: new PIXI.Graphics()
     };
 
+    console.log("Id", node.id, "with status", tx.status);
+
     var node_size = node.payload == undefined ? 1 : get_node_size(node.payload);
     node.gfx.lineStyle(1, 0xffffff);
-    node.gfx.beginFill(0x7667cb);
+    if (tx.status == "Applied") {
+        node.gfx.beginFill(0x7b62d2);
+        trans_tooltip_status.text = "Applied";
+        trans_tooltip_status.style.fill = 0x7b62d2;
+    } else if (tx.status == "Accepted") {
+        node.gfx.beginFill(0x78c77a);
+        trans_tooltip_status.text = "Accepted";
+        trans_tooltip_status.style.fill = 0x78c77a;
+    } else if (tx.status == "Failed") {
+        node.gfx.beginFill(0xce6262);
+        trans_tooltip_status.text = "Failed";
+        trans_tooltip_status.style.fill = 0xce6262;
+    } else {
+        node.gfx.beginFill(0x7b62d2);
+        trans_tooltip_status.text = "Applied";
+        trans_tooltip_status.style.fill = 0x7b62d2;
+    }
     node.gfx.drawCircle(0, 0, node_size);
 
     if (node.payload != undefined) {
@@ -204,15 +230,19 @@ function getInteractiveNode(tx: ITransaction) {
             node.gfx.lineStyle(5, 0xffffff);
             node.gfx.drawCircle(0, 0, node_size);
 
+            trans_tooltip.x = node.gfx.x + (node_size + 15);
+            trans_tooltip.y = node.gfx.y - 20;
+
             trans_tooltip_amount.text = node.payload + " PERLs";
             trans_tooltip_amount.x = node.gfx.x + (node_size + 15);
-            trans_tooltip_amount.y = node.gfx.y;
+            trans_tooltip_amount.y = node.gfx.y - 5;
 
-            trans_tooltip.x = node.gfx.x + (node_size + 15);
-            trans_tooltip.y = node.gfx.y - 15;
+            trans_tooltip_status.x = node.gfx.x + (node_size + 15);
+            trans_tooltip_status.y = node.gfx.y + 15;
 
             trans_tooltip.visible = true;
             trans_tooltip_amount.visible = true;
+            trans_tooltip_status.visible = true;
         });
 
         //on node mouseout
@@ -221,6 +251,7 @@ function getInteractiveNode(tx: ITransaction) {
             node.gfx.drawCircle(0, 0, node_size);
             trans_tooltip.visible = false;
             trans_tooltip_amount.visible = false;
+            trans_tooltip_status.visible = false;
         });
     }
 
