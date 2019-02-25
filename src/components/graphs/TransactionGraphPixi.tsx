@@ -25,10 +25,14 @@ var trans_tooltip_amount = new PIXI.Text("", {
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 class TGraph extends React.Component<{ size: any }, {}> {
 =======
 class Graph extends React.Component<{ size: any }, {}> {
 >>>>>>> Initial commit
+=======
+class TGraph extends React.Component<{ size: any }, {}> {
+>>>>>>> Baseline network graph, and conversion from vis.js to pixi.js and d3
     private networkGraphRef: React.RefObject<any> = createRef();
 
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
@@ -237,9 +241,13 @@ function get_node_size(payload: number): number {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const TransactionGraphPixi = sizeMe()(TGraph);
 =======
 const TransactionGraphPixi = sizeMe()(Graph);
 >>>>>>> Initial commit
+=======
+const TransactionGraphPixi = sizeMe()(TGraph);
+>>>>>>> Baseline network graph, and conversion from vis.js to pixi.js and d3
 
 export { TransactionGraphPixi };
