@@ -10,6 +10,20 @@ import { ITransaction } from "../../types/Transaction";
 
 const perlin = Perlin.getInstance();
 
+const trans_tooltip = new PIXI.Text("", {
+    fontFamily: "Montserrat,HKGrotesk,Roboto",
+    fontSize: 12,
+    fill: "white",
+    align: "left"
+});
+trans_tooltip.text = "Transaction:";
+var trans_tooltip_amount = new PIXI.Text("", {
+    fontFamily: "Montserrat,HKGrotesk,Roboto",
+    fontSize: 16,
+    fill: "white",
+    align: "left"
+});
+
 class Graph extends React.Component<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
 
@@ -51,43 +65,12 @@ class Graph extends React.Component<{ size: any }, {}> {
 
         this.networkGraphRef.current.appendChild(this.renderer.view);
 
-        // const drag = () => {
-        //     const dragStarted = () => {
-        //         if (!d3.event.active) {
-        //             simulation.alphaTarget(0.3).restart();
-        //         }
-        //         d3.event.subject.fx = d3.event.subject.x;
-        //         d3.event.subject.fy = d3.event.subject.y;
-        //     }
-        //
-        //     const dragged = () => {
-        //         d3.event.subject.fx = d3.event.x;
-        //         d3.event.subject.fy = d3.event.y;
-        //     }
-        //
-        //     const dragEnded = () => {
-        //         if (!d3.event.active) {
-        //             simulation.alphaTarget(0);
-        //         }
-        //         d3.event.subject.fx = null;
-        //         d3.event.subject.fy = null;
-        //     };
-        //
-        //     return d3.drag()
-        //         .container(renderer.view)
-        //         .subject(() => simulation.find(d3.event.x, d3.event.y))
-        //         .on("start", dragStarted)
-        //         .on("drag", dragged)
-        //         .on("end", dragEnded);
-        // }
-
         d3.select(this.renderer.view).call(
             d3.zoom().on("zoom", () => {
                 stage.scale.set(d3.event.transform.k);
                 stage.position.set(d3.event.transform.x, d3.event.transform.y);
             })
         );
-        // .call(drag())
 
         const simulation = d3
             .forceSimulation(this.nodes)
@@ -111,13 +94,12 @@ class Graph extends React.Component<{ size: any }, {}> {
             this.links.forEach(link => {
                 const { source, target } = link;
 
-                links.lineStyle(1, 0x999999);
+                links.lineStyle(3, 0x57305e);
                 links.moveTo(source.x, source.y);
                 links.lineTo(target.x, target.y);
             });
 
             links.endFill();
-
             this.renderer.render(stage);
         };
 
@@ -134,15 +116,12 @@ class Graph extends React.Component<{ size: any }, {}> {
             () => perlin.transactions.recent.length > 0,
             () => {
                 const recent = perlin.transactions.recent;
+                stage.addChild(trans_tooltip);
+                stage.addChild(trans_tooltip_amount);
 
                 recent.forEach((tx: ITransaction, index: number) => {
-                    const node = { id: tx.id, gfx: new PIXI.Graphics() };
-
-                    node.gfx.lineStyle(1.5, 0xffffff);
-                    node.gfx.beginFill(0xffffffff);
-                    node.gfx.drawCircle(0, 0, 3);
+                    const node = getInteractiveNode(tx);
                     stage.addChild(node.gfx);
-
                     this.nodes.push(node);
                     this.store.set(tx.id, index);
                 });
@@ -173,14 +152,8 @@ class Graph extends React.Component<{ size: any }, {}> {
                     l => l.source.id !== popped.id && l.target.id !== popped.id
                 );
             }
-
-            const node = { id: tx.id, gfx: new PIXI.Graphics() };
-
-            node.gfx.lineStyle(1.5, 0xffffff);
-            node.gfx.beginFill(0xffffff);
-            node.gfx.drawCircle(0, 0, 3);
+            const node = getInteractiveNode(tx);
             stage.addChild(node.gfx);
-
             this.nodes.push(node);
             this.store.set(tx.id, 1);
 
@@ -207,6 +180,56 @@ class Graph extends React.Component<{ size: any }, {}> {
             />
         );
     }
+}
+
+function getInteractiveNode(tx: ITransaction) {
+    const node = {
+        id: tx.id,
+        payload: tx.payload.amount,
+        gfx: new PIXI.Graphics()
+    };
+
+    var node_size = node.payload == undefined ? 1 : get_node_size(node.payload);
+    node.gfx.lineStyle(1, 0xffffff);
+    node.gfx.beginFill(0x7667cb);
+    node.gfx.drawCircle(0, 0, node_size);
+
+    if (node.payload != undefined) {
+        node.gfx.interactive = true;
+        node.gfx.buttonMode = true;
+        node.gfx.hitArea = new PIXI.Circle(0, 0, node_size);
+
+        //on node mouseover
+        node.gfx.on("mouseover", function() {
+            node.gfx.lineStyle(5, 0xffffff);
+            node.gfx.drawCircle(0, 0, node_size);
+
+            trans_tooltip_amount.text = node.payload + " PERLs";
+            trans_tooltip_amount.x = node.gfx.x + (node_size + 15);
+            trans_tooltip_amount.y = node.gfx.y;
+
+            trans_tooltip.x = node.gfx.x + (node_size + 15);
+            trans_tooltip.y = node.gfx.y - 15;
+
+            trans_tooltip.visible = true;
+            trans_tooltip_amount.visible = true;
+        });
+
+        //on node mouseout
+        node.gfx.on("mouseout", function() {
+            node.gfx.lineStyle(0, 0xffffff);
+            node.gfx.drawCircle(0, 0, node_size);
+            trans_tooltip.visible = false;
+            trans_tooltip_amount.visible = false;
+        });
+    }
+
+    return node;
+}
+
+// TODO: allocate node sizes based on the overall payload distribution, updated with every added transaction
+function get_node_size(payload: number): number {
+    return Math.log(payload) + 5;
 }
 
 const TransactionGraphPixi = sizeMe()(Graph);
