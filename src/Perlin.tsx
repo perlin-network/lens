@@ -28,6 +28,11 @@ class Perlin {
             tx.payload = "<too large>";
         }
 
+        // default the status to accepted if it's missing
+        if (tx.status == null) {
+            tx.status = "accepted";
+        }
+
         return tx;
     }
     private static singleton: Perlin;
