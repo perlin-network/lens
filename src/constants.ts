@@ -1,10 +1,11 @@
 // Transaction Tags
 
 enum Tag {
-    Nop = 0,
-    Generic,
-    CreateContract,
-    Stake
+    Nop = "nop",
+    Transfer = "transfer",
+    CreateContract = "create_contract",
+    PlaceStake = "place_stake",
+    WithdrawStake = "withdraw_stake"
 }
 
 const STORAGE_KEYS = {

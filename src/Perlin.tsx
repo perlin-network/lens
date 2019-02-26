@@ -72,7 +72,7 @@ class Perlin {
 
     public async transfer(recipient: string, amount: number): Promise<any> {
         const params = {
-            tag: Tag.Stake,
+            tag: Tag.Transfer,
             payload: btoa(
                 JSON.stringify({
                     recipient,
@@ -87,7 +87,7 @@ class Perlin {
     // @ts-ignore
     public async placeStake(amount: number): Promise<any> {
         const params = {
-            tag: Tag.Stake,
+            tag: Tag.PlaceStake,
             payload: btoa(
                 JSON.stringify({
                     amount
@@ -101,7 +101,7 @@ class Perlin {
     // @ts-ignore
     public async withdrawStake(amount: number): Promise<any> {
         const params = {
-            tag: Tag.Stake,
+            tag: Tag.WithdrawStake,
             payload: btoa(
                 JSON.stringify({
                     amount: amount * -1
@@ -243,6 +243,7 @@ class Perlin {
                 this.transactions.recent.length
             );
             this.transactions.recent.push(data);
+            console.log(data);
 
             if (this.onPolledTransaction != null) {
                 this.onPolledTransaction(data);
