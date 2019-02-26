@@ -233,7 +233,7 @@ class Perlin {
 
     private pollTransactions(event: string = "accepted") {
         const ws = new WebSocket(
-            `ws://${this.api.host}/transaction/poll?event=${event}`,
+            `ws://${this.api.host}/transaction/poll_status`,
             this.api.token
         );
 

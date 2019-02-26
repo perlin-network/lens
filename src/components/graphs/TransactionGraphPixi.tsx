@@ -201,15 +201,15 @@ function getInteractiveNode(tx: ITransaction) {
 
     const nodeSize = node.payload === undefined ? 1 : getNodeSize(node.payload);
     node.gfx.lineStyle(1, 0xffffff);
-    if (tx.status === "Applied") {
+    if (tx.status === "applied") {
         node.gfx.beginFill(0x7b62d2);
         transTooltipStatus.text = "Applied";
         transTooltipStatus.style.fill = 0x7b62d2;
-    } else if (tx.status === "Accepted") {
+    } else if (tx.status === "accepted") {
         node.gfx.beginFill(0x78c77a);
         transTooltipStatus.text = "Accepted";
         transTooltipStatus.style.fill = 0x78c77a;
-    } else if (tx.status === "Failed") {
+    } else if (tx.status === "failed") {
         node.gfx.beginFill(0xce6262);
         transTooltipStatus.text = "Failed";
         transTooltipStatus.style.fill = 0xce6262;
