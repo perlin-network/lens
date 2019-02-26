@@ -15,13 +15,21 @@ const InfoIcon = styled.img.attrs({ src: PerlMiniIcon })`
     margin-right: 5px;
 `;
 
+interface InfoTextProps {
+    breakWord?: boolean;
+}
 const InfoText = styled.p`
     display: flex;
     align-items: center;
     font-family: HKGrotesk;
     font-size: 18px;
     color: #fff;
+    ${(props: InfoTextProps) =>
+        props.breakWord ? "word-break: break-word;" : ""}
 `;
+InfoText.defaultProps = {
+    breakWord: false
+};
 const InfoTitle = styled.h2`
     font-family: HKGrotesk;
     font-size: 13px;
