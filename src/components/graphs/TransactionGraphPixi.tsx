@@ -197,27 +197,21 @@ function getInteractiveNode(tx: ITransaction) {
         gfx: new PIXI.Graphics()
     };
 
-    console.log("Id", node.id, "with status", tx.status);
-
     const nodeSize = node.payload === undefined ? 1 : getNodeSize(node.payload);
-    node.gfx.lineStyle(1, 0xffffff);
     if (tx.status === "applied") {
-        node.gfx.beginFill(0x7b62d2);
+        node.gfx.beginFill(0x7668cb);
         transTooltipStatus.text = "Applied";
-        transTooltipStatus.style.fill = 0x7b62d2;
+        transTooltipStatus.style.fill = 0x7668cb;
     } else if (tx.status === "accepted") {
-        node.gfx.beginFill(0x78c77a);
+        node.gfx.beginFill(0x6bad1d);
         transTooltipStatus.text = "Accepted";
-        transTooltipStatus.style.fill = 0x78c77a;
+        transTooltipStatus.style.fill = 0x6bad1d;
     } else if (tx.status === "failed") {
-        node.gfx.beginFill(0xce6262);
+        node.gfx.beginFill(0x940f1f);
         transTooltipStatus.text = "Failed";
-        transTooltipStatus.style.fill = 0xce6262;
-    } else {
-        node.gfx.beginFill(0x7b62d2);
-        transTooltipStatus.text = "Applied";
-        transTooltipStatus.style.fill = 0x7b62d2;
+        transTooltipStatus.style.fill = 0x940f1f;
     }
+    node.gfx.lineStyle(1, 0xffff00);
     node.gfx.drawCircle(0, 0, nodeSize);
 
     if (node.payload !== undefined) {
@@ -227,7 +221,7 @@ function getInteractiveNode(tx: ITransaction) {
 
         // on node mouseover
         node.gfx.on("mouseover", () => {
-            node.gfx.lineStyle(5, 0xffffff);
+            node.gfx.lineStyle(2, 0xffffff);
             node.gfx.drawCircle(0, 0, nodeSize);
 
             transTooltip.x = node.gfx.x + (nodeSize + 15);
@@ -247,7 +241,7 @@ function getInteractiveNode(tx: ITransaction) {
 
         // on node mouseout
         node.gfx.on("mouseout", () => {
-            node.gfx.lineStyle(0, 0xffffff);
+            node.gfx.lineStyle(0, 0xffff00);
             node.gfx.drawCircle(0, 0, nodeSize);
             transTooltip.visible = false;
             transTooltipAmount.visible = false;

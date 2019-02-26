@@ -175,8 +175,8 @@ function getInteractiveNode(self: string) {
         gfx: new PIXI.Graphics()
     };
     const nodeSize = 10;
-    node.gfx.lineStyle(1, 0xffffff);
     node.gfx.beginFill(0x7667cb);
+    node.gfx.lineStyle(1, 0xffffff);
     node.gfx.drawCircle(0, 0, nodeSize);
     node.gfx.interactive = true;
     node.gfx.buttonMode = true;
@@ -184,9 +184,8 @@ function getInteractiveNode(self: string) {
 
     // on node mouseover
     node.gfx.on("mouseover", () => {
-        node.gfx.lineStyle(2, 0xffffff);
+        node.gfx.lineStyle(2, 0xffffff, 1);
         node.gfx.drawCircle(0, 0, nodeSize);
-
         networkTooltip.text = self;
         networkTooltip.x = node.gfx.x + 20;
         networkTooltip.y = node.gfx.y - 5;

@@ -28,9 +28,9 @@ class Perlin {
             tx.payload = "<too large>";
         }
 
-        // default the status to accepted if it's missing
+        // default the status to applied if it's missing
         if (tx.status == null) {
-            tx.status = "accepted";
+            tx.status = "applied";
         }
 
         return tx;
