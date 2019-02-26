@@ -1,30 +1,11 @@
 import * as React from "react";
-import styled from "styled-components";
 import { Box } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import SendPerlsForm from "./SendPerlsForm";
-import PerlMiniIcon from "../../assets/svg/perl-mini-icon.svg";
-import { Card } from "../common/layout";
 
-const Text = styled.p`
-    display: flex;
-    align-items: center;
-    font-family: HKGrotesk;
-    font-size: 18px;
-    color: #fff;
-`;
-const Title = styled.h2`
-    font-family: HKGrotesk;
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-`;
-const Icon = styled.img.attrs({ src: PerlMiniIcon })`
-    height: 20px;
-    width: 20px;
-    margin-right: 5px;
-`;
+import { Card } from "../common/layout";
+import { InfoTitle, InfoText, InfoIcon } from "../common/typography";
 
 const perlin = Perlin.getInstance();
 const handleSendPerls = async (recipient: string, amount: number) => {
@@ -41,11 +22,11 @@ const WalletView: React.SFC<{}> = observer(() => {
     return (
         <Card justifyContent="space-between">
             <Box>
-                <Title>Wallet Balance</Title>
-                <Text>
-                    <Icon />
+                <InfoTitle>Wallet Balance</InfoTitle>
+                <InfoText>
+                    <InfoIcon />
                     {balance ? balance : "N/A"}
-                </Text>
+                </InfoText>
             </Box>
             <Box>
                 <SendPerlsForm onSubmit={handleSendPerls} />
