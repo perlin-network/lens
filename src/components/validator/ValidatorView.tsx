@@ -46,7 +46,6 @@ const ValidatorView: React.SFC<{}> = observer(() => {
     const balance = useWalletBalance();
 
     const handlePlaceStakeClick = () => {
-        console.log("YES");
         setModalOpen(true);
         setModalAction(StakeModalActions.Place);
     };
