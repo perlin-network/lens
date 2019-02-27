@@ -211,7 +211,7 @@ function getInteractiveNode(tx: ITransaction) {
         transTooltipStatus.text = "Failed";
         transTooltipStatus.style.fill = 0x940f1f;
     }
-    node.gfx.lineStyle(1, 0xffff00);
+    node.gfx.lineStyle(1, 0xffffff);
     node.gfx.drawCircle(0, 0, nodeSize);
 
     if (node.payload !== undefined) {
@@ -241,7 +241,7 @@ function getInteractiveNode(tx: ITransaction) {
 
         // on node mouseout
         node.gfx.on("mouseout", () => {
-            node.gfx.lineStyle(0, 0xffff00);
+            node.gfx.lineStyle(0, 0xffffff);
             node.gfx.drawCircle(0, 0, nodeSize);
             transTooltip.visible = false;
             transTooltipAmount.visible = false;
