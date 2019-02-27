@@ -1,12 +1,14 @@
 import * as React from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { Card } from "../common/layout";
 import { InfoTitle, InfoText, InfoIcon } from "../common/typography";
 import { Perlin } from "../../Perlin";
 import { observer } from "mobx-react-lite";
-import AddStakeIcon from "../../assets/svg/add-stake-icon.svg";
+import PlaceStakeIcon from "../../assets/svg/place-stake-icon.svg";
 import WithdrawStakeIcon from "../../assets/svg/withdraw-stake-icon.svg";
+import StakeModal, { StakeModalActions } from "./StakeModal";
 
 const LeftBlock = styled(Flex)``;
 const ConnectionWrapper = styled(Box)`
@@ -38,6 +40,22 @@ const ButtonIcon = styled.img`
 const perlin = Perlin.getInstance();
 
 const ValidatorView: React.SFC<{}> = observer(() => {
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalAction, setModalAction] = useState(StakeModalActions.Place);
+
+    const handlePlaceStakeClick = () => {
+        console.log("YES");
+        setModalOpen(true);
+        setModalAction(StakeModalActions.Place);
+    };
+    const handleWithdrawStakeClick = () => {
+        setModalAction(StakeModalActions.Withdraw);
+        setModalOpen(true);
+    };
+    const handleClose = () => {
+        setModalOpen(false);
+    };
+
     return (
         <Card>
             <LeftBlock>
@@ -51,12 +69,18 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                 <InfoWrapper>
                     <InfoTitle>Your Stakes</InfoTitle>
                     <Flex alignItems="center">
-                        <ButtonIcon src={AddStakeIcon} />
+                        <ButtonIcon
+                            src={PlaceStakeIcon}
+                            onClick={handlePlaceStakeClick}
+                        />
                         <StakeText>
                             <InfoIcon />
                             1000
                         </StakeText>
-                        <ButtonIcon src={WithdrawStakeIcon} />
+                        <ButtonIcon
+                            src={WithdrawStakeIcon}
+                            onClick={handleWithdrawStakeClick}
+                        />
                     </Flex>
                 </InfoWrapper>
             </LeftBlock>
@@ -65,6 +89,11 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                 <InfoTitle>Connected As:</InfoTitle>
                 <InfoText breakWord={true}>{perlin.ledger.public_key}</InfoText>
             </ConnectionWrapper>
+            <StakeModal
+                open={modalOpen}
+                action={modalAction}
+                onClose={handleClose}
+            />
         </Card>
     );
 });
