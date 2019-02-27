@@ -5,6 +5,8 @@ import { Card } from "../common/layout";
 import { InfoTitle, InfoText, InfoIcon } from "../common/typography";
 import { Perlin } from "../../Perlin";
 import { observer } from "mobx-react-lite";
+import AddStakeIcon from "../../assets/svg/add-stake-icon.svg";
+import WithdrawStakeIcon from "../../assets/svg/withdraw-stake-icon.svg";
 
 const LeftBlock = styled(Flex)``;
 const ConnectionWrapper = styled(Box)`
@@ -19,6 +21,18 @@ const Divider = styled.hr`
     margin: 0;
     border: 0;
     border-left: 1px solid #fff;
+`;
+const StakeText = styled.p`
+    margin: 0 15px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-family: HKGrotesk;
+`;
+const ButtonIcon = styled.img`
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
 `;
 
 const perlin = Perlin.getInstance();
@@ -36,10 +50,14 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                 </InfoWrapper>
                 <InfoWrapper>
                     <InfoTitle>Your Stakes</InfoTitle>
-                    <InfoText>
-                        <InfoIcon />
-                        1000 PERLs
-                    </InfoText>
+                    <Flex alignItems="center">
+                        <ButtonIcon src={AddStakeIcon} />
+                        <StakeText>
+                            <InfoIcon />
+                            1000
+                        </StakeText>
+                        <ButtonIcon src={WithdrawStakeIcon} />
+                    </Flex>
                 </InfoWrapper>
             </LeftBlock>
             <Divider />
