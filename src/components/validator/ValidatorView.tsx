@@ -9,6 +9,7 @@ import { observer } from "mobx-react-lite";
 import PlaceStakeIcon from "../../assets/svg/place-stake-icon.svg";
 import WithdrawStakeIcon from "../../assets/svg/withdraw-stake-icon.svg";
 import StakeModal, { StakeModalActions } from "./StakeModal";
+import { useWalletBalance } from "../wallet/WalletView";
 
 const LeftBlock = styled(Flex)``;
 const ConnectionWrapper = styled(Box)`
@@ -42,6 +43,7 @@ const perlin = Perlin.getInstance();
 const ValidatorView: React.SFC<{}> = observer(() => {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalAction, setModalAction] = useState(StakeModalActions.Place);
+    const balance = useWalletBalance();
 
     const handlePlaceStakeClick = () => {
         console.log("YES");
@@ -63,7 +65,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                     <InfoTitle>Your Earnings</InfoTitle>
                     <InfoText>
                         <InfoIcon />
-                        1000 PERLs
+                        1000
                     </InfoText>
                 </InfoWrapper>
                 <InfoWrapper>
@@ -93,6 +95,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                 open={modalOpen}
                 action={modalAction}
                 onClose={handleClose}
+                balance={balance}
             />
         </Card>
     );

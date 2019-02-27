@@ -35,7 +35,7 @@ const WalletView: React.SFC<{}> = observer(() => {
     );
 });
 
-const useWalletBalance = () => {
+export const useWalletBalance = () => {
     const balance = useComputed(() => {
         const account = perlin.ledger.state[perlin.ledger.public_key];
         if (account !== undefined) {

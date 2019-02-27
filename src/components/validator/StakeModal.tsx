@@ -1,8 +1,9 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
-import { Flex } from "@rebass/grid";
+import { Flex, Box } from "@rebass/grid";
 import CloseIcon from "../../assets/svg/close-icon.svg";
+import { InfoIcon } from "../common/typography";
 
 export enum StakeModalActions {
     Place,
@@ -13,6 +14,7 @@ interface IStakeModalProps {
     open: boolean;
     action: StakeModalActions;
     onClose: () => void;
+    balance: number;
 }
 
 const Background = styled.div`
@@ -38,14 +40,7 @@ const Modal = styled.div`
     -webkit-overflow-scrolling: touch;
     z-index: 11;
 `;
-const Header = styled(Flex)``;
-const CloseButton = styled.img.attrs({ src: CloseIcon })`
-    height: 20px;
-    width: 20px;
-    color: #fff;
-    cursor: pointer;
-`;
-const Title = styled.h1`
+const HeaderTitle = styled.h1`
     margin: 0;
     font-size: 22px;
     font-family: HKGrotesk;
@@ -53,7 +48,57 @@ const Title = styled.h1`
     color: #fff;
 `;
 
-const StakeModal: React.SFC<IStakeModalProps> = ({ open, onClose }) => {
+const CloseButton = styled.img.attrs({ src: CloseIcon })`
+    height: 20px;
+    width: 20px;
+    color: #fff;
+    cursor: pointer;
+`;
+
+interface IBodyTitleProps {
+    color?: string;
+}
+const BodyTitle = styled.h2`
+    margin: 0;
+    font-family: HKGrotesk;
+    font-size: 14px;
+    font-weight: normal;
+    color: ${(props: IBodyTitleProps) => props.color};
+    margin-bottom: 15px;
+`;
+BodyTitle.defaultProps = {
+    color: "#172772"
+};
+
+const Header = styled(Flex)`
+    margin-bottom: 30px;
+`;
+const Body = styled(Flex)``;
+const BalanceWrapper = styled(Box)`
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    background-color: #fff;
+    padding-top: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+`;
+const BalanceText = styled.h3`
+    margin: 0;
+    display: flex;
+    align-items: center;
+    font-family: HKGrotesk;
+    font-size: 26px;
+    font-weight: normal;
+    color: #172772;
+`;
+
+const StakeModal: React.SFC<IStakeModalProps> = ({
+    open,
+    onClose,
+    balance
+}) => {
     const preventEventBubbling = (e: React.SyntheticEvent) => {
         e.stopPropagation();
     };
@@ -64,9 +109,18 @@ const StakeModal: React.SFC<IStakeModalProps> = ({ open, onClose }) => {
                 <Background onClick={onClose}>
                     <Modal onClick={preventEventBubbling}>
                         <Header justifyContent="space-between">
-                            <Title>Select to add more stake</Title>
+                            <HeaderTitle>Select to add more stake</HeaderTitle>
                             <CloseButton onClick={onClose} />
                         </Header>
+                        <Body flexDirection="column">
+                            <BalanceWrapper width={1 / 2}>
+                                <BodyTitle>Wallet balance</BodyTitle>
+                                <BalanceText>
+                                    <InfoIcon size="29px" />
+                                    {balance}
+                                </BalanceText>
+                            </BalanceWrapper>
+                        </Body>
                     </Modal>
                 </Background>
             )}
