@@ -1,9 +1,11 @@
-import { computed, observable, action } from "mobx";
+import { action, computed, observable } from "mobx";
 import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
-import { ITransaction } from "./types/Transaction";
-import { Tag } from "./constants";
+import { ITransaction, Tag } from "./types/Transaction";
+import PayloadWriter from "./payload/PayloadWriter";
+import * as Long from "long";
+import { SmartBuffer } from "smart-buffer";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -20,21 +22,18 @@ class Perlin {
     public static parseWiredTransaction(tx: any, index: number): ITransaction {
         tx = _.extend(tx, { index });
 
-        try {
-            tx.payload =
-                (tx.payload && JSON.parse(atob(tx.payload))) ||
-                "<error decoding>";
-        } catch (error) {
-            tx.payload = "<too large>";
+        if (tx.tag === Tag.CONTRACT) {
+            tx.payload = undefined;
         }
 
-        // default the status to applied if it's missing
-        if (tx.status == null) {
-            tx.status = "applied";
+        // By default, a transactions status is labeled as "new".
+        if (tx.status === null) {
+            tx.status = "new";
         }
 
         return tx;
     }
+
     private static singleton: Perlin;
 
     @observable public api = {
@@ -45,16 +44,15 @@ class Perlin {
     @observable public ledger = {
         public_key: "",
         address: "",
-        peers: [] as string[],
-        state: {}
+        peers: [] as string[]
     };
 
-    @observable public stats = {
-        consensusDuration: 0,
-        numAcceptedTransactions: 0,
-        numAcceptedTransactionsPerSecond: 0,
-        uptime: "0s",
-        cmdline: []
+    @observable public account = {
+        public_key: "",
+        balance: 0,
+        stake: 0,
+        is_contract: false,
+        num_pages: 0
     };
 
     @observable public transactions = {
@@ -68,119 +66,153 @@ class Perlin {
     private constructor() {
         this.keys = nacl.sign.keyPair.fromSecretKey(
             Buffer.from(
-                "6d6fe0c2bc913c0e3e497a0328841cf4979f932e01d2030ad21e649fca8d47fe71e6c9b83a7ef02bae6764991eefe53360a0a09be53887b2d3900d02c00a3858",
+                "87a6813c3b4cf534b6ae82db9b1409fa7dbd5c13dba5858970b56084c4a930eb400056ee68a7cc2695222df05ea76875bc27ec6e61e8e62317c336157019c405",
                 "hex"
             )
         );
         this.init().catch(err => console.error(err));
     }
 
+    public get publicKeyHex(): string {
+        return Buffer.from(this.keys.publicKey).toString("hex");
+    }
+
+    public prepareTransaction(tag: Tag, payload: Buffer): any {
+        const buffer = new SmartBuffer();
+        buffer.writeUInt8(tag);
+        buffer.writeBuffer(payload);
+
+        const signature = nacl.sign.detached(
+            new Uint8Array(buffer.toBuffer()),
+            this.keys.secretKey
+        );
+
+        const tx = {
+            sender: this.publicKeyHex,
+            tag,
+            payload: payload.toString("hex"),
+            signature: Buffer.from(signature).toString("hex")
+        };
+
+        return tx;
+    }
+
     public async transfer(recipient: string, amount: number): Promise<any> {
-        const params = {
-            tag: Tag.Transfer,
-            payload: btoa(
-                JSON.stringify({
-                    recipient,
-                    amount
-                })
-            )
-        };
+        const payload = new PayloadWriter();
+        payload.writeBuffer(Buffer.from(recipient, "hex"));
+        payload.writeUint64(Long.fromNumber(amount, true));
 
-        return await this.request("/transaction/send", params);
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TRANSFER, payload.buffer.toBuffer())
+        );
     }
 
-    // @ts-ignore
     public async placeStake(amount: number): Promise<any> {
-        const params = {
-            tag: Tag.PlaceStake,
-            payload: btoa(
-                JSON.stringify({
-                    amount
-                })
-            )
-        };
+        const payload = new PayloadWriter();
+        payload.writeUint64(Long.fromNumber(amount, true));
 
-        return await this.request("/transaction/send", params);
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.STAKE, payload.buffer.toBuffer())
+        );
     }
 
-    // @ts-ignore
     public async withdrawStake(amount: number): Promise<any> {
-        const params = {
-            tag: Tag.WithdrawStake,
-            payload: btoa(
-                JSON.stringify({
-                    amount: amount * -1
-                })
-            )
-        };
+        const payload = new PayloadWriter();
+        payload.writeUint64(Long.fromNumber(-amount, true));
 
-        return await this.request("/transaction/send", params);
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.STAKE, payload.buffer.toBuffer())
+        );
     }
 
-    public async createSmartContract(contractFile: any): Promise<any> {
-        const formData = new FormData();
-        formData.append("uploadFile", contractFile);
+    public async createSmartContract(contractFile: Blob): Promise<any> {
+        const reader = new FileReader();
 
-        const response = await fetch(`http://${this.api.host}/contract/send`, {
-            method: "post",
-            headers: {
-                "X-Session-Token": this.api.token
-            },
-            body: formData
+        const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
+            reader.onerror = () => {
+                reader.abort();
+                reject(new DOMException("Failed to parse contract file."));
+            };
+
+            reader.onload = () => {
+                resolve(reader.result as any);
+            };
+
+            reader.readAsArrayBuffer(contractFile);
         });
 
-        return await response.json();
+        const payload = new PayloadWriter();
+        payload.writeBuffer(Buffer.from(bytes));
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.CONTRACT, payload.buffer.toBuffer())
+        );
     }
 
-    public async downloadContract(txID: string): Promise<void> {
-        const params = {
-            transaction_id: txID
-        };
+    public async downloadContract(id: string): Promise<void> {
+        // Download the contracts code.
+        const contract = await this.get(`/contract/${id}`, {});
 
-        // get the contract payload
-        const contract = await this.request("/contract/get", params);
+        // Parse the contracts code into a byte buffer.
+        const buf = new Uint8Array(contract);
 
-        if (contract.hasOwnProperty("code")) {
-            // convert the contract.code into bytes
-            const byteCharacters = atob(contract.code);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
+        // Construct a blob out of the byte buffer and have the file downloaded.
+        const blob = new Blob([buf], { type: "application/wasm" });
+        const href: string = URL.createObjectURL(blob);
 
-            // convert bytes into a download dialog
-            const blob = new Blob([byteArray], { type: "application/wasm" });
-            const fileName: string = `${txID}.wasm`;
-            const objectUrl: string = URL.createObjectURL(blob);
-            const a: HTMLAnchorElement = document.createElement(
-                "a"
-            ) as HTMLAnchorElement;
-            a.href = objectUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(objectUrl);
-        }
+        const a: HTMLAnchorElement = document.createElement(
+            "a"
+        ) as HTMLAnchorElement;
+        a.href = href;
+        a.download = `${id}.wasm`;
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(href);
     }
 
     private async init() {
         try {
-            await this.initSession();
+            await this.startSession();
             await this.initLedger();
 
-            await this.pollTransactions();
+            this.pollTransactionUpdates();
 
             storage.watchCurrentHost(this.handleHostChange);
-            this.pollStatistics();
-            this.pollAccountUpdates();
         } catch (err) {
             console.error(err);
         }
     }
 
-    private async request(
+    private async get(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<any> {
+        const url = new URL(`http://${this.api.host}${endpoint}`);
+        Object.keys(params).forEach(key =>
+            url.searchParams.append(key, params[key])
+        );
+
+        const response = await fetch(url.toString(), {
+            method: "get",
+            headers: {
+                "X-Session-Token": this.api.token,
+                "Content-Type": "application/json",
+                ...headers
+            }
+        });
+
+        return await response.json();
+    }
+
+    private async post(
         endpoint: string,
         body?: any,
         headers?: any
@@ -189,6 +221,7 @@ class Perlin {
             method: "post",
             headers: {
                 "X-Session-Token": this.api.token,
+                "Content-Type": "application/json",
                 ...headers
             },
             body: JSON.stringify(body)
@@ -198,29 +231,22 @@ class Perlin {
     }
 
     private async initLedger() {
-        this.ledger = await this.request("/ledger/state", {});
+        this.ledger = await this.get("/ledger", {});
 
-        Object.keys(this.ledger.state).forEach(publicKey => {
-            const account = this.ledger.state[publicKey];
-
-            Object.keys(account.State).forEach(key => {
-                account.State[key] = this.decodeInt64(
-                    new Buffer(account.State[key], "base64")
-                );
-            });
-        });
+        this.account = await this.getAccount(this.publicKeyHex);
+        this.pollAccountUpdates(this.publicKeyHex);
 
         this.transactions.recent = await this.requestRecentTransactions();
     }
 
-    private async initSession() {
+    private async startSession() {
         const time = new Date().getTime();
         const auth = nacl.sign.detached(
             new Buffer(`perlin_session_init_${time}`),
             this.keys.secretKey
         );
 
-        const response = await this.request("/session/init", {
+        const response = await this.post("/session/init", {
             public_key: Buffer.from(this.keys.publicKey).toString("hex"),
             time_millis: time,
             signature: Buffer.from(auth).toString("hex")
@@ -236,113 +262,89 @@ class Perlin {
         this.api.host = host;
     }
 
-    private pollTransactions(event: string = "accepted") {
-        const ws = new WebSocket(
-            `ws://${this.api.host}/transaction/poll_status`,
-            this.api.token
-        );
+    private pollTransactionUpdates(event: string = "accepted") {
+        const url = new URL(`ws://${this.api.host}/tx/poll`);
+        url.searchParams.append("token", this.api.token);
 
-        ws.onmessage = ({ data }) => {
-            data = Perlin.parseWiredTransaction(
-                JSON.parse(data),
-                this.transactions.recent.length
-            );
-            this.transactions.recent.push(data);
-            console.log(data);
+        const ws = new WebSocket(url.toString());
 
-            if (this.onPolledTransaction != null) {
-                this.onPolledTransaction(data);
-            }
+        ws.onmessage = async ({ data }) => {
+            data = JSON.parse(data);
 
-            if (this.transactions.recent.length > 50) {
-                this.transactions.recent.shift();
+            switch (data.event) {
+                case "new":
+                    const tx: ITransaction = {
+                        id: data.tx_id,
+                        sender: data.sender_id,
+                        creator: data.creator_id,
+                        parents: data.parents,
+                        tag: data.tag,
+                        payload: data.payload,
+                        status: "new"
+                    };
+
+                    this.transactions.recent.push(
+                        Perlin.parseWiredTransaction(
+                            tx,
+                            this.transactions.recent.length
+                        )
+                    );
+
+                    if (this.onPolledTransaction !== null) {
+                        this.onPolledTransaction(tx);
+                    }
+
+                    if (this.transactions.recent.length > 50) {
+                        this.transactions.recent.shift();
+                    }
             }
         };
     }
 
-    private decodeInt64(buffer: Buffer) {
-        return (
-            buffer[0] |
-            (buffer[1] << 8) |
-            (buffer[2] << 16) |
-            (buffer[3] << 24) |
-            (buffer[4] << 32) |
-            (buffer[5] << 40) |
-            (buffer[6] << 48) |
-            (buffer[7] << 56)
-        );
-    }
+    private pollAccountUpdates(id: string) {
+        const url = new URL(`ws://${this.api.host}/accounts/poll`);
+        url.searchParams.append("token", this.api.token);
+        url.searchParams.append("id", id);
 
-    private pollAccountUpdates() {
-        const ws = new WebSocket(
-            `ws://${this.api.host}/account/poll`,
-            this.api.token
-        );
+        const ws = new WebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
             data = JSON.parse(data);
-            const account = this.ledger.state[data.account];
-            if (account != null) {
-                account.Nonce = data.nonce;
 
-                Object.keys(data.updates).forEach(key => {
-                    account.State[key] = this.decodeInt64(
-                        new Buffer(data.updates[key], "base64")
-                    );
-                });
-            } else {
-                Object.keys(data.updates).forEach(key => {
-                    data.updates[key] = this.decodeInt64(
-                        new Buffer(data.updates[key], "base64")
-                    );
-                });
-
-                this.ledger.state[data.account] = {
-                    Nonce: data.nonce,
-                    State: data.updates
-                };
+            switch (data.event) {
+                case "balance_updated":
+                    this.account.balance = data.balance;
+                case "stake_updated":
+                    this.account.stake = data.stake;
+                case "num_pages_updated":
+                    this.account.num_pages = data.num_pages;
             }
         };
-    }
-
-    private async requestRecentTransactions(): Promise<ITransaction[]> {
-        const recent = await this.request("/transaction/list", {});
-        return _.map(recent, Perlin.parseWiredTransaction);
     }
 
     // @ts-ignore
     private async listTransactions(
-        offset: number,
-        limit: number
+        offset: number = 0,
+        limit: number = 0
     ): Promise<any> {
-        return await this.request("/transaction/list", { offset, limit });
+        return await this.get("/tx", { offset, limit });
+    }
+
+    private async requestRecentTransactions(): Promise<ITransaction[]> {
+        return _.map(
+            await this.listTransactions(),
+            Perlin.parseWiredTransaction
+        );
     }
 
     // @ts-ignore
     private async getTransaction(id: string): Promise<any> {
-        return await this.request("/transaction", id);
+        return await this.get(`/tx/${id}`, {});
     }
 
     // @ts-ignore
     private async getAccount(id: string): Promise<any> {
-        return await this.request("/account/get", id);
-    }
-
-    private pollStatistics() {
-        setInterval(async () => {
-            const response = await fetch(`http://${this.api.host}/debug/vars`);
-            const data = await response.json();
-
-            this.stats = {
-                consensusDuration: data.wavelet.consensus_duration || 0,
-                numAcceptedTransactions:
-                    data.wavelet.num_accepted_transactions || 0,
-                numAcceptedTransactionsPerSecond:
-                    data.wavelet.num_accepted_transactions_per_sec || 0,
-                uptime: data.wavelet.uptime || "0s",
-                cmdline: data.cmdline || [""]
-            };
-        }, 1000);
+        return await this.get(`/accounts/${id}`, {});
     }
 }
 

@@ -1,10 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Flex, Box } from "@rebass/grid";
+import { Box, Flex } from "@rebass/grid";
 import { Card } from "../common/layout";
-import { InfoTitle, InfoText, InfoIcon } from "../common/typography";
+import { InfoIcon, InfoText, InfoTitle } from "../common/typography";
 import { Perlin } from "../../Perlin";
-import { observer } from "mobx-react-lite";
+import { observer, useComputed } from "mobx-react-lite";
 
 const LeftBlock = styled(Flex)``;
 const ConnectionWrapper = styled(Box)`
@@ -24,6 +24,8 @@ const Divider = styled.hr`
 const perlin = Perlin.getInstance();
 
 const ValidatorView: React.SFC<{}> = observer(() => {
+    const stake = useWalletStake();
+
     return (
         <Card>
             <LeftBlock>
@@ -38,7 +40,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                     <InfoTitle>Your Stakes</InfoTitle>
                     <InfoText>
                         <InfoIcon />
-                        1000 PERLs
+                        {stake ? `${stake} PERLs` : "N/A"}
                     </InfoText>
                 </InfoWrapper>
             </LeftBlock>
@@ -50,5 +52,16 @@ const ValidatorView: React.SFC<{}> = observer(() => {
         </Card>
     );
 });
+
+const useWalletStake = () => {
+    const balance = useComputed(() => {
+        if (perlin.account !== undefined) {
+            return perlin.account.stake;
+        }
+
+        return null;
+    }, [perlin.ledger]);
+    return balance;
+};
 
 export default ValidatorView;

@@ -1,12 +1,28 @@
+export const enum Tag {
+    NOP = 0,
+    TRANSFER = 1,
+    CONTRACT = 2,
+    STAKE = 3
+}
+
 interface ITransaction {
     id: string;
-    nonce: number;
+
+    creator: string;
     sender: string;
-    tag: string;
-    status: string;
-    payload?: { amount: number };
+
     parents: string[];
-    signature: string;
+
+    timestamp?: number;
+    depth?: number;
+
+    tag: Tag;
+    payload?: any;
+
+    status: string;
+
+    creator_signature?: string;
+    sender_signature?: string;
 }
 
 export { ITransaction };

@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import styled from "styled-components";
 
-interface ISendPerlsFormProps {
+interface IPaymentFormProps {
     onSubmit: (recipient: string, amount: number) => void;
 }
 
@@ -63,21 +63,17 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-const SendPerlsForm: React.SFC<ISendPerlsFormProps> = ({
+const PaymentForm: React.SFC<IPaymentFormProps> = ({
     onSubmit
-}: ISendPerlsFormProps) => {
+}: IPaymentFormProps) => {
     const [address, setAddress] = useState("");
     const [amount, setAmount] = useState("");
 
-    const clearFields = () => {
-        setAddress("");
-        setAmount("");
-    };
-    const handleSend = async (e: React.SyntheticEvent) => {
+    const handlePay = async (e: React.SyntheticEvent) => {
         const numericAmount = parseInt(amount, 10);
+
         if (numericAmount && address.length > 0) {
             onSubmit(address, numericAmount);
-            clearFields();
         }
         // TODO: display error message
     };
@@ -111,9 +107,9 @@ const SendPerlsForm: React.SFC<ISendPerlsFormProps> = ({
                 />
                 <FeeText>Fee: 0.0002 PERL</FeeText>
             </FormGroup>
-            <Button onClick={handleSend}>Send Perls</Button>
+            <Button onClick={handlePay}>Send PERLs</Button>
         </Wrapper>
     );
 };
 
-export default SendPerlsForm;
+export default PaymentForm;
