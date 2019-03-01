@@ -287,8 +287,6 @@ class Perlin {
                         status: "new"
                     };
 
-                    console.log(data);
-
                     this.transactions.recent.push(
                         Perlin.parseWiredTransaction(
                             tx,
