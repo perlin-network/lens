@@ -15,6 +15,13 @@ class PayloadWriter {
         return this;
     }
 
+    public writeBuffer(buf: Buffer) {
+        this.buffer.writeUInt32LE(buf.length);
+        this.buffer.writeBuffer(buf);
+
+        return this;
+    }
+
     public writeString(a: string) {
         this.buffer.writeUInt32LE(a.length);
         this.buffer.writeBuffer(Buffer.from(a));
