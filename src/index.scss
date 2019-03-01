@@ -65,6 +65,12 @@ svg {
     color: #f5f8fa;
 }
 
+.bp3-input:disabled {
+    box-shadow: none;
+    background: #fff;
+    color: rgba(7, 9, 34, 0.6);
+}
+
 .bp3-icon {
     background: transparent !important;
     box-shadow: inherit !important;

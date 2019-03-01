@@ -5,11 +5,19 @@ import styled from "styled-components";
 import { IHostItem } from "./Container";
 
 const HostSuggest = styled(Suggest.ofType<IHostItem>())`
-    .bp3-popover-target {
-        width: 100%;
-    }
-    .bp3-input-group input {
-        background: ${props => props.theme.colors.bgLight};
+    outline: none;
+    border: none;
+    border-radius: 2px;
+    width: 190px;
+    height: 35px;
+    background-color: #fff;
+    padding: 5px 10px;
+    font-family: HKGrotesk;
+    font-size: 14px;
+    font-weight: normal;
+    &::placeholder {
+        color: #717985;
+        opacity: 0.8;
     }
 `;
 
@@ -61,7 +69,7 @@ const HostnameInput: React.FC<IProps> = ({
         );
     };
     return (
-        <FormGroup label="API Hostname" labelFor="config-host-input">
+        <FormGroup>
             <HostSuggest
                 disabled={disabled}
                 resetOnQuery={false}
@@ -75,7 +83,6 @@ const HostnameInput: React.FC<IProps> = ({
                 query={host}
                 onQueryChange={onQueryChange}
                 inputProps={{
-                    id: "config-host-input",
                     placeholder: "localhost:9000"
                 }}
                 popoverProps={{ minimal: true }}
