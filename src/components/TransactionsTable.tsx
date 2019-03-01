@@ -1,16 +1,27 @@
 import * as React from "react";
-import { Button, Pre } from "@blueprintjs/core";
-import ReactTable, { SubComponentFunction } from "react-table";
+import ReactTable from "react-table";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
 
 const columns = [
     {
+        Header: "ID",
+
+        accessor: "id",
+        maxWidth: 300
+    },
+    {
         Header: "Sender",
 
+        accessor: "sender",
+        maxWidth: 150
+    },
+    {
+        Header: "Creator",
+
         accessor: "creator",
-        maxWidth: 300
+        maxWidth: 150
     },
     {
         Header: "Status",
@@ -40,34 +51,6 @@ const columns = [
 
 const perlin = Perlin.getInstance();
 
-const onDownloadContract = (txID: string) => async () => {
-    await perlin.downloadContract(txID);
-};
-
-const SubComponent: SubComponentFunction = row => {
-    const data = row.original;
-    delete data.index;
-
-    return (
-        <div style={{ paddingLeft: 10, paddingRight: 10 }}>
-            <Pre style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                {JSON.stringify(data, null, 4)}
-            </Pre>
-
-            {data.tag === Tag.CONTRACT ? (
-                // show a download button from the smart contract
-                <div className="button-container" style={{ marginLeft: 20 }}>
-                    <Button
-                        className="button"
-                        onClick={onDownloadContract(data.id)}
-                        text="Download"
-                    />
-                </div>
-            ) : null}
-        </div>
-    );
-};
-
 @observer
 export default class TransactionsTable extends React.Component<{}, {}> {
     public render() {
@@ -83,7 +66,6 @@ export default class TransactionsTable extends React.Component<{}, {}> {
                         desc: true
                     }
                 ]}
-                SubComponent={SubComponent}
             />
         );
     }
