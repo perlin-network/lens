@@ -13,6 +13,12 @@ const columns = [
         maxWidth: 300
     },
     {
+        Header: "Status",
+
+        accessor: "status",
+        maxWidth: 80
+    },
+    {
         Header: "Tag",
 
         id: "tag",

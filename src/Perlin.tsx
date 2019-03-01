@@ -19,15 +19,18 @@ class Perlin {
         return Perlin.singleton;
     }
 
-    public static parseWiredTransaction(tx: any, index: number): ITransaction {
+    public static parseWiredTransaction(
+        tx: ITransaction,
+        index: number
+    ): ITransaction {
         tx = _.extend(tx, { index });
 
         if (tx.tag === Tag.CONTRACT) {
-            tx.payload = undefined;
+            delete tx.payload;
         }
 
         // By default, a transactions status is labeled as "new".
-        if (tx.status === null) {
+        if (tx.status === undefined) {
             tx.status = "new";
         }
 
@@ -326,7 +329,7 @@ class Perlin {
     private async listTransactions(
         offset: number = 0,
         limit: number = 0
-    ): Promise<any> {
+    ): Promise<[]> {
         return await this.get("/tx", { offset, limit });
     }
 
