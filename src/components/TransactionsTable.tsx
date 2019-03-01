@@ -7,38 +7,32 @@ import { formatDistance } from "date-fns";
 
 const columns = [
     {
-        Header: "ID",
-
-        accessor: "id",
-        maxWidth: 200
-    },
-    {
-        Header: "Time",
+        Header: "",
 
         id: "time",
         accessor: (tx: ITransaction): string => {
             const date = new Date(tx.timestamp);
             return formatDistance(date, new Date(), { addSuffix: true });
         },
-        maxWidth: 125
+        maxWidth: 180
     },
     {
-        Header: "Sender",
+        Header: "Transaction ID",
 
-        accessor: "sender",
-        maxWidth: 150
-    },
-    {
-        Header: "Creator",
-
-        accessor: "creator",
-        maxWidth: 150
+        accessor: "id",
+        maxWidth: 250
     },
     {
         Header: "Status",
 
         accessor: "status",
-        maxWidth: 80
+        maxWidth: 60
+    },
+    {
+        Header: "Creator",
+
+        accessor: "creator",
+        maxWidth: 250
     },
     {
         Header: "Tag",
