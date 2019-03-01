@@ -3,13 +3,24 @@ import ReactTable from "react-table";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
+import { formatDistance } from "date-fns";
 
 const columns = [
     {
         Header: "ID",
 
         accessor: "id",
-        maxWidth: 300
+        maxWidth: 200
+    },
+    {
+        Header: "Time",
+
+        id: "time",
+        accessor: (tx: ITransaction): string => {
+            const date = new Date(tx.timestamp);
+            return formatDistance(date, new Date(), { addSuffix: true });
+        },
+        maxWidth: 125
     },
     {
         Header: "Sender",

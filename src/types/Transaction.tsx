@@ -13,7 +13,7 @@ interface ITransaction {
 
     parents: string[];
 
-    timestamp?: number;
+    timestamp: number;
     depth?: number;
 
     tag: Tag;

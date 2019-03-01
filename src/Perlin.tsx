@@ -278,6 +278,7 @@ class Perlin {
                 case "new":
                     const tx: ITransaction = {
                         id: data.tx_id,
+                        timestamp: Date.parse(data.time).valueOf(),
                         sender: data.sender_id,
                         creator: data.creator_id,
                         parents: data.parents,
@@ -285,6 +286,8 @@ class Perlin {
                         payload: data.payload,
                         status: "new"
                     };
+
+                    console.log(data);
 
                     this.transactions.recent.push(
                         Perlin.parseWiredTransaction(
