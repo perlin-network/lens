@@ -6,6 +6,7 @@ import { ITransaction, Tag } from "./types/Transaction";
 import PayloadWriter from "./payload/PayloadWriter";
 import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
+import PayloadReader from "./payload/PayloadReader";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -19,14 +20,32 @@ class Perlin {
         return Perlin.singleton;
     }
 
+    public static parseTransferTransaction(b: Buffer) {
+        const reader = new PayloadReader(Array.from(b));
+
+        const tx = {
+            recipient: Buffer.from(reader.readBytes()).toString("hex"),
+            amount: reader.readUint64().toNumber()
+        };
+
+        return tx;
+    }
+
     public static parseWiredTransaction(
         tx: ITransaction,
         index: number
     ): ITransaction {
         tx = _.extend(tx, { index });
 
-        if (tx.tag === Tag.CONTRACT) {
-            delete tx.payload;
+        switch (tx.tag) {
+            case Tag.CONTRACT:
+                delete tx.payload;
+                break;
+            case Tag.TRANSFER:
+                tx.payload = Perlin.parseTransferTransaction(
+                    Buffer.from(tx.payload, "hex")
+                );
+                break;
         }
 
         // By default, a transactions status is labeled as "new".
@@ -62,7 +81,8 @@ class Perlin {
         recent: [] as ITransaction[]
     };
 
-    public onPolledTransaction: (tx: ITransaction) => void;
+    public onTransactionCreated: (tx: ITransaction) => void;
+    public onTransactionApplied: (tx: ITransaction) => void;
 
     private keys: nacl.SignKeyPair;
 
@@ -274,19 +294,19 @@ class Perlin {
         ws.onmessage = async ({ data }) => {
             data = JSON.parse(data);
 
+            const tx: ITransaction = {
+                id: data.tx_id,
+                timestamp: Date.parse(data.time).valueOf(),
+                sender: data.sender_id,
+                creator: data.creator_id,
+                parents: data.parents,
+                tag: data.tag,
+                payload: data.payload,
+                status: "new"
+            };
+
             switch (data.event) {
                 case "new":
-                    const tx: ITransaction = {
-                        id: data.tx_id,
-                        timestamp: Date.parse(data.time).valueOf(),
-                        sender: data.sender_id,
-                        creator: data.creator_id,
-                        parents: data.parents,
-                        tag: data.tag,
-                        payload: data.payload,
-                        status: "new"
-                    };
-
                     this.transactions.recent.push(
                         Perlin.parseWiredTransaction(
                             tx,
@@ -294,13 +314,21 @@ class Perlin {
                         )
                     );
 
-                    if (this.onPolledTransaction !== null) {
-                        this.onPolledTransaction(tx);
+                    if (this.onTransactionCreated !== undefined) {
+                        this.onTransactionCreated(tx);
                     }
 
                     if (this.transactions.recent.length > 50) {
                         this.transactions.recent.shift();
                     }
+                    break;
+                case "applied":
+                    if (this.onTransactionApplied !== undefined) {
+                        this.onTransactionApplied(tx);
+                    }
+                    break;
+                case "failed":
+                    console.log(data.error);
             }
         };
     }
