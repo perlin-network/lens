@@ -2,13 +2,14 @@ import * as React from "react";
 import { Box } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
-import SendPerlsForm from "./SendPerlsForm";
+import PaymentForm from "./PaymentForm";
 
 import { Card } from "../common/layout";
-import { InfoTitle, InfoText, InfoIcon } from "../common/typography";
+import { InfoIcon, InfoText, InfoTitle } from "../common/typography";
 
 const perlin = Perlin.getInstance();
-const handleSendPerls = async (recipient: string, amount: number) => {
+
+const handleTransfer = async (recipient: string, amount: number) => {
     try {
         await perlin.transfer(recipient, amount);
     } catch (err) {
@@ -29,7 +30,7 @@ const WalletView: React.SFC<{}> = observer(() => {
                 </InfoText>
             </Box>
             <Box>
-                <SendPerlsForm onSubmit={handleSendPerls} />
+                <PaymentForm onSubmit={handleTransfer} />
             </Box>
         </Card>
     );
@@ -37,10 +38,10 @@ const WalletView: React.SFC<{}> = observer(() => {
 
 export const useWalletBalance = () => {
     const balance = useComputed(() => {
-        const account = perlin.ledger.state[perlin.ledger.public_key];
-        if (account !== undefined) {
-            return account.State.balance;
+        if (perlin.account !== undefined) {
+            return perlin.account.balance;
         }
+
         return null;
     }, [perlin.ledger]);
     return balance;

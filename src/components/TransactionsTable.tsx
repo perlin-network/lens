@@ -1,55 +1,60 @@
 import * as React from "react";
-import { Pre, Button } from "@blueprintjs/core";
-import ReactTable, { SubComponentFunction } from "react-table";
+import ReactTable from "react-table";
 import { Perlin } from "../Perlin";
-import { Tag } from "../constants";
+import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
+import { formatDistance } from "date-fns";
 
 const columns = [
     {
-        Header: "Sender",
-        accessor: "sender",
-        maxWidth: 300
+        Header: "",
+
+        id: "time",
+        accessor: (tx: ITransaction): string => {
+            const date = new Date(tx.timestamp);
+            return formatDistance(date, new Date(), { addSuffix: true });
+        },
+        maxWidth: 180
     },
     {
-        Header: "Nonce",
-        accessor: "nonce",
-        maxWidth: 80
+        Header: "Transaction ID",
+
+        accessor: "id",
+        maxWidth: 250
+    },
+    {
+        Header: "Status",
+
+        accessor: "status",
+        maxWidth: 60
+    },
+    {
+        Header: "Creator",
+
+        accessor: "creator",
+        maxWidth: 250
     },
     {
         Header: "Tag",
-        accessor: "tag",
+
+        id: "tag",
+        accessor: (tx: ITransaction): string => {
+            switch (tx.tag) {
+                case Tag.NOP:
+                    return "nop";
+                case Tag.TRANSFER:
+                    return "transfer";
+                case Tag.CONTRACT:
+                    return "contract";
+                case Tag.STAKE:
+                    return "stake";
+            }
+        },
         maxWidth: 80
     }
 ];
+
 const perlin = Perlin.getInstance();
-
-const onDownloadContract = (txID: string) => () => {
-    perlin.downloadContract(txID);
-};
-const SubComponent: SubComponentFunction = row => {
-    const data = row.original;
-    delete data.index;
-    const isContract = data.tag === Tag.CreateContract;
-
-    return (
-        <div style={{ paddingLeft: 10, paddingRight: 10 }}>
-            <Pre style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                {JSON.stringify(data, null, 4)}
-            </Pre>
-            {isContract ? (
-                // show a download button from the smart contract
-                <div className="button-container" style={{ marginLeft: 20 }}>
-                    <Button
-                        className="button"
-                        onClick={onDownloadContract(data.id)}
-                        text="Download"
-                    />
-                </div>
-            ) : null}
-        </div>
-    );
-};
 
 @observer
 export default class TransactionsTable extends React.Component<{}, {}> {
@@ -66,7 +71,6 @@ export default class TransactionsTable extends React.Component<{}, {}> {
                         desc: true
                     }
                 ]}
-                SubComponent={SubComponent}
             />
         );
     }
