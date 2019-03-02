@@ -14,7 +14,7 @@ interface IStakeModalProps {
     open: boolean;
     action: StakeModalActions;
     onClose: () => void;
-    balance: number;
+    balance: number | null;
 }
 
 const Background = styled.div`
