@@ -1,0 +1,19 @@
+.inputHost {
+    grid-area: inputHost;
+}
+.discardButton {
+    grid-area: discardButton;
+}
+.editSaveButton {
+    grid-area: editSaveButton;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-areas:
+        "inputHost inputHost"
+        "editSaveButton discardButton";
+    grid-gap: 10px;
+    padding: 10px;
+    grid-column-gap: 5px;
+}

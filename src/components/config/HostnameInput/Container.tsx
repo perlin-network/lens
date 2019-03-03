@@ -2,6 +2,7 @@ import * as React from "react";
 import HostnameInput from "./index";
 import { observer } from "mobx-react";
 import * as storage from "../../../storage";
+import { InputGroup } from "@blueprintjs/core";
 
 interface IProps {
     disabled: boolean;

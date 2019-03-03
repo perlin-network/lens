@@ -10,14 +10,13 @@ const HostSuggest = styled(Suggest.ofType<IHostItem>())`
     border-radius: 2px;
     width: 190px;
     height: 35px;
-    background-color: #fff;
+    background-color: #ffffff;
     padding: 5px 10px;
     font-family: HKGrotesk;
     font-size: 14px;
     font-weight: normal;
     &::placeholder {
-        color: #717985;
-        opacity: 0.8;
+        color: #ffffff;
     }
 `;
 
@@ -57,6 +56,10 @@ const HostnameInput: React.FC<IProps> = ({
                 onClick={handleClick}
                 key={item.id}
                 active={modifiers.active}
+                style={{
+                    backgroundColor: "#ffffff",
+                    height: "45px"
+                }}
             >
                 <MenuItem
                     text="Delete"
@@ -69,7 +72,12 @@ const HostnameInput: React.FC<IProps> = ({
         );
     };
     return (
-        <FormGroup>
+        <FormGroup
+            style={{
+                backgroundColor: "#ffffff",
+                height: "45px"
+            }}
+        >
             <HostSuggest
                 disabled={disabled}
                 resetOnQuery={false}

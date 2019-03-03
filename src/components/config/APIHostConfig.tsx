@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Alert, ButtonGroup, Icon, Intent } from "@blueprintjs/core";
 import HostnameInputContainer from "./HostnameInput/Container";
-import { HostInput } from "./HostInput";
+import HostInput from "./HostInput";
 import { Perlin } from "../../Perlin";
 import * as storage from "../../storage";
 import styled from "styled-components";
+import "./config.scss";
 
 import { any } from "prop-types";
 import { Box, Flex } from "@rebass/grid";
@@ -16,7 +17,6 @@ const Button = styled.button`
     height: 40px;
     border: 0;
     outline: 0;
-    border-radius: 3px;
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
@@ -46,35 +46,37 @@ export default class APIHostConfig extends React.Component {
     };
 
     private hostInputRef = React.createRef<HostInput>();
-    inputtedHost: string = "";
-
-    handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.inputtedHost = e.target.value;
-        //        this.setState({ newHost: e.target.value });
-    };
 
     public render() {
         const { disabled, isChangeAlertOpen, isDiscardAlertOpen } = this.state;
 
         return (
             <>
-                <HostnameInputContainer
-                    disabled={disabled}
-                    initialHost={perlin.api.host}
-                    ref={this.hostInputRef}
-                />
-                <ButtonGroup>
+                <div className="grid-container">
+                    <div className="inputHost">
+                        <HostInput
+                            disabled={disabled}
+                            initialHost={perlin.api.host}
+                            ref={this.hostInputRef}
+                        />
+                    </div>
                     {!disabled && (
-                        <div style={{ marginRight: "0.5em" }}>
+                        <div
+                            style={{ marginRight: "0.5em" }}
+                            className="discardButton"
+                        >
                             <Button onClick={this.showDiscardAlert}>
                                 Discard Changes
                             </Button>
                         </div>
                     )}
-                    <Button onClick={this.onToggleSave}>
-                        {disabled ? "Edit" : "Save"}
-                    </Button>
-                </ButtonGroup>
+                    <div className="editSaveButton">
+                        <Button onClick={this.onToggleSave}>
+                            {disabled ? "Edit" : "Save"}
+                        </Button>
+                    </div>
+                </div>
+
                 <Alert
                     isOpen={isChangeAlertOpen}
                     cancelButtonText="Cancel"
@@ -114,7 +116,6 @@ export default class APIHostConfig extends React.Component {
             disabled: true,
             isChangeAlertOpen: false
         }));
-        this.inputtedHost = "";
         location.reload();
     };
 
@@ -132,6 +133,7 @@ export default class APIHostConfig extends React.Component {
     }
 
     private onToggleSave = () => {
+        console.log(this.hostInputRef.current!.getHostValue());
         if (this.state.disabled) {
             this.setState(() => ({ disabled: false }));
         } else {
@@ -149,7 +151,6 @@ export default class APIHostConfig extends React.Component {
 
     private showDiscardAlert = () => {
         if (this.wereChangesMade) {
-            this.inputtedHost = "";
             this.setState(() => ({
                 isDiscardAlertOpen: true
             }));
