@@ -83,6 +83,7 @@ const BalanceWrapper = styled(Box)`
     padding-left: 15px;
     padding-right: 15px;
     padding-bottom: 10px;
+    margin-right: 15px;
 `;
 const BalanceText = styled.h3`
     margin: 0;
@@ -93,15 +94,56 @@ const BalanceText = styled.h3`
     font-weight: normal;
     color: #172772;
 `;
+const FormWrapper = styled(Box)`
+    display: flex;
+    flex-direction: column;
+    padding-top: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+`;
+const InputWrapper = styled.div`
+    display: flex;
+    align-items: center;
+`;
+const Input = styled.input.attrs({ type: "number", autoFocus: true })`
+    border: none;
+    outline: none;
+    width: 100%;
+    color: #fff;
+    background-color: #15266c;
+    font-family: HKGrotesk;
+    font-size: 26px;
+
+    &:focus {
+        outline: none;
+    }
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+`;
+const Row = styled(Box).attrs({ width: 1 })`
+    display: flex;
+`;
 
 const StakeModal: React.SFC<IStakeModalProps> = ({
     open,
     onClose,
-    balance
+    balance,
+    action
 }) => {
     const preventEventBubbling = (e: React.SyntheticEvent) => {
         e.stopPropagation();
     };
+
+    let headerTitle = "Add stake";
+    let formTitle = "Enter stake amount";
+    if (action === StakeModalActions.Withdraw) {
+        headerTitle = "Remove stake";
+        formTitle = "Enter stake amount to be removed";
+    }
 
     return createPortal(
         <>
@@ -109,17 +151,28 @@ const StakeModal: React.SFC<IStakeModalProps> = ({
                 <Background onClick={onClose}>
                     <Modal onClick={preventEventBubbling}>
                         <Header justifyContent="space-between">
-                            <HeaderTitle>Select to add more stake</HeaderTitle>
+                            <HeaderTitle>{headerTitle}</HeaderTitle>
                             <CloseButton onClick={onClose} />
                         </Header>
                         <Body flexDirection="column">
-                            <BalanceWrapper width={1 / 2}>
-                                <BodyTitle>Wallet balance</BodyTitle>
-                                <BalanceText>
-                                    <InfoIcon size="29px" />
-                                    {balance}
-                                </BalanceText>
-                            </BalanceWrapper>
+                            <Row>
+                                <BalanceWrapper width={1 / 2}>
+                                    <BodyTitle>Wallet balance</BodyTitle>
+                                    <BalanceText>
+                                        <InfoIcon size="29px" />
+                                        {balance}
+                                    </BalanceText>
+                                </BalanceWrapper>
+                                <FormWrapper width={1 / 2}>
+                                    <BodyTitle color="#fff">
+                                        {formTitle}
+                                    </BodyTitle>
+                                    <InputWrapper>
+                                        <InfoIcon size="29px" />
+                                        <Input />
+                                    </InputWrapper>
+                                </FormWrapper>
+                            </Row>
                         </Body>
                     </Modal>
                 </Background>
