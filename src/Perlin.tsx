@@ -294,7 +294,7 @@ class Perlin {
                         )
                     );
 
-                    if (this.onPolledTransaction !== null) {
+                    if (this.onPolledTransaction) {
                         this.onPolledTransaction(tx);
                     }
 
