@@ -99,7 +99,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                         />
                         <StakeText>
                             <InfoIcon />
-                            {stake ? `${stake} PERLs` : "N/A"}
+                            {stake ? stake : "N/A"}
                         </StakeText>
                         <ButtonIcon
                             src={WithdrawStakeIcon}
