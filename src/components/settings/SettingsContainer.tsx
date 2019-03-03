@@ -12,7 +12,6 @@ export default class SettingsContainer extends React.Component<{}, {}> {
 
         return (
             <>
-                {" "}
                 <SectionTitle>API host configuration</SectionTitle>
                 Current host: {currentHost}
                 <Card justifyContent="space-between">

@@ -1,9 +1,13 @@
 import * as React from "react";
 import { Alert, ButtonGroup, Icon, Intent } from "@blueprintjs/core";
 import HostnameInputContainer from "./HostnameInput/Container";
+import { HostInput } from "./HostInput";
 import { Perlin } from "../../Perlin";
 import * as storage from "../../storage";
 import styled from "styled-components";
+
+import { any } from "prop-types";
+import { Box, Flex } from "@rebass/grid";
 
 const perlin = Perlin.getInstance();
 
@@ -13,7 +17,6 @@ const Button = styled.button`
     border: 0;
     outline: 0;
     border-radius: 3px;
-    margin-top: 18px;
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
@@ -25,20 +28,30 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
+const InfoWrapper = styled(Box)`
+    margin-right: 40px;
+`;
+
 interface IState {
     disabled: boolean;
     isChangeAlertOpen: boolean;
     isDiscardAlertOpen: boolean;
 }
 
-export default class APIHostConfig extends React.Component<{}, IState> {
+export default class APIHostConfig extends React.Component {
     public state = {
         disabled: true,
         isChangeAlertOpen: false,
         isDiscardAlertOpen: false
     };
 
-    private hostInputRef = React.createRef<HostnameInputContainer>();
+    private hostInputRef = React.createRef<HostInput>();
+    inputtedHost: string = "";
+
+    handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.inputtedHost = e.target.value;
+        //        this.setState({ newHost: e.target.value });
+    };
 
     public render() {
         const { disabled, isChangeAlertOpen, isDiscardAlertOpen } = this.state;
@@ -101,6 +114,7 @@ export default class APIHostConfig extends React.Component<{}, IState> {
             disabled: true,
             isChangeAlertOpen: false
         }));
+        this.inputtedHost = "";
         location.reload();
     };
 
@@ -135,6 +149,7 @@ export default class APIHostConfig extends React.Component<{}, IState> {
 
     private showDiscardAlert = () => {
         if (this.wereChangesMade) {
+            this.inputtedHost = "";
             this.setState(() => ({
                 isDiscardAlertOpen: true
             }));

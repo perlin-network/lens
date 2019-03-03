@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import PerlMiniIcon from "../../assets/svg/perl-mini-icon.svg";
+import PencilEditIcon from "../../assets/svg/pencil-edit-button.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -10,6 +11,12 @@ const SectionTitle = styled.h2`
 `;
 
 const InfoIcon = styled.img.attrs({ src: PerlMiniIcon })`
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;
+`;
+
+const EditIcon = styled.img.attrs({ src: PencilEditIcon })`
     height: 20px;
     width: 20px;
     margin-right: 5px;
@@ -37,4 +44,4 @@ const InfoTitle = styled.h2`
     color: #fff;
 `;
 
-export { SectionTitle, InfoText, InfoTitle, InfoIcon };
+export { SectionTitle, InfoText, InfoTitle, InfoIcon, EditIcon };
