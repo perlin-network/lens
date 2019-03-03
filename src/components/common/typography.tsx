@@ -10,11 +10,17 @@ const SectionTitle = styled.h2`
     font-weight: 600;
 `;
 
+interface InfoIconProps {
+    size?: string;
+}
 const InfoIcon = styled.img.attrs({ src: PerlMiniIcon })`
-    height: 20px;
-    width: 20px;
+    height: ${(props: InfoIconProps) => props.size};
+    width: ${(props: InfoIconProps) => props.size};
     margin-right: 5px;
 `;
+InfoIcon.defaultProps = {
+    size: "20px"
+};
 
 const EditIcon = styled.img.attrs({ src: PencilEditIcon })`
     height: 20px;
@@ -38,6 +44,7 @@ InfoText.defaultProps = {
     breakWord: false
 };
 const InfoTitle = styled.h2`
+    white-space: nowrap;
     font-family: HKGrotesk;
     font-size: 13px;
     font-weight: 600;

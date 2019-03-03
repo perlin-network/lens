@@ -151,7 +151,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
             }
         );
 
-        perlin.onPolledTransaction = (tx: ITransaction) => {
+        perlin.onTransactionCreated = (tx: ITransaction) => {
             if (this.nodes.length === 50) {
                 const popped: any = this.nodes.shift();
                 popped.gfx.destroy();
