@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+import { Button } from "../common/core";
 import styled from "styled-components";
 
 interface IPaymentFormProps {
@@ -44,23 +45,6 @@ const FeeText = styled.span`
     margin-top: 5px;
     font-family: Montserrat;
     font-size: 10px;
-`;
-const Button = styled.button`
-    width: 160px;
-    height: 40px;
-    border: 0;
-    outline: 0;
-    border-radius: 3px;
-    margin-top: 18px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 40px;
-    font-family: HKGrotesk;
-    font-size: 16px;
-    font-weight: normal;
-    color: #fff;
-    background-color: #23228e;
-    cursor: pointer;
 `;
 
 const PaymentForm: React.SFC<IPaymentFormProps> = ({

@@ -4,7 +4,7 @@ import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import PaymentForm from "./PaymentForm";
 
-import { Card } from "../common/layout";
+import { Card } from "../common/core";
 import { InfoIcon, InfoText, InfoTitle } from "../common/typography";
 
 const perlin = Perlin.getInstance();
@@ -36,7 +36,7 @@ const WalletView: React.SFC<{}> = observer(() => {
     );
 });
 
-const useWalletBalance = () => {
+export const useWalletBalance = () => {
     const balance = useComputed(() => {
         if (perlin.account !== undefined) {
             return perlin.account.balance;
