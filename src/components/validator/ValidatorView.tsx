@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
-import { Card } from "../common/layout";
+import { Card } from "../common/core";
 import { InfoIcon, InfoText, InfoTitle } from "../common/typography";
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";

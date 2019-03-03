@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import CloseIcon from "../../assets/svg/close-icon.svg";
 import { InfoIcon } from "../common/typography";
+import { Button } from "../common/core";
 
 export enum StakeModalActions {
     Place,
@@ -124,9 +125,7 @@ const Input = styled.input.attrs({ type: "number", autoFocus: true })`
         margin: 0;
     }
 `;
-const Row = styled(Box).attrs({ width: 1 })`
-    display: flex;
-`;
+const Row = styled(Flex).attrs({ width: 1 })``;
 
 const StakeModal: React.SFC<IStakeModalProps> = ({
     open,
@@ -137,10 +136,11 @@ const StakeModal: React.SFC<IStakeModalProps> = ({
     const preventEventBubbling = (e: React.SyntheticEvent) => {
         e.stopPropagation();
     };
-
+    let buttonText = "Add Stake";
     let headerTitle = "Add stake";
     let formTitle = "Enter stake amount";
     if (action === StakeModalActions.Withdraw) {
+        buttonText = "Remove Stake";
         headerTitle = "Remove stake";
         formTitle = "Enter stake amount to be removed";
     }
@@ -172,6 +172,12 @@ const StakeModal: React.SFC<IStakeModalProps> = ({
                                         <Input />
                                     </InputWrapper>
                                 </FormWrapper>
+                            </Row>
+                            <Row
+                                justifyContent="center"
+                                style={{ marginTop: "35px" }}
+                            >
+                                <Button width="250px">{buttonText}</Button>
                             </Row>
                         </Body>
                     </Modal>
