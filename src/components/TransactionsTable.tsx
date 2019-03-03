@@ -61,7 +61,7 @@ export default class TransactionsTable extends React.Component<{}, {}> {
     public render() {
         return (
             <ReactTable
-                data={perlin.recentTransactions}
+                data={perlin.transactions.recent}
                 columns={columns}
                 className="-striped -highlight"
                 defaultPageSize={15}
