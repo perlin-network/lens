@@ -56,6 +56,28 @@ const ValidatorView: React.SFC<{}> = observer(() => {
     const handleClose = () => {
         setModalOpen(false);
     };
+    const handlePlaceStake = async (amount: number) => {
+        if (!isNaN(amount)) {
+            try {
+                await perlin.placeStake(amount);
+                setModalOpen(false);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        // display error message
+    };
+    const handleWithdrawStake = async (amount: number) => {
+        if (!isNaN(amount)) {
+            try {
+                await perlin.withdrawStake(amount);
+                setModalOpen(false);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        // display error message
+    };
     const stake = useWalletStake();
 
     return (
@@ -95,6 +117,11 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                 open={modalOpen}
                 action={modalAction}
                 onClose={handleClose}
+                onSubmit={
+                    modalAction === StakeModalActions.Place
+                        ? handlePlaceStake
+                        : handleWithdrawStake
+                }
                 balance={balance}
             />
         </Card>

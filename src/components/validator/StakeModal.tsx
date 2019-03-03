@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
@@ -15,6 +16,7 @@ interface IStakeModalProps {
     open: boolean;
     action: StakeModalActions;
     onClose: () => void;
+    onSubmit: (amount: number) => void;
     balance: number | null;
 }
 
@@ -126,16 +128,17 @@ const Input = styled.input.attrs({ type: "number", autoFocus: true })`
     }
 `;
 const Row = styled(Flex).attrs({ width: 1 })``;
+const preventEventBubbling = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+};
 
 const StakeModal: React.SFC<IStakeModalProps> = ({
     open,
     onClose,
+    onSubmit,
     balance,
     action
 }) => {
-    const preventEventBubbling = (e: React.SyntheticEvent) => {
-        e.stopPropagation();
-    };
     let buttonText = "Add Stake";
     let headerTitle = "Add stake";
     let formTitle = "Enter stake amount";
@@ -144,6 +147,20 @@ const StakeModal: React.SFC<IStakeModalProps> = ({
         headerTitle = "Remove stake";
         formTitle = "Enter stake amount to be removed";
     }
+    const [amount, setAmount] = useState("0");
+
+    // reset amount on close
+    useEffect(() => {
+        if (!open) {
+            setAmount("0");
+        }
+    }, [open]);
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAmount(e.target.value);
+    };
+    const handleButtonClick = () => {
+        onSubmit(parseInt(amount, 10));
+    };
 
     return createPortal(
         <>
@@ -169,7 +186,10 @@ const StakeModal: React.SFC<IStakeModalProps> = ({
                                     </BodyTitle>
                                     <InputWrapper>
                                         <InfoIcon size="29px" />
-                                        <Input />
+                                        <Input
+                                            value={amount}
+                                            onChange={handleAmountChange}
+                                        />
                                     </InputWrapper>
                                 </FormWrapper>
                             </Row>
@@ -177,7 +197,12 @@ const StakeModal: React.SFC<IStakeModalProps> = ({
                                 justifyContent="center"
                                 style={{ marginTop: "35px" }}
                             >
-                                <Button width="250px">{buttonText}</Button>
+                                <Button
+                                    width="250px"
+                                    onClick={handleButtonClick}
+                                >
+                                    {buttonText}
+                                </Button>
                             </Row>
                         </Body>
                     </Modal>
