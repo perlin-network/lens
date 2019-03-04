@@ -6,7 +6,6 @@ import styled from "styled-components";
 import "./config.scss";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { Box } from "@rebass/grid";
 import { EditIcon, QuestionIcon } from "../common/typography";
 
 const perlin = Perlin.getInstance();
