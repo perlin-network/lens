@@ -1,3 +1,5 @@
+@import "~/react-confirm-alert/src/react-confirm-alert.css";
+
 .inputHost {
     grid-area: inputHost;
 }
@@ -10,10 +12,32 @@
 
 .grid-container {
     display: grid;
+    width: 100%;
     grid-template-areas:
         "inputHost inputHost"
         "editSaveButton discardButton";
     grid-gap: 10px;
     padding: 10px;
-    grid-column-gap: 5px;
+    grid-column-gap: 10px;
+}
+
+.alert-style {
+    text-align: center;
+    width: 500px;
+    padding: 40px;
+    background: #0e1a49;
+    box-shadow: 0 20px 75px rgba(0, 0, 0, 0.9);
+    color: #fff;
+}
+
+.alert-style > h1 {
+    margin-top: 0;
+}
+
+input:disabled {
+    cursor: not-allowed;
+}
+
+.react-confirm-alert-overlay {
+    background: rgba(0, 0, 0, 0.9);
 }

@@ -4,7 +4,7 @@ import { APIHostConfig } from "../config/APIHostConfig";
 import { SectionTitle } from "../common/typography";
 import { getCurrentHost } from "../../storage";
 
-import { Card } from "../common/layout";
+import { Card } from "../common/core";
 
 export default class SettingsContainer extends React.Component<{}, {}> {
     public render() {

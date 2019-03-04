@@ -1,22 +1,20 @@
 import * as React from "react";
-import { Alert, ButtonGroup, Icon, Intent } from "@blueprintjs/core";
-import HostnameInputContainer from "./HostnameInput/Container";
 import HostInput from "./HostInput";
 import { Perlin } from "../../Perlin";
 import * as storage from "../../storage";
 import styled from "styled-components";
 import "./config.scss";
-
-import { any } from "prop-types";
-import { Box, Flex } from "@rebass/grid";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import { Box } from "@rebass/grid";
 
 const perlin = Perlin.getInstance();
 
-const Button = styled.button`
+const EditSaveButton = styled.button`
     width: 160px;
     height: 40px;
     border: 0;
-    outline: 0;
+    outline: 2px solid #23228e;
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
@@ -28,27 +26,94 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-const InfoWrapper = styled(Box)`
-    margin-right: 40px;
+const DiscardButton = styled.button`
+    width: 160px;
+    height: 40px;
+    border: 0;
+    outline: 2px solid #ffffff;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 40px;
+    font-family: HKGrotesk;
+    font-size: 16px;
+    font-weight: normal;
+    background-color: #0e1a49;
+    color: #ffffff;
+    cursor: pointer;
 `;
-
-interface IState {
-    disabled: boolean;
-    isChangeAlertOpen: boolean;
-    isDiscardAlertOpen: boolean;
-}
 
 export default class APIHostConfig extends React.Component {
     public state = {
-        disabled: true,
-        isChangeAlertOpen: false,
-        isDiscardAlertOpen: false
+        disabled: true
     };
 
+    private newHost = "";
     private hostInputRef = React.createRef<HostInput>();
 
+    saveConfigAlert = () => {
+        confirmAlert({
+            customUI: ({ onClose }) => {
+                return (
+                    <div className="alert-style">
+                        <h1>
+                            Are you sure you want to reconfigure your host to{" "}
+                            {this.newHost}?
+                        </h1>
+                        <p>
+                            The page will need to reload for these configuration
+                            changes to take place.
+                        </p>
+                        <DiscardButton
+                            style={{ marginRight: "10px" }}
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </DiscardButton>
+                        <EditSaveButton
+                            onClick={() => {
+                                this.handleChangeAlertConfirm();
+                                onClose();
+                            }}
+                        >
+                            Confirm
+                        </EditSaveButton>
+                    </div>
+                );
+            }
+        });
+    };
+
+    discardChangesAlert = () => {
+        confirmAlert({
+            customUI: ({ onClose }) => {
+                return (
+                    <div className="alert-style">
+                        <h1>
+                            Are you sure you want to discard these configuration
+                            changes?
+                        </h1>
+                        <DiscardButton
+                            style={{ marginRight: "10px" }}
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </DiscardButton>
+                        <EditSaveButton
+                            onClick={() => {
+                                this.handleDiscardAlertConfirm();
+                                onClose();
+                            }}
+                        >
+                            Confirm
+                        </EditSaveButton>
+                    </div>
+                );
+            }
+        });
+    };
+
     public render() {
-        const { disabled, isChangeAlertOpen, isDiscardAlertOpen } = this.state;
+        const { disabled } = this.state;
 
         return (
             <>
@@ -60,87 +125,53 @@ export default class APIHostConfig extends React.Component {
                             ref={this.hostInputRef}
                         />
                     </div>
+                    <div className="editSaveButton">
+                        <EditSaveButton onClick={this.onToggleSave}>
+                            {disabled ? "Edit" : "Save"}
+                        </EditSaveButton>
+                    </div>
                     {!disabled && (
                         <div
                             style={{ marginRight: "0.5em" }}
                             className="discardButton"
                         >
-                            <Button onClick={this.showDiscardAlert}>
+                            <DiscardButton onClick={this.showDiscardAlert}>
                                 Discard Changes
-                            </Button>
+                            </DiscardButton>
                         </div>
                     )}
-                    <div className="editSaveButton">
-                        <Button onClick={this.onToggleSave}>
-                            {disabled ? "Edit" : "Save"}
-                        </Button>
-                    </div>
                 </div>
-
-                <Alert
-                    isOpen={isChangeAlertOpen}
-                    cancelButtonText="Cancel"
-                    confirmButtonText="Confirm"
-                    intent={Intent.PRIMARY}
-                    onCancel={this.handleChangeAlertClose}
-                    onConfirm={this.handleChangeAlertConfirm}
-                >
-                    <p>
-                        Are you sure you want to save this configuration? <br />
-                        <br />
-                        The page will need to reload for these configuration
-                        changes to take places.
-                    </p>
-                </Alert>
-                <Alert
-                    isOpen={isDiscardAlertOpen}
-                    cancelButtonText="Cancel"
-                    confirmButtonText="Confirm"
-                    intent={Intent.PRIMARY}
-                    onCancel={this.handleDiscardAlertClose}
-                    onConfirm={this.handleDiscardAlertConfirm}
-                >
-                    <p>
-                        Are you sure you want to discard these configuration
-                        changes?
-                    </p>
-                </Alert>
             </>
         );
     }
 
     private handleChangeAlertConfirm = () => {
-        const newHost = this.hostInputRef.current!.getHostValue();
-        storage.setCurrentHost(newHost);
+        this.newHost = this.hostInputRef.current!.getHostValue();
+        storage.setCurrentHost(this.newHost);
         this.setState(() => ({
-            disabled: true,
-            isChangeAlertOpen: false
+            disabled: true
         }));
         location.reload();
     };
 
-    private handleChangeAlertClose = () => {
-        this.setState(() => ({
-            isChangeAlertOpen: false
-        }));
-    };
-
     private get wereChangesMade(): boolean {
-        const changesMade =
+        if (
             storage.getCurrentHost() !==
-            this.hostInputRef.current!.getHostValue();
-        return changesMade;
+                this.hostInputRef.current!.getHostValue() &&
+            this.hostInputRef.current!.getHostValue() !== ""
+        ) {
+            return true;
+        }
+        return false;
     }
 
     private onToggleSave = () => {
-        console.log(this.hostInputRef.current!.getHostValue());
+        this.newHost = this.hostInputRef.current!.getHostValue();
         if (this.state.disabled) {
             this.setState(() => ({ disabled: false }));
         } else {
             if (this.wereChangesMade) {
-                this.setState(() => ({
-                    isChangeAlertOpen: true
-                }));
+                this.saveConfigAlert();
             } else {
                 this.setState(() => ({
                     disabled: true
@@ -151,9 +182,7 @@ export default class APIHostConfig extends React.Component {
 
     private showDiscardAlert = () => {
         if (this.wereChangesMade) {
-            this.setState(() => ({
-                isDiscardAlertOpen: true
-            }));
+            this.discardChangesAlert();
         } else {
             this.setState(() => ({
                 disabled: true
@@ -161,17 +190,10 @@ export default class APIHostConfig extends React.Component {
         }
     };
 
-    private handleDiscardAlertClose = () => {
-        this.setState(() => ({
-            isDiscardAlertOpen: false
-        }));
-    };
-
     private handleDiscardAlertConfirm = () => {
         this.hostInputRef.current!.resetHostValue();
         this.setState(() => ({
-            disabled: true,
-            isDiscardAlertOpen: false
+            disabled: true
         }));
     };
 }

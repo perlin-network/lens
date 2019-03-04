@@ -1,11 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Box, Flex } from "@rebass/grid";
-import { Card } from "../common/layout";
-import { InfoText, InfoTitle, EditIcon } from "../common/typography";
 import { Perlin } from "../../Perlin";
-import { observer, useComputed } from "mobx-react-lite";
-import { removeNonHTMLProps } from "@blueprintjs/core";
+import "./config.scss";
 
 const Input = styled.input`
     outline: none;
@@ -57,12 +53,12 @@ export default class HostInput extends React.Component<IProps, IState> {
     };
 
     public getHostValue = () => {
+        console.log("hostInputHost", this.state.newHost);
         return this.state.newHost;
     };
 
     public handleAddressChange = e => {
         this.setState({ newHost: e.target.value });
-        console.log("inputtedHost", this.state.newHost);
     };
 
     public render() {
