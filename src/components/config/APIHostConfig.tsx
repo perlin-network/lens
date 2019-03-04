@@ -28,8 +28,9 @@ const SaveButton = styled.button`
 `;
 
 const EditButton = styled.button`
-    width: 160px;
+    max-width: 50px;
     height: 40px;
+    margin-left: 10px;
     border: 0;
     outline: 2px solid #23228e;
     text-align: center;
@@ -151,32 +152,45 @@ export default class APIHostConfig extends React.Component {
 
         return (
             <>
-                <div className="inputHost" style={{ width: "100%" }}>
-                    <HostInput
-                        disabled={disabled}
-                        initialHost={perlin.api.host}
-                        ref={this.hostInputRef}
-                    />
-                </div>
-                <div>
-                    <SaveButton
-                        onClick={this.onToggleSave}
-                        style={{ marginLeft: "10px" }}
-                    >
-                        {disabled ? "Edit" : "Save"}
-                    </SaveButton>
-                    {!disabled && (
-                        <DiscardButton
-                            onClick={this.showDiscardAlert}
-                            style={{ marginLeft: "10px" }}
-                        >
-                            Discard Changes
-                        </DiscardButton>
-                    )}
+                <div className="input-grid">
+                    <div className="input-row1" style={{ width: "100%" }}>
+                        <HostInput
+                            disabled={disabled}
+                            initialHost={perlin.api.host}
+                            ref={this.hostInputRef}
+                        />
+                        {disabled && (
+                            <EditButton onClick={this.toggleDisabled}>
+                                <EditIcon />
+                            </EditButton>
+                        )}
+                    </div>
+
+                    <div className="input-row2">
+                        {!disabled && (
+                            <DiscardButton onClick={this.showDiscardAlert}>
+                                Discard Changes
+                            </DiscardButton>
+                        )}
+                        {!disabled && (
+                            <SaveButton
+                                onClick={this.onToggleSave}
+                                style={{ marginLeft: "10px" }}
+                            >
+                                Save
+                            </SaveButton>
+                        )}
+                    </div>
                 </div>
             </>
         );
     }
+
+    private toggleDisabled = () => {
+        this.setState(() => ({
+            disabled: false
+        }));
+    };
 
     private handleChangeAlertConfirm = () => {
         this.newHost = this.hostInputRef.current!.getHostValue();

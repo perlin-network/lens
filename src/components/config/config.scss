@@ -1,26 +1,5 @@
 @import "~/react-confirm-alert/src/react-confirm-alert.css";
 
-/*.inputHost {
-    grid-area: inputHost;
-    width: 100%;
-}
-.discardButton {
-    grid-area: discardButton;
-}
-.editSaveButton {
-    grid-area: editSaveButton;
-}
-
-.grid-container {
-    display: grid;
-    width: 100%;
-    grid-template-areas:
-        "inputHost inputHost"
-        "editSaveButton discardButton";
-    grid-gap: 10px;
-    padding: 10px;
-    grid-column-gap: 10px;
-}*/
 .alert-row1 {
     grid-area: alert-row1;
 }
@@ -55,6 +34,25 @@
 .alert-style > h1 {
     font-family: HKGrotesk;
     margin-top: 0;
+}
+
+.input-row1 {
+    grid-area: input-row1;
+}
+
+.input-row2 {
+    grid-area: input-row2;
+    margin-top: 20px;
+}
+
+.input-grid {
+    width: 100%;
+    grid-template-areas:
+        "input-row1"
+        "input-row2";
+    grid-gap: 30px;
+    padding: 10px;
+    grid-column-gap: 10px;
 }
 
 input:disabled {
