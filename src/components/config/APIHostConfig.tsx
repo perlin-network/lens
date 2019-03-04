@@ -6,10 +6,28 @@ import styled from "styled-components";
 import "./config.scss";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { Box } from "@rebass/grid";
+import { EditIcon, QuestionIcon } from "../common/typography";
 
 const perlin = Perlin.getInstance();
 
-const EditSaveButton = styled.button`
+const SaveButton = styled.button`
+    width: 160px;
+    height: 40px;
+    border: 0;
+    outline: 2px solid #23228e;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 40px;
+    font-family: HKGrotesk;
+    font-size: 16px;
+    font-weight: normal;
+    color: #fff;
+    background-color: #23228e;
+    cursor: pointer;
+`;
+
+const EditButton = styled.button`
     width: 160px;
     height: 40px;
     border: 0;
@@ -53,29 +71,36 @@ export default class APIHostConfig extends React.Component {
         confirmAlert({
             customUI: ({ onClose }) => {
                 return (
-                    <div className="alert-style">
-                        <h1>
-                            Are you sure you want to reconfigure your host to{" "}
-                            {this.newHost}?
-                        </h1>
-                        <p>
-                            The page will need to reload for these configuration
-                            changes to take place.
-                        </p>
-                        <DiscardButton
-                            style={{ marginRight: "10px" }}
-                            onClick={onClose}
-                        >
-                            Cancel
-                        </DiscardButton>
-                        <EditSaveButton
-                            onClick={() => {
-                                this.handleChangeAlertConfirm();
-                                onClose();
-                            }}
-                        >
-                            Confirm
-                        </EditSaveButton>
+                    <div className="alert-style alert-grid">
+                        <div className="alert-row1">
+                            <h1>
+                                Are you sure you want to reconfigure your host
+                                to {this.newHost}?
+                            </h1>
+                            <p>
+                                The page will need to reload for these
+                                configuration changes to take place.
+                            </p>
+                        </div>
+                        <div className="alert-row2">
+                            <QuestionIcon />
+                        </div>
+                        <div className="alert-row3">
+                            <DiscardButton
+                                style={{ marginRight: "10px" }}
+                                onClick={onClose}
+                            >
+                                Cancel
+                            </DiscardButton>
+                            <SaveButton
+                                onClick={() => {
+                                    this.handleChangeAlertConfirm();
+                                    onClose();
+                                }}
+                            >
+                                Confirm
+                            </SaveButton>
+                        </div>
                     </div>
                 );
             }
@@ -86,28 +111,35 @@ export default class APIHostConfig extends React.Component {
         confirmAlert({
             customUI: ({ onClose }) => {
                 return (
-                    <div className="alert-style">
-                        <h1>
-                            Are you sure you want to discard these configuration
-                            changes?
-                        </h1>
-                        <DiscardButton
-                            style={{
-                                marginRight: "10px",
-                                verticalAlign: "middle"
-                            }}
-                            onClick={onClose}
-                        >
-                            Cancel
-                        </DiscardButton>
-                        <EditSaveButton
-                            onClick={() => {
-                                this.handleDiscardAlertConfirm();
-                                onClose();
-                            }}
-                        >
-                            Confirm
-                        </EditSaveButton>
+                    <div className="alert-style alert-grid">
+                        <div className="alert-row1">
+                            <h1>
+                                Are you sure you want to discard these
+                                configuration changes?
+                            </h1>
+                        </div>
+                        <div className="alert-row2">
+                            <QuestionIcon />
+                        </div>
+                        <div className="alert-row3">
+                            <DiscardButton
+                                style={{
+                                    marginRight: "10px",
+                                    verticalAlign: "middle"
+                                }}
+                                onClick={onClose}
+                            >
+                                Cancel
+                            </DiscardButton>
+                            <SaveButton
+                                onClick={() => {
+                                    this.handleDiscardAlertConfirm();
+                                    onClose();
+                                }}
+                            >
+                                Confirm
+                            </SaveButton>
+                        </div>
                     </div>
                 );
             }
@@ -126,20 +158,22 @@ export default class APIHostConfig extends React.Component {
                         ref={this.hostInputRef}
                     />
                 </div>
-                <EditSaveButton
-                    onClick={this.onToggleSave}
-                    style={{ marginLeft: "10px" }}
-                >
-                    {disabled ? "Edit" : "Save"}
-                </EditSaveButton>
-                {!disabled && (
-                    <DiscardButton
-                        onClick={this.showDiscardAlert}
+                <div>
+                    <SaveButton
+                        onClick={this.onToggleSave}
                         style={{ marginLeft: "10px" }}
                     >
-                        Discard Changes
-                    </DiscardButton>
-                )}
+                        {disabled ? "Edit" : "Save"}
+                    </SaveButton>
+                    {!disabled && (
+                        <DiscardButton
+                            onClick={this.showDiscardAlert}
+                            style={{ marginLeft: "10px" }}
+                        >
+                            Discard Changes
+                        </DiscardButton>
+                    )}
+                </div>
             </>
         );
     }

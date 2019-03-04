@@ -24,13 +24,13 @@ InfoIcon.defaultProps = {
 };
 
 const EditIcon = styled.img.attrs({ src: PencilEditIcon })`
-    height: 20px;
-    width: 20px;
+    height: 100%;
+    min-width: 20px;
 `;
 
 const QuestionIcon = styled.img.attrs({ src: QuestionAlertIcon })`
-    height: 20px;
-    width: 20px;
+    max-height: 80px;
+    max-width: 80px;
 `;
 
 interface InfoTextProps {

@@ -21,6 +21,27 @@
     padding: 10px;
     grid-column-gap: 10px;
 }*/
+.alert-row1 {
+    grid-area: alert-row1;
+}
+.alert-row2 {
+    grid-area: alert-row2;
+}
+.alert-row3 {
+    grid-area: alert-row3;
+}
+
+.alert-grid {
+    display: grid;
+    width: 100%;
+    grid-template-areas:
+        "alert-row1"
+        "alert-row2"
+        "alert-row3";
+    grid-gap: 30px;
+    padding: 10px;
+    grid-column-gap: 10px;
+}
 
 .alert-style {
     text-align: center;
@@ -32,6 +53,7 @@
 }
 
 .alert-style > h1 {
+    font-family: HKGrotesk;
     margin-top: 0;
 }
 
