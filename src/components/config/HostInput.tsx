@@ -8,7 +8,7 @@ const Input = styled.input`
     border: none;
     border-radius: 2px;
     width: 100%;
-    height: 35px;
+    height: 40px;
     background-color: #fff;
     padding: 5px 10px;
     font-family: HKGrotesk;

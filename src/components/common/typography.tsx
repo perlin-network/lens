@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import PerlMiniIcon from "../../assets/svg/perl-mini-icon.svg";
 import PencilEditIcon from "../../assets/svg/pencil-edit-button.svg";
+import QuestionAlertIcon from "../../assets/svg/alert-question.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -25,7 +26,11 @@ InfoIcon.defaultProps = {
 const EditIcon = styled.img.attrs({ src: PencilEditIcon })`
     height: 20px;
     width: 20px;
-    margin-right: 5px;
+`;
+
+const QuestionIcon = styled.img.attrs({ src: QuestionAlertIcon })`
+    height: 20px;
+    width: 20px;
 `;
 
 interface InfoTextProps {
@@ -51,4 +56,4 @@ const InfoTitle = styled.h2`
     color: #fff;
 `;
 
-export { SectionTitle, InfoText, InfoTitle, InfoIcon, EditIcon };
+export { SectionTitle, InfoText, InfoTitle, InfoIcon, QuestionIcon, EditIcon };

@@ -6,7 +6,6 @@ import styled from "styled-components";
 import "./config.scss";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { Box } from "@rebass/grid";
 
 const perlin = Perlin.getInstance();
 
@@ -93,7 +92,10 @@ export default class APIHostConfig extends React.Component {
                             changes?
                         </h1>
                         <DiscardButton
-                            style={{ marginRight: "10px" }}
+                            style={{
+                                marginRight: "10px",
+                                verticalAlign: "middle"
+                            }}
                             onClick={onClose}
                         >
                             Cancel
@@ -117,30 +119,27 @@ export default class APIHostConfig extends React.Component {
 
         return (
             <>
-                <div className="grid-container">
-                    <div className="inputHost">
-                        <HostInput
-                            disabled={disabled}
-                            initialHost={perlin.api.host}
-                            ref={this.hostInputRef}
-                        />
-                    </div>
-                    <div className="editSaveButton">
-                        <EditSaveButton onClick={this.onToggleSave}>
-                            {disabled ? "Edit" : "Save"}
-                        </EditSaveButton>
-                    </div>
-                    {!disabled && (
-                        <div
-                            style={{ marginRight: "0.5em" }}
-                            className="discardButton"
-                        >
-                            <DiscardButton onClick={this.showDiscardAlert}>
-                                Discard Changes
-                            </DiscardButton>
-                        </div>
-                    )}
+                <div className="inputHost" style={{ width: "100%" }}>
+                    <HostInput
+                        disabled={disabled}
+                        initialHost={perlin.api.host}
+                        ref={this.hostInputRef}
+                    />
                 </div>
+                <EditSaveButton
+                    onClick={this.onToggleSave}
+                    style={{ marginLeft: "10px" }}
+                >
+                    {disabled ? "Edit" : "Save"}
+                </EditSaveButton>
+                {!disabled && (
+                    <DiscardButton
+                        onClick={this.showDiscardAlert}
+                        style={{ marginLeft: "10px" }}
+                    >
+                        Discard Changes
+                    </DiscardButton>
+                )}
             </>
         );
     }
