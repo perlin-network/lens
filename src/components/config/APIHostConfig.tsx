@@ -67,7 +67,7 @@ export default class APIHostConfig extends React.Component {
     private newHost = "";
     private hostInputRef = React.createRef<HostInput>();
 
-    saveConfigAlert = () => {
+    public saveConfigAlert = () => {
         confirmAlert({
             customUI: ({ onClose }) => {
                 return (
@@ -92,12 +92,7 @@ export default class APIHostConfig extends React.Component {
                             >
                                 Cancel
                             </DiscardButton>
-                            <SaveButton
-                                onClick={() => {
-                                    this.handleChangeAlertConfirm();
-                                    onClose();
-                                }}
-                            >
+                            <SaveButton onClick={this.handleChangeAlertConfirm}>
                                 Confirm
                             </SaveButton>
                         </div>
@@ -107,7 +102,7 @@ export default class APIHostConfig extends React.Component {
         });
     };
 
-    discardChangesAlert = () => {
+    public discardChangesAlert = () => {
         confirmAlert({
             customUI: ({ onClose }) => {
                 return (
@@ -132,10 +127,7 @@ export default class APIHostConfig extends React.Component {
                                 Cancel
                             </DiscardButton>
                             <SaveButton
-                                onClick={() => {
-                                    this.handleDiscardAlertConfirm();
-                                    onClose();
-                                }}
+                                onClick={this.handleDiscardAlertConfirm}
                             >
                                 Confirm
                             </SaveButton>
@@ -241,6 +233,7 @@ export default class APIHostConfig extends React.Component {
         this.setState(() => ({
             disabled: true
         }));
+        location.reload();
     };
 }
 

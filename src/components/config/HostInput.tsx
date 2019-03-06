@@ -7,7 +7,7 @@ const Input = styled.input`
     outline: none;
     border: none;
     border-radius: 2px;
-    width: 80%
+    width: 80%;
     height: 40px;
     background-color: #fff;
     padding: 5px 10px;
@@ -57,7 +57,7 @@ export default class HostInput extends React.Component<IProps, IState> {
         return this.state.newHost;
     };
 
-    public handleAddressChange = e => {
+    public handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ newHost: e.target.value });
     };
 
