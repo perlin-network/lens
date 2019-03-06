@@ -91,7 +91,9 @@ const PaymentForm: React.SFC<IPaymentFormProps> = ({
                 />
                 <FeeText>Fee: 0.0002 PERL</FeeText>
             </FormGroup>
-            <Button onClick={handlePay}>Send PERLs</Button>
+            <Button onClick={handlePay} style={{ marginTop: "18px" }}>
+                Send PERLs
+            </Button>
         </Wrapper>
     );
 };
