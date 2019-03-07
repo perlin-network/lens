@@ -27,7 +27,6 @@ const EditIcon = styled.img.attrs({ src: PencilEditIcon })`
     height: 80%;
     max-width: 30px;
     vertical-align: centre;
-    horizontal-align: centre;
 `;
 
 const QuestionIcon = styled.img.attrs({ src: QuestionAlertIcon })`
