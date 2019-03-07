@@ -194,3 +194,7 @@ svg {
 .ReactTable .rt-expander:after {
     border-top: 7px solid #f5f8fa; // $pt-dark-text-color
 }
+
+.CodeMirror {
+    height: 600px !important;
+}

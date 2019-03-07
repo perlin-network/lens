@@ -104,12 +104,12 @@ const createSmartContract = async (file: File) => {
     const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
         readDebugNames: false
     });
-    wasmModule.applyNames();
 
     contractStore.contract.name = file.name;
     contractStore.contract.transactionId = resp.tx_id;
     contractStore.contract.textContent = wasmModule.toText({
-        foldExprs: true
+        foldExprs: true,
+        inlineExport: true
     });
 };
 

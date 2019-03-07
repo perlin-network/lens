@@ -14,4 +14,8 @@ export default class ContractStore {
         transactionId: "",
         textContent: ""
     };
+
+    private constructor() {
+        // restrict access to constructor
+    }
 }
