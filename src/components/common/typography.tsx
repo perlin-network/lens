@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import PerlMiniIcon from "../../assets/svg/perl-mini-icon.svg";
+import PencilEditIcon from "../../assets/svg/pencil-edit-button.svg";
+import QuestionAlertIcon from "../../assets/svg/alert-question.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -20,6 +22,18 @@ const InfoIcon = styled.img.attrs({ src: PerlMiniIcon })`
 InfoIcon.defaultProps = {
     size: "20px"
 };
+
+const EditIcon = styled.img.attrs({ src: PencilEditIcon })`
+    height: 80%;
+    max-width: 30px;
+    vertical-align: centre;
+    horizontal-align: centre;
+`;
+
+const QuestionIcon = styled.img.attrs({ src: QuestionAlertIcon })`
+    max-height: 120px;
+    max-width: 120px;
+`;
 
 interface InfoTextProps {
     breakWord?: boolean;
@@ -44,4 +58,4 @@ const InfoTitle = styled.h2`
     color: #fff;
 `;
 
-export { SectionTitle, InfoText, InfoTitle, InfoIcon };
+export { SectionTitle, InfoText, InfoTitle, InfoIcon, QuestionIcon, EditIcon };

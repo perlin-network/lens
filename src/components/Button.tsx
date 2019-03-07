@@ -22,7 +22,6 @@ const Wrapper = styled.div`
     border-radius: 1em;`}
     padding: 2px;
     width: 12em;
-
     > button {
         position: relative;
         display: flex;
