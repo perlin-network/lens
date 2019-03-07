@@ -98,6 +98,7 @@ const ContractUploader: React.SFC<{}> = () => {
         }
     }, []);
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        accept: "application/wasm",
         onDropAccepted,
         multiple: false
     });
