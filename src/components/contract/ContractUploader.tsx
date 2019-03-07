@@ -1,8 +1,16 @@
 import * as React from "react";
+import { useCallback, useState } from "react";
 import { Card, Button } from "../common/core";
 import styled from "styled-components";
+import { useDropzone } from "react-dropzone";
+import { Perlin } from "../../Perlin";
+import ContractStore from "./ContractStore";
+
+const perlin = Perlin.getInstance();
+const contractStore = ContractStore.getInstance();
 
 const Wrapper = styled(Card)`
+    position: relative;
     padding: 25px 25px;
 `;
 const DividerWrapper = styled.div`
@@ -58,12 +66,47 @@ const StyledButton = styled(Button)`
     width: auto;
     padding: 0 18px;
 `;
+const Loader = styled.div`
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 10;
+    font-size: 20px;
+    font-family: HKGrotesk;
+    font-weight: 600;
+`;
 
 const ContractUploader: React.SFC<{}> = () => {
+    const [loading, setLoading] = useState(false);
+    const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
+        const file = acceptedFiles[0];
+        setLoading(true);
+        try {
+            const resp = await perlin.createSmartContract(file);
+            contractStore.contract.name = file.name;
+            contractStore.contract.transactionId = resp.tx_id;
+        } catch (err) {
+            console.log("Error while uploading file: " + err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDropAccepted,
+        multiple: false
+    });
+
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
-            <Button fontSize="14px" width="100%">
-                Upload Smart Contract
+            <Button fontSize="14px" width="100%" {...getRootProps()}>
+                {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
+                <input {...getInputProps()} />
             </Button>
             <DividerWrapper>
                 <Divider />
@@ -74,6 +117,7 @@ const ContractUploader: React.SFC<{}> = () => {
                 <Input placeholder="Enter the address of a deployed smart contract" />
                 <StyledButton>Load Contract</StyledButton>
             </InputWrapper>
+            {loading && <Loader>Uploading Contract...</Loader>}
         </Wrapper>
     );
 };

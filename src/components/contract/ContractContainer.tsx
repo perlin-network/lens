@@ -3,6 +3,9 @@ import styled from "styled-components";
 import ContractUploader from "./ContractUploader";
 import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../common/typography";
+import ContractStore from "./ContractStore";
+
+const instance = new ContractStore();
 
 const LeftColumn = styled(Box)`
     display: flex;
