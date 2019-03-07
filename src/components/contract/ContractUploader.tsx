@@ -5,6 +5,10 @@ import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
+import * as Wabt from "wabt";
+
+// @ts-ignore
+const wabt = Wabt();
 
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
@@ -82,17 +86,44 @@ const Loader = styled.div`
     font-weight: 600;
 `;
 
+const createSmartContract = async (file: File) => {
+    const reader = new FileReader();
+
+    const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
+        reader.onerror = () => {
+            reader.abort();
+            reject(new DOMException("Failed to parse contract file."));
+        };
+
+        reader.onload = () => {
+            resolve(reader.result as any);
+        };
+        reader.readAsArrayBuffer(file);
+    });
+    const resp = await perlin.createSmartContract(bytes);
+    const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
+        readDebugNames: false
+    });
+    wasmModule.applyNames();
+
+    contractStore.contract.name = file.name;
+    contractStore.contract.transactionId = resp.tx_id;
+    contractStore.contract.textContent = wasmModule.toText({
+        foldExprs: true
+    });
+};
+
 const ContractUploader: React.SFC<{}> = () => {
     const [loading, setLoading] = useState(false);
     const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         setLoading(true);
+
         try {
-            const resp = await perlin.createSmartContract(file);
-            contractStore.contract.name = file.name;
-            contractStore.contract.transactionId = resp.tx_id;
+            await createSmartContract(file);
         } catch (err) {
-            console.log("Error while uploading file: " + err);
+            console.log("Error while uploading file: ");
+            console.log(err);
         } finally {
             setLoading(false);
         }

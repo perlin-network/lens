@@ -6865,7 +6865,6 @@ rc@^1.0.1, rc@^1.1.6, rc@^1.2.7:
 react-confirm-alert@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/react-confirm-alert/-/react-confirm-alert-2.3.0.tgz#c8a7282f06855235315840b72ed13374448161eb"
-  integrity sha512-4TWTzI0lx94eCJAnvFMF0ZUgCj680rxkL/0elIyB9uWXrrlKeZ4+84TMePKYWK9WZJIBKx5r87xfCk9c4Bx9Rg==
 
 react-dev-utils@^5.0.1:
   version "5.0.3"
@@ -8631,6 +8630,10 @@ w3c-hr-time@^1.0.1:
   resolved "https://registry.yarnpkg.com/w3c-hr-time/-/w3c-hr-time-1.0.1.tgz#82ac2bff63d950ea9e3189a58a65625fedf19045"
   dependencies:
     browser-process-hrtime "^0.1.2"
+
+wabt@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/wabt/-/wabt-1.0.10.tgz#7b397f72a8ecee28421334588ed2605d97caba6c"
 
 walker@~1.0.5:
   version "1.0.7"

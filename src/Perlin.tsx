@@ -151,22 +151,7 @@ class Perlin {
         );
     }
 
-    public async createSmartContract(contractFile: Blob): Promise<any> {
-        const reader = new FileReader();
-
-        const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
-            reader.onerror = () => {
-                reader.abort();
-                reject(new DOMException("Failed to parse contract file."));
-            };
-
-            reader.onload = () => {
-                resolve(reader.result as any);
-            };
-
-            reader.readAsArrayBuffer(contractFile);
-        });
-
+    public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
         const payload = new PayloadWriter();
         payload.writeBuffer(Buffer.from(bytes));
 

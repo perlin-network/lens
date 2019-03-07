@@ -11,6 +11,7 @@ export default class ContractStore {
 
     @observable public contract = {
         name: "",
-        transactionId: ""
+        transactionId: "",
+        textContent: ""
     };
 }
