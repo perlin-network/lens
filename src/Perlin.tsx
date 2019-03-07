@@ -185,6 +185,24 @@ class Perlin {
         URL.revokeObjectURL(href);
     }
 
+    public async invokeContractFunction(
+        contractID: string,
+        amount: number,
+        funcName: string,
+        funcParams: Buffer
+    ): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeBuffer(Buffer.from(contractID, "hex"));
+        payload.writeUint64(Long.fromNumber(amount, true));
+        payload.writeString(funcName);
+        payload.writeBuffer(funcParams);
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TRANSFER, payload.buffer.toBuffer())
+        );
+    }
+
     private async init() {
         try {
             await this.startSession();
