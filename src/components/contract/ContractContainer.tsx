@@ -4,6 +4,7 @@ import ContractUploader from "./ContractUploader";
 import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../common/typography";
 import ContractStore from "./ContractStore";
+import ContractExecutor from "./ContractExecutor";
 import { Controlled as CodeMirror } from "react-codemirror2";
 import { observer } from "mobx-react";
 import "codemirror/lib/codemirror.css";
@@ -23,13 +24,23 @@ const noop = () => {};
 @observer
 export default class ContractContainer extends React.Component<{}, {}> {
     public render() {
+        const contractLoaded = contractStore.contract.name;
+
         return (
             <Flex>
                 <LeftColumn width={4 / 7}>
                     <SectionTitle>Add a Smart Contract</SectionTitle>
                     <ContractUploader />
+                    {contractLoaded && (
+                        <>
+                            <SectionTitle style={{ marginTop: "25px" }}>
+                                Execute Function
+                            </SectionTitle>
+                            <ContractExecutor />
+                        </>
+                    )}
                 </LeftColumn>
-                {contractStore.contract.transactionId && (
+                {contractLoaded && (
                     <Box width={3 / 7}>
                         <SectionTitle>
                             Contract Name: {contractStore.contract.name}
