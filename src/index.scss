@@ -155,7 +155,13 @@ svg {
     background-color: #060b24 !important;
 }
 
-/* Custom ReactTable styles */
+/* Table styles*/
+.tableStyle {
+    width: 100%;
+    font-family: HKGrotesk;
+}
+
+/* Custom ReactTable styles 
 
 .ReactTable {
     border-radius: 3px;
@@ -193,7 +199,7 @@ svg {
 
 .ReactTable .rt-expander:after {
     border-top: 7px solid #f5f8fa; // $pt-dark-text-color
-}
+}*/
 
 .CodeMirror {
     height: 600px !important;
