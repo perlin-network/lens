@@ -82,13 +82,13 @@ export default class TransactionsTable extends React.Component<{}, {}> {
             const date = new Date(tx.timestamp);
             return (
                 <tr key={tx.id}>
-                    <td>
+                    <td style={{ maxWidth: 180 }}>
                         {formatDistance(date, new Date(), { addSuffix: true })}
                     </td>
-                    <td>{tx.id}</td>
-                    <td>{tx.status}</td>
-                    <td>{tx.creator}</td>
-                    <td>{getTag(tx)}</td>
+                    <td style={{ maxWidth: 250 }}>{tx.id}</td>
+                    <td style={{ maxWidth: 60 }}>{tx.status}</td>
+                    <td style={{ maxWidth: 250 }}>{tx.creator}</td>
+                    <td style={{ maxWidth: 80 }}>{getTag(tx)}</td>
                 </tr>
             );
         });

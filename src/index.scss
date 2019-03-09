@@ -157,8 +157,13 @@ svg {
 
 /* Table styles*/
 .tableStyle {
-    width: 100%;
+    width: 95%;
     font-family: HKGrotesk;
+}
+
+td {
+    word-wrap: break-word;
+    text-align: center;
 }
 
 /* Custom ReactTable styles 
