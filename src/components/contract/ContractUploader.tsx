@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { Card, Button } from "../common/core";
+import { Card, Button, Input } from "../common/core";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
@@ -39,29 +39,12 @@ const DividerText = styled.h2`
 const InputWrapper = styled.div`
     display: flex;
 `;
-const Input = styled.input`
-    outline: none;
-    border: none;
-    flex-grow: 1;
-    min-width: 200px;
-    border-radius: 2px;
+const StyledInput = styled(Input).attrs({ fontSize: "12px" })`
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    height: 35px;
-    background-color: #fff;
-    padding: 10px 15px;
-    font-family: HKGrotesk;
-    font-size: 12px;
-    font-weight: normal;
-    &:focus {
-        outline: none;
-    }
-    &::placeholder {
-        color: #717985;
-        opacity: 0.8;
-    }
+    flex-grow: 1;
 `;
-const StyledButton = styled(Button)`
+const StyledButton = styled(Button).attrs({ hideOverflow: true })`
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     height: 35px;
@@ -147,7 +130,7 @@ const ContractUploader: React.SFC<{}> = () => {
                 <Divider />
             </DividerWrapper>
             <InputWrapper>
-                <Input placeholder="Enter the address of a deployed smart contract" />
+                <StyledInput placeholder="Enter the address of a deployed smart contract" />
                 <StyledButton>Load Contract</StyledButton>
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
