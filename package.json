@@ -42,6 +42,7 @@
         "react-confirm-alert": "^2.3.0",
         "react-dev-utils": "^5.0.1",
         "react-dom": "16.8.3",
+        "react-dropdown": "^1.6.4",
         "react-dropzone": "^10.0.0",
         "react-router-dom": "^4.3.1",
         "react-sizeme": "^2.5.2",

@@ -4,6 +4,8 @@ import { Card } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
+import ParameterInput from "./ParameterInput";
+import { Button } from "../common/core";
 import { useComputed, observer } from "mobx-react-lite";
 
 const contractStore = ContractStore.getInstance();
@@ -54,6 +56,8 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 value={currFunc}
             />
             <Title style={{ marginTop: "25px" }}>Specify Parameters</Title>
+            <ParameterInput />
+            <Button fontSize="14px">Call Function</Button>
         </Wrapper>
     );
 });

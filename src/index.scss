@@ -1,5 +1,6 @@
 @import "~@blueprintjs/core/src/blueprint.scss";
 @import "~react-table/react-table.css";
+@import "~react-dropdown/style.css";
 
 @font-face {
     font-family: "Montserrat";
@@ -197,4 +198,21 @@ svg {
 
 .CodeMirror {
     height: 600px !important;
+}
+
+.Dropdown-control {
+    background-color: #0e1a49;
+    border: 0.5px solid white;
+    color: #fff;
+    font-size: 14px;
+    font-family: HKGrotesk;
+}
+
+.Dropdown-arrow {
+    cursor: pointer;
+    border-color: #fff transparent transparent;
+}
+
+.is-open .Dropdown-arrow {
+    border-color: transparent transparent #fff;
 }
