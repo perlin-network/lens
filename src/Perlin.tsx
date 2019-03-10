@@ -161,9 +161,19 @@ class Perlin {
         );
     }
 
+    public async loadContract(contractId: string): Promise<ArrayBuffer> {
+        return await this.getBuffer(
+            `/contract/${contractId}`,
+            {},
+            {
+                "Content-Type": "application/wasm"
+            }
+        );
+    }
+
     public async downloadContract(id: string): Promise<void> {
         // Download the contracts code.
-        const contract = await this.get(`/contract/${id}`, {});
+        const contract = await this.getBuffer(`/contract/${id}`, {});
 
         // Parse the contracts code into a byte buffer.
         const buf = new Uint8Array(contract);
@@ -216,17 +226,17 @@ class Perlin {
         }
     }
 
-    private async get(
+    private async getResp(
         endpoint: string,
         params?: any,
         headers?: any
-    ): Promise<any> {
+    ): Promise<Response> {
         const url = new URL(`http://${this.api.host}${endpoint}`);
         Object.keys(params).forEach(key =>
             url.searchParams.append(key, params[key])
         );
 
-        const response = await fetch(url.toString(), {
+        return await fetch(url.toString(), {
             method: "get",
             headers: {
                 "X-Session-Token": this.api.token,
@@ -234,8 +244,24 @@ class Perlin {
                 ...headers
             }
         });
+    }
 
+    private async get(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<any> {
+        const response = await this.getResp(endpoint, params, headers);
         return await response.json();
+    }
+
+    private async getBuffer(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<ArrayBuffer> {
+        const response = await this.getResp(endpoint, params, headers);
+        return await response.arrayBuffer();
     }
 
     private async post(

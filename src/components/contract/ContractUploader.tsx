@@ -97,8 +97,34 @@ const createSmartContract = async (file: File) => {
     });
 };
 
+const loadContract = async (contractAddress: string) => {
+    const bytes = await perlin.loadContract(contractAddress);
+    const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
+        readDebugNames: false
+    });
+    wasmModule.applyNames();
+
+    contractStore.contract.name = contractAddress;
+    contractStore.contract.transactionId = contractAddress;
+    contractStore.contract.textContent = wasmModule.toText({
+        foldExprs: true,
+        inlineExport: false
+    });
+};
+
 const ContractUploader: React.SFC<{}> = () => {
     const [loading, setLoading] = useState(false);
+    const [contractAddress, setContractAddress] = useState("");
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setContractAddress(e.target.value);
+    };
+    const handleLoadClick = useCallback(async () => {
+        try {
+            await loadContract(contractAddress);
+        } catch (err) {
+            console.log(err);
+        }
+    }, [contractAddress]);
     const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         setLoading(true);
@@ -130,8 +156,14 @@ const ContractUploader: React.SFC<{}> = () => {
                 <Divider />
             </DividerWrapper>
             <InputWrapper>
-                <StyledInput placeholder="Enter the address of a deployed smart contract" />
-                <StyledButton>Load Contract</StyledButton>
+                <StyledInput
+                    value={contractAddress}
+                    placeholder="Enter the address of a deployed smart contract"
+                    onChange={handleAddressChange}
+                />
+                <StyledButton onClick={handleLoadClick}>
+                    Load Contract
+                </StyledButton>
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
         </Wrapper>
