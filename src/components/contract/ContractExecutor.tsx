@@ -35,8 +35,13 @@ const useContractFunctions = () => {
 };
 
 const useParams = () => {
+    const getEmptyParam = () => ({
+        id: nanoid(),
+        type: undefined,
+        value: ""
+    });
     const [paramsList, setParamsList] = useState<IParamItem[]>([
-        { id: nanoid(), type: undefined, value: "" }
+        getEmptyParam()
     ]);
     const setParamType = (id: string) => (type: ParamType) => {
         setParamsList(prevList =>
@@ -68,9 +73,10 @@ const useParams = () => {
         setParamsList(prevList => prevList.filter(item => item.id !== id));
     };
     const addParam = () => {
-        setParamsList(prevList =>
-            prevList.concat({ id: nanoid(), type: undefined, value: "" })
-        );
+        setParamsList(prevList => prevList.concat(getEmptyParam()));
+    };
+    const clearParams = () => {
+        setParamsList([getEmptyParam()]);
     };
 
     return {
@@ -78,7 +84,8 @@ const useParams = () => {
         setParamValue,
         setParamType,
         deleteParam,
-        addParam
+        addParam,
+        clearParams
     };
 };
 
@@ -141,7 +148,8 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
         setParamValue,
         setParamType,
         deleteParam,
-        addParam
+        addParam,
+        clearParams
     } = useParams();
     const [currFunc, setFunc] = useState("");
     useEffect(() => {
@@ -149,6 +157,7 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
     }, [funcList]);
     const handleFuncChange = (name: string) => {
         setFunc(name);
+        clearParams();
     };
     const callFunction = () => {
         const buffer = writeToBuffer(paramsList);
