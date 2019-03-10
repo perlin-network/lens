@@ -5,9 +5,11 @@ import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
+import { Perlin } from "../../Perlin";
 import { Button } from "../common/core";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
+import PayloadWriter from "src/payload/PayloadWriter";
 
 interface IParamItem {
     id: string;
@@ -15,6 +17,7 @@ interface IParamItem {
     value: string;
 }
 
+const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
 const watFunctionRegex = /\(export "_contract_([a-zA-Z0-9_]+)" \(func \d+\)\)/g;
 
@@ -79,6 +82,34 @@ const useParams = () => {
     };
 };
 
+const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
+    const writer = new PayloadWriter();
+    paramsList.forEach(({ type, value }) => {
+        if (type && value) {
+            switch (type) {
+                case ParamType.String:
+                    writer.writeString(value);
+                    break;
+                case ParamType.Uint16:
+                    writer.writeUint16(parseInt(value, 10));
+                    break;
+                case ParamType.Uint32:
+                    writer.writeUint32(parseInt(value, 10));
+                    break;
+                case ParamType.Uint64:
+                    writer.writeUint16(parseInt(value, 10));
+                    break;
+                case ParamType.Bytes:
+                    writer.writeBytes([0]);
+                case ParamType.Byte:
+                    writer.writeByte(parseInt(value, 10));
+                    break;
+            }
+        }
+    });
+    return writer.toBuffer();
+};
+
 const Title = styled.h2`
     margin: 0;
     font-size: 16px;
@@ -119,6 +150,16 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
     const handleFuncChange = (name: string) => {
         setFunc(name);
     };
+    const callFunction = () => {
+        const buffer = writeToBuffer(paramsList);
+
+        perlin.invokeContractFunction(
+            contractStore.contract.transactionId,
+            0,
+            currFunc,
+            buffer
+        );
+    };
 
     return (
         <Wrapper>
@@ -140,7 +181,9 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 />
             ))}
             <AddMoreText onClick={addParam}>Add more parameters</AddMoreText>
-            <Button fontSize="14px">Call Function</Button>
+            <Button fontSize="14px" onClick={callFunction}>
+                Call Function
+            </Button>
         </Wrapper>
     );
 });
