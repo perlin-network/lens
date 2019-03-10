@@ -69,6 +69,7 @@ const ParameterInput: React.SFC<IParameterInputProps> = ({
                 onChange={handleTypeChange}
             />
             <StyledInput
+                disabled={!type}
                 placeholder="Add parameter here"
                 value={value}
                 onChange={handleChange}

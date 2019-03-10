@@ -86,6 +86,9 @@ const Input = styled.input`
         color: #717985;
         opacity: 0.8;
     }
+    &:disabled {
+        background-color: #ddd;
+    }
 `;
 Input.defaultProps = {
     width: "auto",
