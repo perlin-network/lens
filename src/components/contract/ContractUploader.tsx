@@ -98,8 +98,13 @@ const createSmartContract = async (file: File) => {
 };
 
 const loadContract = async (contractAddress: string) => {
-    const bytes = await perlin.loadContract(contractAddress);
-    const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
+    const hexContent = await perlin.loadContract(contractAddress);
+
+    const bytes = new Uint8Array(Math.ceil(hexContent.length / 2));
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hexContent.substr(i * 2, 2), 16);
+    }
+    const wasmModule = wabt.readWasm(bytes, {
         readDebugNames: false
     });
     wasmModule.applyNames();

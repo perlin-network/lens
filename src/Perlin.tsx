@@ -161,8 +161,8 @@ class Perlin {
         );
     }
 
-    public async loadContract(contractId: string): Promise<ArrayBuffer> {
-        return await this.getBuffer(
+    public async loadContract(contractId: string): Promise<string> {
+        return await this.getText(
             `/contract/${contractId}`,
             {},
             {
@@ -173,13 +173,17 @@ class Perlin {
 
     public async downloadContract(id: string): Promise<void> {
         // Download the contracts code.
-        const contract = await this.getBuffer(`/contract/${id}`, {});
+        const text = await this.getText(`/contract/${id}`, {});
 
-        // Parse the contracts code into a byte buffer.
-        const buf = new Uint8Array(contract);
+        const bytes = new Uint8Array(Math.ceil(text.length / 2));
+        for (let i = 0; i < bytes.length; i++) {
+            bytes[i] = parseInt(text.substr(i * 2, 2), 16);
+        }
 
         // Construct a blob out of the byte buffer and have the file downloaded.
-        const blob = new Blob([buf], { type: "application/wasm" });
+        const blob = new Blob([bytes], {
+            type: "application/wasm"
+        });
         const href: string = URL.createObjectURL(blob);
 
         const a: HTMLAnchorElement = document.createElement(
@@ -253,6 +257,15 @@ class Perlin {
     ): Promise<any> {
         const response = await this.getResp(endpoint, params, headers);
         return await response.json();
+    }
+
+    private async getText(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<string> {
+        const response = await this.getResp(endpoint, params, headers);
+        return await response.text();
     }
 
     private async getBuffer(
