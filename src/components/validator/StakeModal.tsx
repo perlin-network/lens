@@ -1,8 +1,8 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
-import { Flex, Box } from "@rebass/grid";
+import { Box, Flex } from "@rebass/grid";
 import CloseIcon from "../../assets/svg/close-icon.svg";
 import { InfoIcon } from "../common/typography";
 import { Button } from "../common/core";
@@ -61,6 +61,7 @@ const CloseButton = styled.img.attrs({ src: CloseIcon })`
 interface IBodyTitleProps {
     color?: string;
 }
+
 const BodyTitle = styled.h2`
     margin: 0;
     font-family: HKGrotesk;

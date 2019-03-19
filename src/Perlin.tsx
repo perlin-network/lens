@@ -7,6 +7,7 @@ import PayloadWriter from "./payload/PayloadWriter";
 import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
+import { IAccount } from "./types/Account";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -69,12 +70,12 @@ class Perlin {
         peers: [] as string[]
     };
 
-    @observable public account = {
+    @observable public account: IAccount = {
         public_key: "",
         balance: 0,
         stake: 0,
         is_contract: false,
-        num_pages: 0
+        num_mem_pages: 0
     };
 
     @observable public transactions = {
@@ -161,7 +162,7 @@ class Perlin {
         );
     }
 
-    public async loadContract(contractId: string): Promise<string> {
+    public async getContractCode(contractId: string): Promise<string> {
         return await this.getText(
             `/contract/${contractId}`,
             {},
@@ -171,32 +172,14 @@ class Perlin {
         );
     }
 
-    public async downloadContract(id: string): Promise<void> {
-        // Download the contracts code.
-        const text = await this.getText(`/contract/${id}`, {});
-
-        const bytes = new Uint8Array(Math.ceil(text.length / 2));
-        for (let i = 0; i < bytes.length; i++) {
-            bytes[i] = parseInt(text.substr(i * 2, 2), 16);
-        }
-
-        // Construct a blob out of the byte buffer and have the file downloaded.
-        const blob = new Blob([bytes], {
-            type: "application/wasm"
-        });
-        const href: string = URL.createObjectURL(blob);
-
-        const a: HTMLAnchorElement = document.createElement(
-            "a"
-        ) as HTMLAnchorElement;
-        a.href = href;
-        a.download = `${id}.wasm`;
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        URL.revokeObjectURL(href);
+    public async getContractPage(
+        contractId: string,
+        pageIndex: number
+    ): Promise<string> {
+        return await this.getText(
+            `/contract/${contractId}/page/${pageIndex}`,
+            {}
+        );
     }
 
     public async invokeContractFunction(
@@ -217,6 +200,22 @@ class Perlin {
         );
     }
 
+    public async getAccount(id: string): Promise<IAccount> {
+        const data = await this.getJSON(`/accounts/${id}`, {});
+
+        const account: IAccount = {
+            public_key: data.public_key,
+
+            balance: data.balance,
+            stake: data.stake,
+
+            is_contract: data.is_contract,
+            num_mem_pages: data.num_mem_pages
+        };
+
+        return account;
+    }
+
     private async init() {
         try {
             await this.startSession();
@@ -230,7 +229,7 @@ class Perlin {
         }
     }
 
-    private async getResp(
+    private async getResponse(
         endpoint: string,
         params?: any,
         headers?: any
@@ -250,12 +249,15 @@ class Perlin {
         });
     }
 
-    private async get(
+    private async getJSON(
         endpoint: string,
         params?: any,
         headers?: any
     ): Promise<any> {
-        const response = await this.getResp(endpoint, params, headers);
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
         return await response.json();
     }
 
@@ -264,7 +266,10 @@ class Perlin {
         params?: any,
         headers?: any
     ): Promise<string> {
-        const response = await this.getResp(endpoint, params, headers);
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
         return await response.text();
     }
 
@@ -273,7 +278,10 @@ class Perlin {
         params?: any,
         headers?: any
     ): Promise<ArrayBuffer> {
-        const response = await this.getResp(endpoint, params, headers);
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
         return await response.arrayBuffer();
     }
 
@@ -296,7 +304,7 @@ class Perlin {
     }
 
     private async initLedger() {
-        this.ledger = await this.get("/ledger", {});
+        this.ledger = await this.getJSON("/ledger", {});
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
@@ -391,7 +399,7 @@ class Perlin {
                 case "stake_updated":
                     this.account.stake = data.stake;
                 case "num_pages_updated":
-                    this.account.num_pages = data.num_pages;
+                    this.account.num_mem_pages = data.num_pages;
             }
         };
     }
@@ -401,7 +409,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<[]> {
-        return await this.get("/tx", { offset, limit });
+        return await this.getJSON("/tx", { offset, limit });
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
@@ -413,12 +421,7 @@ class Perlin {
 
     // @ts-ignore
     private async getTransaction(id: string): Promise<any> {
-        return await this.get(`/tx/${id}`, {});
-    }
-
-    // @ts-ignore
-    private async getAccount(id: string): Promise<any> {
-        return await this.get(`/accounts/${id}`, {});
+        return await this.getJSON(`/tx/${id}`, {});
     }
 }
 
