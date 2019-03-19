@@ -10,6 +10,7 @@ import { Button } from "../common/core";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
 import PayloadWriter from "src/payload/PayloadWriter";
+import * as Long from "long";
 
 interface IParamItem {
     id: string;
@@ -104,7 +105,7 @@ const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
                     writer.writeUint32(parseInt(value, 10));
                     break;
                 case ParamType.Uint64:
-                    writer.writeUint16(parseInt(value, 10));
+                    writer.writeUint64(Long.fromString(value, true));
                     break;
                 case ParamType.Bytes:
                     writer.writeBytes([0]);
@@ -159,15 +160,95 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
         setFunc(name);
         clearParams();
     };
-    const callFunction = () => {
-        const buffer = writeToBuffer(paramsList);
 
-        perlin.invokeContractFunction(
-            contractStore.contract.transactionId,
-            0,
-            currFunc,
-            buffer
+    const handleParamChange = (id: string) => (value: string) => {
+        const paramItem: IParamItem | undefined = paramsList.find(
+            item => item.id === id
         );
+        if (paramItem !== undefined) {
+            let valid = false;
+            switch (paramItem.type) {
+                case ParamType.String:
+                    if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
+                        valid = true;
+                    }
+                    break;
+                case ParamType.Uint16:
+                    if (/^[0-9]+$/i.test(value)) {
+                        const num = parseInt(value, 10);
+                        if (
+                            ParamType.Uint16 &&
+                            (num > 0 && num < Math.pow(2, 16))
+                        ) {
+                            valid = true;
+                        }
+                    }
+                    break;
+                case ParamType.Uint32:
+                    if (/^[0-9]+$/i.test(value)) {
+                        const num = parseInt(value, 10);
+                        if (
+                            ParamType.Uint32 &&
+                            (num > 0 && num < Math.pow(2, 32))
+                        ) {
+                            valid = true;
+                        }
+                    }
+                    break;
+                case ParamType.Uint64:
+                    if (/^[0-9]+$/i.test(value)) {
+                        const num = Long.fromString(value, true);
+                        if (
+                            ParamType.Uint64 &&
+                            (num.greaterThan(0) &&
+                                num.lessThanOrEqual(Long.MAX_UNSIGNED_VALUE))
+                        ) {
+                            valid = true;
+                        }
+                    }
+                    break;
+                case ParamType.Bytes:
+                    // todo : validate these bytes & byte type
+                    valid = true;
+                    break;
+                case ParamType.Byte:
+                    valid = true;
+                    break;
+            }
+            if (valid || value === "") {
+                setParamValue(id)(value);
+            } else {
+                console.log("Param value can't be resolved to a type");
+            }
+        }
+    };
+
+    const handleTypeChange = (id: string) => (type: ParamType) => {
+        const paramItem: IParamItem | undefined = paramsList.find(
+            item => item.id === id
+        );
+        if (paramItem !== undefined) {
+            paramItem.value = "";
+        }
+        setParamType(id)(type);
+    };
+
+    const callFunction = async () => {
+        const emptyItem: IParamItem | undefined = paramsList.find(
+            item => item.value === "" || item.type === undefined
+        );
+        if (!emptyItem) {
+            const buffer = writeToBuffer(paramsList);
+            const response = await perlin.invokeContractFunction(
+                contractStore.contract.transactionId,
+                0,
+                currFunc,
+                buffer
+            );
+            // todo : getting the result
+        } else {
+            console.log("Item can't be empty");
+        }
     };
 
     return (
@@ -184,8 +265,8 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                     key={paramItem.id}
                     value={paramItem.value}
                     type={paramItem.type}
-                    onChange={setParamValue(paramItem.id)}
-                    onTypeChange={setParamType(paramItem.id)}
+                    onChange={handleParamChange(paramItem.id)}
+                    onTypeChange={handleTypeChange(paramItem.id)}
                     onDelete={deleteParam(paramItem.id)}
                 />
             ))}
