@@ -108,14 +108,28 @@ const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
                     writer.writeUint64(Long.fromString(value, true));
                     break;
                 case ParamType.Bytes:
+                    // to number[]
                     writer.writeBytes([0]);
                 case ParamType.Byte:
+                    // to number
                     writer.writeByte(parseInt(value, 10));
                     break;
             }
         }
     });
     return writer.toBuffer();
+};
+
+const isHexString = (text: string): boolean => {
+    // todo : support prefix 0x
+    const hex = parseInt(text, 16);
+    return hex.toString(16) === text;
+};
+
+const isBase64String = (text: string): boolean => {
+    return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i.test(
+        text
+    );
 };
 
 const Title = styled.h2`
@@ -176,10 +190,7 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 case ParamType.Uint16:
                     if (/^[0-9]+$/i.test(value)) {
                         const num = parseInt(value, 10);
-                        if (
-                            ParamType.Uint16 &&
-                            (num > 0 && num < Math.pow(2, 16))
-                        ) {
+                        if (num > 0 && num < Math.pow(2, 16)) {
                             valid = true;
                         }
                     }
@@ -187,10 +198,7 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 case ParamType.Uint32:
                     if (/^[0-9]+$/i.test(value)) {
                         const num = parseInt(value, 10);
-                        if (
-                            ParamType.Uint32 &&
-                            (num > 0 && num < Math.pow(2, 32))
-                        ) {
+                        if (num > 0 && num < Math.pow(2, 32)) {
                             valid = true;
                         }
                     }
@@ -199,20 +207,17 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                     if (/^[0-9]+$/i.test(value)) {
                         const num = Long.fromString(value, true);
                         if (
-                            ParamType.Uint64 &&
-                            (num.greaterThan(0) &&
-                                num.lessThanOrEqual(Long.MAX_UNSIGNED_VALUE))
+                            num.greaterThan(0) &&
+                            num.lessThanOrEqual(Long.MAX_UNSIGNED_VALUE)
                         ) {
                             valid = true;
                         }
                     }
                     break;
                 case ParamType.Bytes:
-                    /*
-                        for inputting bytes the user should be able to input either hex or Base64
-                    */
-
-                    valid = true;
+                    if (isHexString(value) || isBase64String(value)) {
+                        valid = true;
+                    }
                     break;
                 case ParamType.Byte:
                     valid = true;
@@ -238,7 +243,6 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
 
     const handleKeypress = (id: string) => (key: string) => {
         if (key === "Enter") {
-            // looking for the last row
             const paramItem: IParamItem | undefined =
                 paramsList[paramsList.length - 1];
             if (paramItem && paramItem.id === id) {
