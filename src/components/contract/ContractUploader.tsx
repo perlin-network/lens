@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { Card, Button, Input } from "../common/core";
+import { Button, Card, Input } from "../common/core";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
@@ -97,16 +97,39 @@ const createSmartContract = async (file: File) => {
     });
 };
 
-const loadContract = async (contractAddress: string) => {
-    const bytes = await perlin.loadContract(contractAddress);
-    const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
-        readDebugNames: false
-    });
-    wasmModule.applyNames();
+const loadContract = async (contractId: string) => {
+    const account = await perlin.getAccount(contractId);
 
-    contractStore.contract.name = contractAddress;
-    contractStore.contract.transactionId = contractAddress;
-    contractStore.contract.textContent = wasmModule.toText({
+    if (!account.is_contract) {
+        console.log("Account is not a contract."); // TODO(kenta): show prompt that account is not a contract
+        return;
+    }
+
+    const pages = [];
+
+    for (let i = 0; i < account.num_mem_pages; i++) {
+        try {
+            pages.push(await perlin.getContractPage(contractId, i));
+        } catch (err) {
+            pages.push([]);
+        }
+    }
+
+    console.log(pages);
+
+    const hexContent = await perlin.getContractCode(contractId);
+
+    const bytes = new Uint8Array(Math.ceil(hexContent.length / 2));
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hexContent.substr(i * 2, 2), 16);
+    }
+
+    const module = wabt.readWasm(bytes, { readDebugNames: false });
+    module.applyNames();
+
+    contractStore.contract.name = contractId;
+    contractStore.contract.transactionId = contractId;
+    contractStore.contract.textContent = module.toText({
         foldExprs: true,
         inlineExport: false
     });
@@ -122,7 +145,7 @@ const ContractUploader: React.SFC<{}> = () => {
         try {
             await loadContract(contractAddress);
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     }, [contractAddress]);
     const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
@@ -133,7 +156,7 @@ const ContractUploader: React.SFC<{}> = () => {
             await createSmartContract(file);
         } catch (err) {
             console.log("Error while uploading file: ");
-            console.log(err);
+            console.error(err);
         } finally {
             setLoading(false);
         }
