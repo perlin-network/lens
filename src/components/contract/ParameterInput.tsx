@@ -9,6 +9,7 @@ interface IParameterInputProps {
     onDelete: () => void;
     onChange: (value: string) => void;
     onTypeChange: (type: ParamType) => void;
+    onKeypress: (key: string) => void;
     value: string;
     type: ParamType | undefined;
 }
@@ -50,6 +51,7 @@ const ParameterInput: React.SFC<IParameterInputProps> = ({
     onDelete,
     onChange,
     onTypeChange,
+    onKeypress,
     value,
     type
 }) => {
@@ -58,6 +60,9 @@ const ParameterInput: React.SFC<IParameterInputProps> = ({
     };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(e.target.value);
+    };
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        onKeypress(e.key);
     };
 
     return (
@@ -73,6 +78,7 @@ const ParameterInput: React.SFC<IParameterInputProps> = ({
                 placeholder="Add parameter here"
                 value={value}
                 onChange={handleChange}
+                onKeyPress={handleKeyPress}
             />
             <DeleteIcon onClick={onDelete} />
         </Wrapper>

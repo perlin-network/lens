@@ -208,7 +208,10 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                     }
                     break;
                 case ParamType.Bytes:
-                    // todo : validate these bytes & byte type
+                    /*
+                        for inputting bytes the user should be able to input either hex or Base64
+                    */
+
                     valid = true;
                     break;
                 case ParamType.Byte:
@@ -233,6 +236,17 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
         setParamType(id)(type);
     };
 
+    const handleKeypress = (id: string) => (key: string) => {
+        if (key === "Enter") {
+            // looking for the last row
+            const paramItem: IParamItem | undefined =
+                paramsList[paramsList.length - 1];
+            if (paramItem && paramItem.id === id) {
+                addParam();
+            }
+        }
+    };
+
     const callFunction = async () => {
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
@@ -246,6 +260,9 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 buffer
             );
             // todo : getting the result
+            /*
+                
+            */
         } else {
             console.log("Item can't be empty");
         }
@@ -268,6 +285,7 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                     onChange={handleParamChange(paramItem.id)}
                     onTypeChange={handleTypeChange(paramItem.id)}
                     onDelete={deleteParam(paramItem.id)}
+                    onKeypress={handleKeypress(paramItem.id)}
                 />
             ))}
             <AddMoreText onClick={addParam}>Add more parameters</AddMoreText>
