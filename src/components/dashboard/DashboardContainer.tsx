@@ -5,19 +5,19 @@ import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
-import WalletView from "../wallet/WalletView";
+import QuickSend from "../quicksend/QuickSend";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
-export default class DashboardContainer extends React.Component<{}, {}> {
+export default class DashboardContainer extends React.Component {
     public render() {
         return (
             <>
                 <Row>
                     <Box width={1}>
-                        <WalletView />
+                        <QuickSend />
                     </Box>
                 </Row>
                 <Row>
