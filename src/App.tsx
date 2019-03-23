@@ -61,13 +61,12 @@ class App extends React.Component<RouteComponentProps, {}> {
     public render() {
         return (
             <>
-                <BackgroundWave />
-                <Navbar />
                 <ContentWrapper>
                     <SideWrapper>
                         <SideNav />
                     </SideWrapper>
                     <Content>
+                        <Navbar />
                         <Switch>
                             {routes.map(route => (
                                 <Route

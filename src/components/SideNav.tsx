@@ -7,6 +7,7 @@ import NetworkIcon from "../assets/svg/Network.svg";
 import ValidatorIcon from "../assets/svg/Validator.svg";
 import ContractIcon from "../assets/svg/Contracts.svg";
 import SettingsIcon from "../assets/svg/Settings.svg";
+import perlinLogo from "../assets/svg/perlin-logo.svg";
 
 const NavIcon = styled.img`
     height: 16px;
@@ -62,6 +63,8 @@ class SideNav extends React.Component<RouteComponentProps, {}> {
 
         return (
             <>
+                <img src={perlinLogo} style={{ width: "12em" }} />
+
                 {items.map(item => (
                     <NavItem
                         key={item.title}
