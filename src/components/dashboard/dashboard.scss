@@ -1,0 +1,39 @@
+/*.card-wallet {
+    grid-area: card-wallet;
+    background-color: greenyellow;
+}
+
+.card-earnings {
+    grid-area: card-earnings;
+    background-color: red;
+}
+
+.card-stake {
+    grid-area: card-stake;
+    background-color: blue;
+}
+
+.card-speed {
+    grid-area: card-speed;
+    background-color: yellow;
+}
+
+.card-grid {
+    width: 100%;
+    grid-template-areas: "card-wallet card-earnings card-stake card-speed" "card-wallet card-earnings card-stake card-speed";
+
+    grid-gap: 30px;
+    padding: 10px;
+    grid-column-gap: 10px;
+}*/
+
+.card-cell {
+    float: left;
+    width: 25%;
+    padding: 10px;
+}
+
+.cards-row {
+    display: table;
+    clear: both;
+}

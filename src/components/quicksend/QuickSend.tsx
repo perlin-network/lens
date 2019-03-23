@@ -3,22 +3,24 @@ import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../common/typography";
 import SendFail from "./SendFail";
-import PerlsSent from "./PerlsSent";
 import AccountDetected from "./AccountDetected";
+import DashboardCard from "../dashboard/DataCard";
+import "./quicksend.scss";
+import { Card } from "../common/core";
 
 interface IState {
-    visibleComponent: string;
-    inputValue: string;
+    toggleComponent: string;
+    inputID: string;
 }
 
 export default class QuickSend extends React.Component<{}, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
-            visibleComponent: "",
-            inputValue: ""
+            toggleComponent: "",
+            inputID: ""
         };
-        this.updateInputValue = this.updateInputValue.bind(this);
+        this.updateinputID = this.updateinputID.bind(this);
     }
 
     public render() {
@@ -28,22 +30,13 @@ export default class QuickSend extends React.Component<{}, IState> {
                 <p>Lorem ipsum </p>
                 <input
                     placeholder="Enter an account ID, Contract ID or Transaction ID"
-                    value={this.state.inputValue}
-                    onChange={this.updateInputValue}
+                    value={this.state.inputID}
+                    onChange={this.updateinputID}
                 />
                 <button onClick={this.handleButtonClick}>Test button</button>
                 <div
                     className={
-                        this.state.visibleComponent === "showPerlsSent"
-                            ? "displayComp"
-                            : "hideComp"
-                    }
-                >
-                    <PerlsSent />
-                </div>
-                <div
-                    className={
-                        this.state.visibleComponent === "showDetectedAccount"
+                        this.state.toggleComponent === "showDetectedAccount"
                             ? "displayComp"
                             : "hideComp"
                     }
@@ -52,7 +45,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                 </div>
                 <div
                     className={
-                        this.state.visibleComponent === "showSendFail"
+                        this.state.toggleComponent === "showSendFail"
                             ? "displayComp"
                             : "hideComp"
                     }
@@ -62,18 +55,19 @@ export default class QuickSend extends React.Component<{}, IState> {
             </>
         );
     }
+    private updateinputID(e: React.ChangeEvent<HTMLInputElement>) {
+        const value = e.target.value;
+        this.setState({ inputID: value });
+    }
     private handleButtonClick = () => {
-        if (this.state.inputValue === "a") {
-            this.setState({ visibleComponent: "showDetectedAccount" });
-        } else if (this.state.inputValue === "b") {
-            this.setState({ visibleComponent: "showPerlsSent" });
+        if (this.validInputID()) {
+            this.setState({ toggleComponent: "showDetectedAccount" });
         } else {
-            this.setState({ visibleComponent: "showSendFail" }); // if fail, toggle fail component
+            this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
         }
     };
-    private updateInputValue(e: React.ChangeEvent<HTMLInputElement>) {
-        const value = e.target.value;
-        console.log("This is recognised", value);
-        this.setState({ inputValue: value });
-    }
+    private validInputID = () => {
+        const re = /[0-9A-Fa-f]{64}/g;
+        return re.test(this.state.inputID);
+    };
 }
