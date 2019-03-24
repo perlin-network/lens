@@ -1,12 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
-import { SectionTitle } from "../common/typography";
+import { SectionTitle } from "../../common/typography";
 import SendFail from "./SendFail";
 import AccountDetected from "./AccountDetected";
-import DashboardCard from "../dashboard/DataCard";
+import DashboardCard from "../DataCard";
 import "./quicksend.scss";
-import { Card } from "../common/core";
+import { Card } from "../../common/core";
 
 interface IState {
     toggleComponent: string;
@@ -41,7 +41,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                             : "hideComp"
                     }
                 >
-                    <AccountDetected />
+                    <AccountDetected recipientID={this.state.inputID} />
                 </div>
                 <div
                     className={

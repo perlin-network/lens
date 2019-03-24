@@ -1,9 +1,13 @@
 import * as React from "react";
-import { Perlin } from "../../Perlin";
+import { Perlin } from "../../../Perlin";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
-import { SectionTitle } from "../common/typography";
+import { SectionTitle } from "../../common/typography";
 import "./quicksend.scss";
+
+interface IProps {
+    recipientID: string;
+}
 
 interface IState {
     toggleComponent: string;
@@ -11,8 +15,8 @@ interface IState {
 }
 const perlin = Perlin.getInstance();
 
-export default class AccountDetected extends React.Component<{}, IState> {
-    constructor(props: any) {
+export default class AccountDetected extends React.Component<IProps, IState> {
+    constructor(props: IProps) {
         super(props);
         this.state = {
             toggleComponent: "showDetectedAccount",
@@ -75,6 +79,7 @@ export default class AccountDetected extends React.Component<{}, IState> {
                     <br />
                     From {perlin.publicKeyHex}
                     <br />
+                    To {this.props.recipientID}
                 </div>
             </>
         );
@@ -91,9 +96,13 @@ export default class AccountDetected extends React.Component<{}, IState> {
         }
     };
     private successfulSend = () => {
-        if (this.state.inputPerls !== "") {
+        if (
+            this.state.inputPerls !== "" &&
+            !isNaN(Number(this.state.inputPerls))
+        ) {
             return true;
         } else {
+            console.log("not a number");
             return false;
         }
     };

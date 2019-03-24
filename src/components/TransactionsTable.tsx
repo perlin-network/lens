@@ -6,7 +6,7 @@ import { observer } from "mobx-react";
 import { formatDistance } from "date-fns";
 
 const columns = [
-    {
+    /*{
         Header: "",
 
         id: "time",
@@ -15,28 +15,20 @@ const columns = [
             return formatDistance(date, new Date(), { addSuffix: true });
         },
         maxWidth: 180
-    },
+    },*/
     {
-        Header: "Transaction ID",
+        Header: "Sender / Recipient",
 
         accessor: "id",
         maxWidth: 250
     },
     {
-        Header: "Status",
-
-        accessor: "status",
+        Header: "Nonce",
+        accessor: "nonce",
         maxWidth: 60
     },
     {
-        Header: "Creator",
-
-        accessor: "creator",
-        maxWidth: 250
-    },
-    {
-        Header: "Tag",
-
+        Header: "Type",
         id: "tag",
         accessor: (tx: ITransaction): string => {
             switch (tx.tag) {
@@ -51,6 +43,11 @@ const columns = [
             }
         },
         maxWidth: 80
+    },
+    {
+        Header: "Amount",
+        accessor: "payload",
+        maxWidth: 60
     }
 ];
 
@@ -64,7 +61,7 @@ export default class TransactionsTable extends React.Component<{}, {}> {
                 data={perlin.transactions.recent}
                 columns={columns}
                 className="-striped -highlight"
-                defaultPageSize={15}
+                defaultPageSize={10}
                 defaultSorted={[
                     {
                         id: "index",

@@ -44,6 +44,22 @@ body {
     right: 0;
 }
 
+.main-background {
+    background-image: url(assets/svg/main-background.svg);
+    margin: 0px;
+    padding: 0px;
+}
+.sidebar-background {
+    background-color: #0c112b;
+    margin: 0px;
+    padding: 0px;
+}
+
+.app-size {
+    margin: 0px;
+    padding: 0px;
+}
+
 .tag-list {
     justify-self: right;
     width: auto;

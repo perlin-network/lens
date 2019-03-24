@@ -61,11 +61,11 @@ class App extends React.Component<RouteComponentProps, {}> {
     public render() {
         return (
             <>
-                <ContentWrapper>
-                    <SideWrapper>
+                <ContentWrapper className="app-size">
+                    <SideWrapper className="sidebar-background">
                         <SideNav />
                     </SideWrapper>
-                    <Content>
+                    <Content className="main-background">
                         <Navbar />
                         <Switch>
                             {routes.map(route => (
