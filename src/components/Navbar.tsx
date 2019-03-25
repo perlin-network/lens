@@ -12,8 +12,7 @@ export default class Navbar extends React.Component<{}, {}> {
     public render() {
         return (
             <Wrapper style={{ backgroundColor: "grey" }}>
-                <Box width={1 / 6}>Navbar</Box>
-                <Box width={5 / 6} />
+                <Box width={1 / 1} />
             </Wrapper>
         );
     }
