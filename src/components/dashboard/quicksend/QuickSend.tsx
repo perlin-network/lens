@@ -8,13 +8,24 @@ import DashboardCard from "../DataCard";
 import "./quicksend.scss";
 import { Card } from "../../common/core";
 
-const QuickSendHeading = styled.h2`
+const QuickSendHeading = styled.p`
     font-family: Montserrat;
-    font-weight: regular;
     font-size: 30px;
     color: #fff;
     margin-bottom: 15px;
     font-weight: 600;
+`;
+
+const QuickSendInput = styled.input`
+    font-family: HKGrotesk;
+    background-color: #171d39;
+    border: 1px;
+    border-color: #2e3451;
+    color: white;
+    width: 100%;
+    padding: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 `;
 
 interface IState {
@@ -30,19 +41,20 @@ export default class QuickSend extends React.Component<{}, IState> {
             inputID: ""
         };
         this.updateinputID = this.updateinputID.bind(this);
+        this.onEnter = this.onEnter.bind(this);
     }
 
     public render() {
         return (
             <>
                 <QuickSendHeading>Quick Send</QuickSendHeading>
-                <p>Lorem ipsum </p>
-                <input
+                <p style={{ color: "#D8D8D8" }}>Lorem ipsum </p>
+                <QuickSendInput
                     placeholder="Enter an account ID, Contract ID or Transaction ID"
                     value={this.state.inputID}
                     onChange={this.updateinputID}
+                    onKeyDown={this.onEnter}
                 />
-                <button onClick={this.handleButtonClick}>Test button</button>
                 <div
                     className={
                         this.state.toggleComponent === "showDetectedAccount"
@@ -68,13 +80,15 @@ export default class QuickSend extends React.Component<{}, IState> {
         const value = e.target.value;
         this.setState({ inputID: value });
     }
-    private handleButtonClick = () => {
-        if (this.validInputID()) {
-            this.setState({ toggleComponent: "showDetectedAccount" });
-        } else {
-            this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
+    private onEnter(e: any) {
+        if (e.keyCode === 13) {
+            if (this.validInputID()) {
+                this.setState({ toggleComponent: "showDetectedAccount" });
+            } else {
+                this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
+            }
         }
-    };
+    }
     private validInputID = () => {
         const re = /[0-9A-Fa-f]{64}/g;
         return re.test(this.state.inputID);

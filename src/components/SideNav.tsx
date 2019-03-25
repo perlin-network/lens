@@ -62,7 +62,7 @@ class SideNav extends React.Component<RouteComponentProps, {}> {
                 <img
                     src={perlinLogo}
                     style={{
-                        maxWidth: "150px",
+                        maxWidth: "135px",
                         padding: "20px",
                         marginBottom: "2em"
                     }}

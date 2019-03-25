@@ -3,12 +3,15 @@ import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../../common/typography";
 
+const FailPrompt = styled.div`
+    background-color: #351a35;
+    color: white;
+    width: 100%;
+    padding: 20px;
+    vertical-align: middle;
+`;
 export default class SendFail extends React.Component<{}, {}> {
     public render() {
-        return (
-            <div style={{ color: "#ff0000" }}>
-                <p>Sorry, nothing matched that address</p>
-            </div>
-        );
+        return <FailPrompt>Sorry, nothing matched that address</FailPrompt>;
     }
 }

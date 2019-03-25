@@ -47,7 +47,8 @@ body {
 .main-background {
     background-image: url(assets/svg/main-background.svg);
     margin: 0px;
-    padding: 0px;
+    padding-left: 2em;
+    padding-right: 2em;
 }
 .sidebar-background {
     background-color: #0c112b;
@@ -59,6 +60,7 @@ body {
 .app-size {
     margin: 0px;
     padding: 0px;
+    background-color: #0c112b;
 }
 
 .tag-list {
