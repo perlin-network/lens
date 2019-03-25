@@ -42,7 +42,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             Recipient
                         </div>
                         <div className="detected-outer-recipient-content">
-                            QR code and stuff
+                            {this.props.recipientID}
+                            <br />
+                            Recipient balance:
                         </div>
                         <div className="detected-outer-sendfunds">
                             Send Funds

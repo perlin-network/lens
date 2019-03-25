@@ -14,7 +14,9 @@ const NavIcon = styled.img`
     margin-right: 10px;
 `;
 const NavItem = styled.div<INavItemProps>`
-    font-family: Montserrat;
+    font-family: HKGrotesk;
+    font-size: 1em;
+    opacity: 0.5;
     display: flex;
     align-items: center;
     height: 36.5px;
@@ -25,16 +27,10 @@ const NavItem = styled.div<INavItemProps>`
     width: 135px;
     ${props =>
         props.active &&
-        `&::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            border-bottom-right-radius: 3.2px;
-            border-top-right-radius: 3.2px;
-            box-shadow: 4px 0 7px 0 rgba(48, 48, 48, 0.1);
-            background-color: #ffffff;
+        `{
+            font-weight: bold;
+            opacity: 1.0;
+
         }`}
 `;
 
@@ -63,7 +59,14 @@ class SideNav extends React.Component<RouteComponentProps, {}> {
 
         return (
             <>
-                <img src={perlinLogo} style={{ width: "12em" }} />
+                <img
+                    src={perlinLogo}
+                    style={{
+                        maxWidth: "150px",
+                        padding: "20px",
+                        marginBottom: "2em"
+                    }}
+                />
 
                 {items.map(item => (
                     <NavItem

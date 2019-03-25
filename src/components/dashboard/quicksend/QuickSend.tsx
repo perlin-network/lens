@@ -8,6 +8,15 @@ import DashboardCard from "../DataCard";
 import "./quicksend.scss";
 import { Card } from "../../common/core";
 
+const QuickSendHeading = styled.h2`
+    font-family: Montserrat;
+    font-weight: regular;
+    font-size: 30px;
+    color: #fff;
+    margin-bottom: 15px;
+    font-weight: 600;
+`;
+
 interface IState {
     toggleComponent: string;
     inputID: string;
@@ -26,7 +35,7 @@ export default class QuickSend extends React.Component<{}, IState> {
     public render() {
         return (
             <>
-                <SectionTitle>Transaction Graph</SectionTitle>
+                <QuickSendHeading>Quick Send</QuickSendHeading>
                 <p>Lorem ipsum </p>
                 <input
                     placeholder="Enter an account ID, Contract ID or Transaction ID"

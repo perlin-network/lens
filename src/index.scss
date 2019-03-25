@@ -29,9 +29,9 @@
 
 html,
 body {
-    font-family: Montserrat, -apple-system, BlinkMacSystemFont, “Segoe UI”,
-        “Roboto”, “Oxygen”, “Ubuntu”, “Cantarell”, “Fira Sans”, “Droid Sans”,
-        “Helvetica Neue”, sans-serif;
+    font-family: HKGrotesk, Monteserrat, -apple-system, BlinkMacSystemFont,
+        “Segoe UI”, “Roboto”, “Oxygen”, “Ubuntu”, “Cantarell”, “Fira Sans”,
+        “Droid Sans”, “Helvetica Neue”, sans-serif;
 }
 
 body {
@@ -53,6 +53,7 @@ body {
     background-color: #0c112b;
     margin: 0px;
     padding: 0px;
+    max-width: 250px;
 }
 
 .app-size {
