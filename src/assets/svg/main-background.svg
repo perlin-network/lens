@@ -8,5 +8,5 @@
 <stop offset="100%" style="stop-color:rgb(12,18,43);stop-opacity:1" />
 </linearGradient> 
 </defs>
-<rect x="0" y="0" width="1500" height="50%" fill="url(#lgrad)"/>
+<rect x="0" y="0" width="1500" height="20%" fill="url(#lgrad)"/>
 </svg>
