@@ -19,7 +19,7 @@ const QuickSendHeading = styled.p`
 const QuickSendInput = styled.input`
     font-family: HKGrotesk;
     background-color: #171d39;
-    border: 1px solid #2e3451;
+    border: 1px solid #2e345100;
     color: white;
     width: 100%;
     padding: 20px;

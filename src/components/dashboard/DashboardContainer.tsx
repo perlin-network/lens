@@ -55,14 +55,18 @@ export default class DashboardContainer extends React.Component {
                     </div>
                 </Row>
                 <Row>
-                    <Box width={5 / 7}>
-                        <SectionTitle>Transactions</SectionTitle>
-                        <TransactionsTable />
-                    </Box>
-                    <Box width={2 / 7} style={{ marginLeft: "40px" }}>
+                    <Box width={1 / 2}>
                         <SectionTitle>Network</SectionTitle>
                         <NetworkGraph />
                     </Box>
+                    <Box width={1 / 2} style={{ marginLeft: "40px" }}>
+                        <SectionTitle>Transactions</SectionTitle>
+                        <TransactionGraphPixi />
+                    </Box>
+                </Row>
+                <Row>
+                    <SectionTitle>Transactions</SectionTitle>
+                    <TransactionsTable />
                 </Row>
             </>
         );
