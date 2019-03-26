@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
-import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import DataCard from "./DataCard";
@@ -11,6 +10,17 @@ import "./dashboard.scss";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
+`;
+
+const CardHeadings = styled.h2`
+    font-family: HKGrotesk;
+    font-size: 16px;
+    padding-left: 20px;
+`;
+
+const GraphBox = styled(Box)`
+    background-color: #151c35;
+    border-radius: 5px;
 `;
 
 export default class DashboardContainer extends React.Component {
@@ -55,18 +65,22 @@ export default class DashboardContainer extends React.Component {
                     </div>
                 </Row>
                 <Row>
-                    <Box width={1 / 2}>
-                        <SectionTitle>Network</SectionTitle>
+                    <GraphBox width={1 / 2}>
+                        <CardHeadings>Network</CardHeadings>
+                        <hr />
                         <NetworkGraph />
-                    </Box>
-                    <Box width={1 / 2} style={{ marginLeft: "40px" }}>
-                        <SectionTitle>Transactions</SectionTitle>
+                    </GraphBox>
+                    <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
+                        <CardHeadings>Transactions</CardHeadings>
+                        <hr />
                         <TransactionGraphPixi />
-                    </Box>
+                    </GraphBox>
                 </Row>
                 <Row>
-                    <SectionTitle>Transactions</SectionTitle>
-                    <TransactionsTable />
+                    <Box width={1 / 1}>
+                        <CardHeadings>Transactions</CardHeadings>
+                        <TransactionsTable />
+                    </Box>
                 </Row>
             </>
         );

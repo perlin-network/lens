@@ -12,9 +12,10 @@ interface IProps {
 const CardSection = styled.div`
     border: 1px solid #ffffff22;
     word-wrap: break-word;
-    padding: 10px;
     margin: 0px;
     font-size: 12px;
+    border-radius: 5px;
+    margin-right: "20px";
 `;
 
 export default class DataCard extends React.Component<IProps, {}> {
@@ -23,9 +24,16 @@ export default class DataCard extends React.Component<IProps, {}> {
     }
     public render() {
         return (
-            <div style={{ marginRight: "20px" }}>
-                <CardSection>{this.props.heading}</CardSection>
-                <CardSection>
+            <CardSection>
+                <div
+                    style={{
+                        borderBottom: "1px solid #ffffff22",
+                        padding: "20px"
+                    }}
+                >
+                    {this.props.heading}
+                </div>
+                <div style={{ padding: "20px" }}>
                     <span
                         style={{
                             fontSize: "36px",
@@ -37,8 +45,8 @@ export default class DataCard extends React.Component<IProps, {}> {
                     </span>
                     <br />
                     {this.props.unit}
-                </CardSection>
-            </div>
+                </div>
+            </CardSection>
         );
     }
 }
