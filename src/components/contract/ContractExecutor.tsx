@@ -7,10 +7,12 @@ import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin } from "../../Perlin";
 import { Button } from "../common/core";
+import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
 import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
+import ContractInstantiate from "./ContractInstantiate";
 
 interface IParamItem {
     id: string;
@@ -20,6 +22,7 @@ interface IParamItem {
 
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
+const contractInstantiate = ContractInstantiate.getInstance();
 const watFunctionRegex = /\(export "_contract_([a-zA-Z0-9_]+)" \(func \d+\)\)/g;
 
 const useContractFunctions = () => {
@@ -108,10 +111,10 @@ const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
                     writer.writeUint64(Long.fromString(value, true));
                     break;
                 case ParamType.Bytes:
-                    // to number[]
+                    // todo : properly convert
                     writer.writeBytes([0]);
+                    break;
                 case ParamType.Byte:
-                    // to number
                     writer.writeByte(parseInt(value, 10));
                     break;
             }
@@ -121,7 +124,6 @@ const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
 };
 
 const isHexString = (text: string): boolean => {
-    // todo : support prefix 0x
     const hex = parseInt(text, 16);
     return hex.toString(16) === text;
 };
@@ -251,24 +253,67 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
         }
     };
 
+    // todo : use payload writer
+    function bytesToInt64(buffer: any, littleEndian = true) {
+        const arr = new ArrayBuffer(8);
+        const view = new DataView(arr);
+        buffer.forEach((value: any, index: any) => view.setUint8(index, value));
+        const left = view.getUint32(0, littleEndian);
+        const right = view.getUint32(4, littleEndian);
+        const combined = littleEndian
+            ? left + 2 ** 32 * right
+            : 2 ** 32 * left + right;
+        return combined;
+    }
+
+    const Int32toBytes = (num: any) => {
+        const arr = new ArrayBuffer(4);
+        const view = new DataView(arr);
+        view.setUint32(0, num, true);
+        return new Uint8Array(arr);
+    };
+
     const callFunction = async () => {
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
         );
+
         if (!emptyItem) {
-            const buffer = writeToBuffer(paramsList);
+            const funcParams = writeToBuffer(paramsList);
+            const list = await paramsList.map(item => {
+                return item.value;
+            });
+
+            const lParams = [
+                contractStore.contract.transactionId,
+                perlin.account.public_key,
+                Int32toBytes(0),
+                ...list
+            ];
+            const writer = new PayloadWriter();
+            lParams.forEach((value: any) => {
+                writer.writeBytes(value);
+            });
+
+            const result: any = await contractInstantiate.localInvoke(
+                "balance",
+                writer.toBuffer()
+            );
+
+            console.log(`result :${result}`);
+            alert(`Result ${bytesToInt64(result)}`);
+
             const response = await perlin.invokeContractFunction(
                 contractStore.contract.transactionId,
                 0,
                 currFunc,
-                buffer
+                funcParams
             );
-            // todo : getting the result
-            /*
-                
-            */
+
+            console.log("response-->", response);
         } else {
             console.log("Item can't be empty");
+            alert("Error : Item can't be empty.");
         }
     };
 

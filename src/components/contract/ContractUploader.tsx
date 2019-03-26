@@ -6,12 +6,17 @@ import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
+import ContractInstantiate from "./ContractInstantiate";
+
+declare let WebAssembly: any;
+declare let window: any;
 
 // @ts-ignore
 const wabt = Wabt();
 
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
+const contractInstantiate = ContractInstantiate.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
@@ -83,7 +88,9 @@ const createSmartContract = async (file: File) => {
         };
         reader.readAsArrayBuffer(file);
     });
+
     const resp = await perlin.createSmartContract(bytes);
+
     const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
         readDebugNames: false
     });
@@ -154,6 +161,7 @@ const ContractUploader: React.SFC<{}> = () => {
 
         try {
             await createSmartContract(file);
+            contractInstantiate.localDeploy();
         } catch (err) {
             console.log("Error while uploading file: ");
             console.error(err);
