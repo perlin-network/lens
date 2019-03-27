@@ -18,7 +18,6 @@ import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
-import BackgroundSVG from "./assets/svg/background.svg";
 
 const ContentWrapper = styled(Flex)`
     margin: 1em 64px;
