@@ -7,6 +7,7 @@ import PayloadWriter from "./payload/PayloadWriter";
 import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
+import { IAccount } from "./types/Account";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -69,12 +70,12 @@ class Perlin {
         peers: [] as string[]
     };
 
-    @observable public account = {
+    @observable public account: IAccount = {
         public_key: "",
         balance: 0,
         stake: 0,
         is_contract: false,
-        num_pages: 0
+        num_mem_pages: 0
     };
 
     @observable public transactions = {
@@ -161,28 +162,58 @@ class Perlin {
         );
     }
 
-    public async downloadContract(id: string): Promise<void> {
-        // Download the contracts code.
-        const contract = await this.get(`/contract/${id}`, {});
+    public async getContractCode(contractId: string): Promise<string> {
+        return await this.getText(
+            `/contract/${contractId}`,
+            {},
+            {
+                "Content-Type": "application/wasm"
+            }
+        );
+    }
 
-        // Parse the contracts code into a byte buffer.
-        const buf = new Uint8Array(contract);
+    public async getContractPage(
+        contractId: string,
+        pageIndex: number
+    ): Promise<string> {
+        return await this.getText(
+            `/contract/${contractId}/page/${pageIndex}`,
+            {}
+        );
+    }
 
-        // Construct a blob out of the byte buffer and have the file downloaded.
-        const blob = new Blob([buf], { type: "application/wasm" });
-        const href: string = URL.createObjectURL(blob);
+    public async invokeContractFunction(
+        contractID: string,
+        amount: number,
+        funcName: string,
+        funcParams: Buffer
+    ): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeBuffer(Buffer.from(contractID, "hex"));
+        payload.writeUint64(Long.fromNumber(amount, true));
+        payload.writeString(funcName);
+        payload.writeBuffer(funcParams);
 
-        const a: HTMLAnchorElement = document.createElement(
-            "a"
-        ) as HTMLAnchorElement;
-        a.href = href;
-        a.download = `${id}.wasm`;
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TRANSFER, payload.buffer.toBuffer())
+        );
+    }
 
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    public async getAccount(id: string): Promise<IAccount> {
+        const data = await this.getJSON(`/accounts/${id}`, {});
 
-        URL.revokeObjectURL(href);
+        const account: IAccount = {
+            public_key: data.public_key,
+
+            balance: data.balance,
+            stake: data.stake,
+
+            is_contract: data.is_contract,
+            num_mem_pages: data.num_mem_pages
+        };
+
+        return account;
     }
 
     private async init() {
@@ -198,17 +229,17 @@ class Perlin {
         }
     }
 
-    private async get(
+    private async getResponse(
         endpoint: string,
         params?: any,
         headers?: any
-    ): Promise<any> {
+    ): Promise<Response> {
         const url = new URL(`http://${this.api.host}${endpoint}`);
         Object.keys(params).forEach(key =>
             url.searchParams.append(key, params[key])
         );
 
-        const response = await fetch(url.toString(), {
+        return await fetch(url.toString(), {
             method: "get",
             headers: {
                 "X-Session-Token": this.api.token,
@@ -216,8 +247,42 @@ class Perlin {
                 ...headers
             }
         });
+    }
 
+    private async getJSON(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<any> {
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
         return await response.json();
+    }
+
+    private async getText(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<string> {
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return await response.text();
+    }
+
+    private async getBuffer(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<ArrayBuffer> {
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return await response.arrayBuffer();
     }
 
     private async post(
@@ -239,7 +304,7 @@ class Perlin {
     }
 
     private async initLedger() {
-        this.ledger = await this.get("/ledger", {});
+        this.ledger = await this.getJSON("/ledger", {});
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
@@ -334,7 +399,7 @@ class Perlin {
                 case "stake_updated":
                     this.account.stake = data.stake;
                 case "num_pages_updated":
-                    this.account.num_pages = data.num_pages;
+                    this.account.num_mem_pages = data.num_pages;
             }
         };
     }
@@ -344,7 +409,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<[]> {
-        return await this.get("/tx", { offset, limit });
+        return await this.getJSON("/tx", { offset, limit });
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
@@ -356,12 +421,7 @@ class Perlin {
 
     // @ts-ignore
     private async getTransaction(id: string): Promise<any> {
-        return await this.get(`/tx/${id}`, {});
-    }
-
-    // @ts-ignore
-    private async getAccount(id: string): Promise<any> {
-        return await this.get(`/accounts/${id}`, {});
+        return await this.getJSON(`/tx/${id}`, {});
     }
 }
 

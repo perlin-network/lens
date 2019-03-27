@@ -46,6 +46,10 @@ class PayloadWriter {
     public toBytes(): number[] {
         return Array.prototype.slice.call(this.buffer.toBuffer(), 0);
     }
+
+    public toBuffer(): Buffer {
+        return this.buffer.toBuffer();
+    }
 }
 
 export default PayloadWriter;

@@ -1,5 +1,6 @@
 @import "~@blueprintjs/core/src/blueprint.scss";
 @import "~react-table/react-table.css";
+@import "~react-dropdown/style.css";
 
 @font-face {
     font-family: "Montserrat";
@@ -224,4 +225,26 @@ svg {
 
 .hideComp {
     display: none;
+}
+.QR-grid-row1 {
+    color: #ffffff;
+    word-wrap: break-word;
+    width: 200px;
+    text-align: right;
+    float: right;
+    grid-area: QR-grid-row1;
+}
+.QR-grid-row2 {
+    width: 70px;
+    height: 70px;
+    float: right;
+    grid-area: QR-grid-row2;
+}
+
+.QR-grid {
+    display: grid;
+    width: 100%;
+    grid-template-areas: "QR-grid-row1 QR-grid-row2";
+    grid-row-gap: 10px;
+    grid-column-gap: 10px;
 }

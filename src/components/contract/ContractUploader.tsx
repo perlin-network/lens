@@ -1,17 +1,19 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { Card, Button } from "../common/core";
+import { Button, Card, Input } from "../common/core";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
+import ContractInstantiate from "./ContractInstantiate";
 
 // @ts-ignore
 const wabt = Wabt();
 
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
+const contractInstantiate = ContractInstantiate.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
@@ -39,29 +41,12 @@ const DividerText = styled.h2`
 const InputWrapper = styled.div`
     display: flex;
 `;
-const Input = styled.input`
-    outline: none;
-    border: none;
-    flex-grow: 1;
-    min-width: 200px;
-    border-radius: 2px;
+const StyledInput = styled(Input).attrs({ fontSize: "12px" })`
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    height: 35px;
-    background-color: #fff;
-    padding: 10px 15px;
-    font-family: HKGrotesk;
-    font-size: 12px;
-    font-weight: normal;
-    &:focus {
-        outline: none;
-    }
-    &::placeholder {
-        color: #717985;
-        opacity: 0.8;
-    }
+    flex-grow: 1;
 `;
-const StyledButton = styled(Button)`
+const StyledButton = styled(Button).attrs({ hideOverflow: true })`
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     height: 35px;
@@ -100,30 +85,83 @@ const createSmartContract = async (file: File) => {
         };
         reader.readAsArrayBuffer(file);
     });
+
     const resp = await perlin.createSmartContract(bytes);
+
     const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
         readDebugNames: false
     });
+    wasmModule.applyNames();
 
     contractStore.contract.name = file.name;
     contractStore.contract.transactionId = resp.tx_id;
     contractStore.contract.textContent = wasmModule.toText({
         foldExprs: true,
-        inlineExport: true
+        inlineExport: false
+    });
+};
+
+const loadContract = async (contractId: string) => {
+    const account = await perlin.getAccount(contractId);
+
+    if (!account.is_contract) {
+        console.log("Account is not a contract."); // TODO(kenta): show prompt that account is not a contract
+        return;
+    }
+
+    const pages = [];
+
+    for (let i = 0; i < account.num_mem_pages; i++) {
+        try {
+            pages.push(await perlin.getContractPage(contractId, i));
+        } catch (err) {
+            pages.push([]);
+        }
+    }
+
+    console.log(pages);
+
+    const hexContent = await perlin.getContractCode(contractId);
+
+    const bytes = new Uint8Array(Math.ceil(hexContent.length / 2));
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hexContent.substr(i * 2, 2), 16);
+    }
+
+    const module = wabt.readWasm(bytes, { readDebugNames: false });
+    module.applyNames();
+
+    contractStore.contract.name = contractId;
+    contractStore.contract.transactionId = contractId;
+    contractStore.contract.textContent = module.toText({
+        foldExprs: true,
+        inlineExport: false
     });
 };
 
 const ContractUploader: React.SFC<{}> = () => {
     const [loading, setLoading] = useState(false);
+    const [contractAddress, setContractAddress] = useState("");
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setContractAddress(e.target.value);
+    };
+    const handleLoadClick = useCallback(async () => {
+        try {
+            await loadContract(contractAddress);
+        } catch (err) {
+            console.error(err);
+        }
+    }, [contractAddress]);
     const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         setLoading(true);
 
         try {
             await createSmartContract(file);
+            contractInstantiate.localDeploy();
         } catch (err) {
             console.log("Error while uploading file: ");
-            console.log(err);
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -146,8 +184,14 @@ const ContractUploader: React.SFC<{}> = () => {
                 <Divider />
             </DividerWrapper>
             <InputWrapper>
-                <Input placeholder="Enter the address of a deployed smart contract" />
-                <StyledButton>Load Contract</StyledButton>
+                <StyledInput
+                    value={contractAddress}
+                    placeholder="Enter the address of a deployed smart contract"
+                    onChange={handleAddressChange}
+                />
+                <StyledButton onClick={handleLoadClick}>
+                    Load Contract
+                </StyledButton>
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
         </Wrapper>
