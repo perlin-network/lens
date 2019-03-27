@@ -1,12 +1,12 @@
 import * as React from "react";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
-import DashboardIcon from "../assets/svg/Dashboard.svg";
-import WalletIcon from "../assets/svg/Wallet.svg";
-import NetworkIcon from "../assets/svg/Network.svg";
-import ValidatorIcon from "../assets/svg/Validator.svg";
-import ContractIcon from "../assets/svg/Contracts.svg";
-import SettingsIcon from "../assets/svg/Settings.svg";
+import DashboardIcon from "../assets/svg/navbar-dashboard.svg";
+import NetworkIcon from "../assets/svg/navbar-network.svg";
+import ValidatorIcon from "../assets/svg/navbar-validator.svg";
+import DeveloperIcon from "../assets/svg/navbar-developer.svg";
+import SettingsIcon from "../assets/svg/navbar-settings.svg";
+import LogoutIcon from "../assets/svg/navbar-logout.svg";
 import perlinLogo from "../assets/svg/perlin-logo.svg";
 
 const NavIcon = styled.img`
@@ -46,11 +46,11 @@ interface INavItem {
 
 const items: INavItem[] = [
     { title: "Dashboard", link: "/", icon: DashboardIcon },
-    { title: "Wallet", link: "/wallet", icon: WalletIcon },
     { title: "Network", link: "/network", icon: NetworkIcon },
     { title: "Validator", link: "/validator", icon: ValidatorIcon },
-    { title: "Smart contract", link: "/contracts", icon: ContractIcon },
-    { title: "Settings", link: "/settings", icon: SettingsIcon }
+    { title: "Developer", link: "/contracts", icon: DeveloperIcon },
+    { title: "Settings", link: "/settings", icon: SettingsIcon },
+    { title: "Logout", link: "/logout", icon: LogoutIcon }
 ];
 
 class SideNav extends React.Component<RouteComponentProps, {}> {

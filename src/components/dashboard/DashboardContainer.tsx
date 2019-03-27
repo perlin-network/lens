@@ -57,7 +57,7 @@ export default class DashboardContainer extends React.Component {
                         </div>
                         <div className="card-cell">
                             <DataCard
-                                heading="Ledger Speed"
+                                heading="Network Load"
                                 value="10334"
                                 unit="Avg TPS"
                             />

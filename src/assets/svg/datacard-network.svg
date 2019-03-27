@@ -1,0 +1,20 @@
+
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="🖥-Desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dashboard-" transform="translate(-1210.000000, -423.000000)">
+            <rect fill="#0C112B" x="0" y="0" width="1500" height="1843"></rect>
+            <g id="Stat-Row" transform="translate(290.000000, 400.000000)" fill="#FFFFFF" opacity="0.3">
+                <g id="4" transform="translate(900.000000, 0.000000)">
+                    <g id="Icon/16px-" transform="translate(20.000000, 23.000000)">
+                        <g id="⚙️/Speed/White-">
+                            <g id="power-level">
+                                <path d="M2.14795,6.33252 L0.34131,5.47412 L0.77051,4.5708 C2.08984,1.79395 4.92773,0 8,0 C11.06934,0 13.90576,1.7915 15.22607,4.56445 L15.65576,5.46728 L13.8501,6.32715 L13.42041,5.42383 C12.43018,3.34424 10.30225,2 8,2 C5.69531,2 3.56689,3.34619 2.57715,5.4292 L2.14795,6.33252 Z" id="Path"></path>
+                                <path d="M5.12917,13.87083 C4.64822,12.28531 5.67779,5.34446 5.67779,5.34446 C5.67779,5.34446 10.38988,10.54366 10.87083,12.12917 C11.35178,13.71468 10.45635,15.38988 8.87083,15.87083 C7.28531,16.35178 5.61012,15.45634 5.12917,13.87083 Z" id="Path"></path>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
