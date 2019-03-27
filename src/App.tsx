@@ -20,16 +20,6 @@ import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
 import BackgroundSVG from "./assets/svg/background.svg";
 
-const BackgroundWave = styled.div`
-    position: absolute;
-    top: -250px;
-    right: 0;
-    left: 0;
-    height: 800px;
-    z-index: -1;
-    background: url(${BackgroundSVG}) bottom center / auto 100% no-repeat;
-`;
-
 const ContentWrapper = styled(Flex)`
     margin: 1em 64px;
 `;

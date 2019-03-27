@@ -6,6 +6,7 @@
         "@blueprintjs/core": "^3.4.0",
         "@blueprintjs/select": "^3.6.0",
         "@rebass/grid": "^6.0.0-7",
+        "animejs": "^3.0.1",
         "autoprefixer": "7.1.6",
         "babel-jest": "^22.1.0",
         "babel-loader": "^7.1.2",

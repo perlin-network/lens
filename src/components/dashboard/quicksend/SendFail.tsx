@@ -6,7 +6,7 @@ import { SectionTitle } from "../../common/typography";
 const FailPrompt = styled.div`
     background-color: #351a35;
     color: white;
-    width: 100%;
+    width: 75%;
     padding: 20px;
     vertical-align: middle;
 `;
