@@ -19,18 +19,18 @@
 }
 @font-face {
     font-family: "HKGrotesk";
-    src: url("./assets/fonts/hkgrotesk/hkgrotesk-light.otf");
-    font-weight: 600;
-}
-@font-face {
-    font-family: "HKGrotesk";
     src: url("./assets/fonts/hkgrotesk/hkgrotesk-regular.otf");
-    font-weight: normal;
+    font-weight: 400;
 }
 @font-face {
     font-family: "HKGrotesk";
-    src: url("./assets/fonts/hkgrotesk/hkgrotesk-bold.otf");
-    font-weight: bold;
+    src: url("./assets/fonts/hkgrotesk/hkgrotesk-medium.otf");
+    font-weight: 500;
+}
+@font-face {
+    font-family: "HKGrotesk";
+    src: url("./assets/fonts/hkgrotesk/hkgrotesk-semibold.otf");
+    font-weight: 600;
 }
 
 html,
