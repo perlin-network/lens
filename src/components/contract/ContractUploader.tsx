@@ -8,9 +8,6 @@ import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
 import ContractInstantiate from "./ContractInstantiate";
 
-declare let WebAssembly: any;
-declare let window: any;
-
 // @ts-ignore
 const wabt = Wabt();
 
