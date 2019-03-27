@@ -16,6 +16,7 @@ const Wrapper = styled.div`
     background-color: #0a0e28;
     border-radius: 2px;
     border: solid 0.5px #ffffff;
+    overflow: scroll;
 `;
 const Item = styled.div`
     font-size: 14px;

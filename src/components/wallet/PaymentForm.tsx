@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { Button } from "../common/core";
+import { Button, Input } from "../common/core";
 import styled from "styled-components";
 
 interface IPaymentFormProps {
@@ -24,22 +24,6 @@ const Label = styled.label`
     font-weight: 600px;
     color: #fff;
     margin-bottom: 10px;
-`;
-const Input = styled.input`
-    outline: none;
-    border: none;
-    border-radius: 2px;
-    width: 190px;
-    height: 35px;
-    background-color: #fff;
-    padding: 5px 10px;
-    font-family: HKGrotesk;
-    font-size: 14px;
-    font-weight: normal;
-    &::placeholder {
-        color: #717985;
-        opacity: 0.8;
-    }
 `;
 const FeeText = styled.span`
     margin-top: 5px;
@@ -76,6 +60,7 @@ const PaymentForm: React.SFC<IPaymentFormProps> = ({
                     id="recipient-address"
                     type="text"
                     placeholder="ex: 8f9b4ae0364280e6a0b988c149f65d1badaeefed2db582266494dd79aa7c821a"
+                    width="190px"
                     value={address}
                     onChange={handleAddressChange}
                 />
@@ -86,6 +71,7 @@ const PaymentForm: React.SFC<IPaymentFormProps> = ({
                     id="amount"
                     type="number"
                     placeholder="0 PERLs"
+                    width="190px"
                     value={amount}
                     onChange={handleAmountChange}
                 />

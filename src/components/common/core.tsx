@@ -23,6 +23,7 @@ Card.defaultProps = {
 interface IButtonProps {
     width?: string;
     fontSize?: string;
+    hideOverflow?: boolean;
 }
 const Button = styled.button`
     width: ${(props: IButtonProps) => props.width};
@@ -39,6 +40,13 @@ const Button = styled.button`
     color: #fff;
     background-color: #23228e;
     cursor: pointer;
+    ${(props: IButtonProps) =>
+        props.hideOverflow
+            ? `
+        text-overflow: ellipsis;
+        overflow: hidden;
+    `
+            : ""}
 
     &:active {
         background: rgba(34, 34, 142, 0.5);
@@ -50,7 +58,41 @@ const Button = styled.button`
 `;
 Button.defaultProps = {
     width: "160px",
-    fontSize: "16px"
+    fontSize: "16px",
+    hideOverflow: false
 };
 
-export { Card, Button };
+interface IInputProps {
+    width?: string;
+    fontSize?: string;
+}
+const Input = styled.input`
+    outline: none;
+    border: none;
+    min-width: 200px;
+    border-radius: 2px;
+    height: 35px;
+    background-color: #fff;
+    padding: 10px 15px;
+    font-family: HKGrotesk;
+    font-weight: normal;
+    font-size: ${(props: IInputProps) => props.fontSize};
+    width: ${(props: IInputProps) => props.width};
+
+    &:focus {
+        outline: none;
+    }
+    &::placeholder {
+        color: #717985;
+        opacity: 0.8;
+    }
+    &:disabled {
+        background-color: #ddd;
+    }
+`;
+Input.defaultProps = {
+    width: "auto",
+    fontSize: "14px"
+};
+
+export { Card, Button, Input };

@@ -129,14 +129,14 @@ const ValidatorView: React.SFC<{}> = observer(() => {
 });
 
 const useWalletStake = () => {
-    const balance = useComputed(() => {
+    const stake = useComputed(() => {
         if (perlin.account !== undefined) {
             return perlin.account.stake;
         }
 
         return null;
     }, [perlin.ledger]);
-    return balance;
+    return stake;
 };
 
 export default ValidatorView;
