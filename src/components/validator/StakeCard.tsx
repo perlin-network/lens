@@ -27,6 +27,7 @@ const CardHeader = styled.div`
     border-bottom: 1px solid #ffffff22;
     padding: 20px;
     font-size: 20px;
+    font-weight: 600;
 `;
 
 const CardBody = styled.div`
@@ -38,7 +39,7 @@ const CardBody = styled.div`
 
 const Title = styled.h2`
     font-size: 36px;
-    font-weight: 600;
+    font-weight: 400;
     color: #fff;
     margin-bottom: 0px;
 `;
@@ -46,6 +47,10 @@ const Title = styled.h2`
 const Row = styled(Flex)`
     padding-top: 10px;
     padding-bottom: 10px;
+`;
+
+const Col = styled(Box)`
+    font-weight: 500;
 `;
 
 const Input = styled.input`
@@ -66,6 +71,7 @@ const Button = styled.button`
     background-color: #fff;
     cursor: pointer;
     text-align: center;
+    font-weight: 600;
     border: none;
     padding: 20px;
     text-decoration: none;
@@ -144,8 +150,8 @@ const StakeCard: React.SFC<IStakeProps> = ({
             <CardBody>
                 <Title> {stake ? stake : "N/A"} </Title>
                 <Row>
-                    <Box width={1 / 2}>PERLs</Box>
-                    <Box width={1 / 2} style={{ textAlign: "right" }}>
+                    <Col width={1 / 2}>PERLs</Col>
+                    <Col width={1 / 2} style={{ textAlign: "right" }}>
                         <RoundButton
                             onClick={handleWithdrawStakeClick}
                             inactive={action === StakeActions.Withdraw}
@@ -158,23 +164,23 @@ const StakeCard: React.SFC<IStakeProps> = ({
                         >
                             +
                         </RoundButton>
-                    </Box>
+                    </Col>
                 </Row>
                 {action !== StakeActions.None && (
                     <div>
                         <Row>
-                            <Box width={1}>
+                            <Col width={1}>
                                 <Input
                                     placeholder="Enter Amount"
                                     value={amount}
                                     onChange={handleAmountChange}
                                 />
-                            </Box>
+                            </Col>
                         </Row>
                         <Row>
-                            <Box width={1}>
+                            <Col width={1}>
                                 <Button onClick={handleSubmit}>{action}</Button>
-                            </Box>
+                            </Col>
                         </Row>
                     </div>
                 )}
