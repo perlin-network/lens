@@ -9,7 +9,11 @@ import { observer, useComputed } from "mobx-react-lite";
 import PlaceStakeIcon from "../../assets/svg/place-stake-icon.svg";
 import WithdrawStakeIcon from "../../assets/svg/withdraw-stake-icon.svg";
 import StakeModal, { StakeModalActions } from "./StakeModal";
+
 import { useWalletBalance } from "../wallet/WalletView";
+
+import { SectionTitle } from "../common/typography";
+import { StakeCard } from "./StakeCard";
 
 const LeftBlock = styled(Flex)``;
 const ConnectionWrapper = styled(Box)`
@@ -40,6 +44,12 @@ const ButtonIcon = styled.img`
 
 const perlin = Perlin.getInstance();
 
+export enum StakeActions {
+    Place = "Place",
+    Withdraw = "Withdraw",
+    None = ""
+}
+
 const ValidatorView: React.SFC<{}> = observer(() => {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalAction, setModalAction] = useState(StakeModalActions.Place);
@@ -56,11 +66,16 @@ const ValidatorView: React.SFC<{}> = observer(() => {
     const handleClose = () => {
         setModalOpen(false);
     };
+
+    const stake = useWalletStake();
+
+    const [action, setAction] = useState(StakeActions.None);
+
     const handlePlaceStake = async (amount: number) => {
         if (!isNaN(amount)) {
             try {
                 await perlin.placeStake(amount);
-                setModalOpen(false);
+                // setModalOpen(false);
             } catch (err) {
                 console.log(err);
             }
@@ -71,60 +86,33 @@ const ValidatorView: React.SFC<{}> = observer(() => {
         if (!isNaN(amount)) {
             try {
                 await perlin.withdrawStake(amount);
-                setModalOpen(false);
+                // setModalOpen(false);
             } catch (err) {
                 console.log(err);
             }
         }
         // display error message
     };
-    const stake = useWalletStake();
 
     return (
-        <Card>
-            <LeftBlock>
-                <InfoWrapper>
-                    <InfoTitle>Your Earnings</InfoTitle>
-                    <InfoText>
-                        <InfoIcon />
-                        1000
-                    </InfoText>
-                </InfoWrapper>
-                <InfoWrapper>
-                    <InfoTitle>Your Stakes</InfoTitle>
-                    <Flex alignItems="center">
-                        <ButtonIcon
-                            src={PlaceStakeIcon}
-                            onClick={handlePlaceStakeClick}
-                        />
-                        <StakeText>
-                            <InfoIcon />
-                            {stake ? stake : "N/A"}
-                        </StakeText>
-                        <ButtonIcon
-                            src={WithdrawStakeIcon}
-                            onClick={handleWithdrawStakeClick}
-                        />
-                    </Flex>
-                </InfoWrapper>
-            </LeftBlock>
-            <Divider />
-            <ConnectionWrapper>
-                <InfoTitle>Connected As:</InfoTitle>
-                <InfoText breakWord={true}>{perlin.ledger.public_key}</InfoText>
-            </ConnectionWrapper>
-            <StakeModal
-                open={modalOpen}
-                action={modalAction}
-                onClose={handleClose}
-                onSubmit={
-                    modalAction === StakeModalActions.Place
-                        ? handlePlaceStake
-                        : handleWithdrawStake
-                }
-                balance={balance}
-            />
-        </Card>
+        <Flex>
+            <Box width={7 / 12}>
+                <SectionTitle>Chart here...</SectionTitle>
+            </Box>
+            <Box width={5 / 12}>
+                <StakeCard
+                    stake={stake}
+                    balance={balance}
+                    setAction={setAction}
+                    action={action}
+                    onSubmit={
+                        action === StakeActions.Place
+                            ? handlePlaceStake
+                            : handleWithdrawStake
+                    }
+                />
+            </Box>
+        </Flex>
     );
 });
 
