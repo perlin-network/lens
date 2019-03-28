@@ -2,12 +2,13 @@ import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../common/typography";
-import DashboardIcon from "../assets/svg/navbar-dashboard.svg";
-import EarningsIcon from "../../assets/svg/datacard-earnings.svg";
-import NetworkIcon from "../../assets/svg/datacard-network.svg";
-import StakeIcon from "../../assets/svg/datacard-stake.svg";
-import WalletIcon from "../../assets/svg/datacard-wallet.svg";
 import { propTypes } from "mobx-react";
+import {
+    WalletIcon,
+    StakeIcon,
+    NetworkIcon,
+    EarningsIcon
+} from "../common/typography";
 
 interface IProps {
     heading: string;
@@ -24,6 +25,21 @@ const CardSection = styled.div`
     margin-right: "20px";
 `;
 
+function GetIcon(heading: string) {
+    switch (heading) {
+        case "Wallet Balance":
+            return <WalletIcon style={{ marginRight: "10px" }} />;
+        case "Network Load":
+            return <NetworkIcon style={{ marginRight: "10px" }} />;
+        case "Your Earnings":
+            return <EarningsIcon style={{ marginRight: "10px" }} />;
+        case "Your Stake":
+            return <StakeIcon style={{ marginRight: "10px" }} />;
+        default:
+            return null;
+    }
+}
+
 export default class DataCard extends React.Component<IProps, {}> {
     constructor(props: IProps) {
         super(props);
@@ -37,7 +53,7 @@ export default class DataCard extends React.Component<IProps, {}> {
                         padding: "20px"
                     }}
                 >
-                    {this.getIcon}
+                    {GetIcon(this.props.heading)}
                     {this.props.heading}
                 </div>
                 <div style={{ padding: "20px" }}>
@@ -56,21 +72,4 @@ export default class DataCard extends React.Component<IProps, {}> {
             </CardSection>
         );
     }
-    private getIcon = () => {
-        if (this.props.heading === "Wallet Balance") {
-            return <EarningsIcon />;
-        }
-        if (this.props.heading === "Network Load") {
-            return <NetworkIcon />;
-        }
-        if (this.props.heading === "Your Earnings") {
-            return <EarningsIcon />;
-        }
-        if (this.props.heading === "Your Stake") {
-            return <StakeIcon />;
-        } else {
-            console.error("Unexpected heading retrieved");
-            return;
-        }
-    };
 }

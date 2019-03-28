@@ -1,12 +1,15 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
+import { Perlin } from "../../Perlin";
 import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import DataCard from "./DataCard";
 import "./dashboard.scss";
+
+const perlin = Perlin.getInstance();
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -37,7 +40,7 @@ export default class DashboardContainer extends React.Component {
                         <div className="card-cell">
                             <DataCard
                                 heading="Wallet Balance"
-                                value="23123.002"
+                                value={perlin.account.balance.toString()}
                                 unit="PERLs"
                             />
                         </div>
