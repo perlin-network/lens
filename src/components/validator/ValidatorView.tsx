@@ -2,45 +2,13 @@ import * as React from "react";
 import { useState } from "react";
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
-import { Card } from "../common/core";
-import { InfoIcon, InfoText, InfoTitle } from "../common/typography";
+
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
-import PlaceStakeIcon from "../../assets/svg/place-stake-icon.svg";
-import WithdrawStakeIcon from "../../assets/svg/withdraw-stake-icon.svg";
-import StakeModal, { StakeModalActions } from "./StakeModal";
-
+import { ValidatorChart } from "./ValidatorChart";
 import { useWalletBalance } from "../wallet/WalletView";
 
-import { SectionTitle } from "../common/typography";
 import { StakeCard } from "./StakeCard";
-
-const LeftBlock = styled(Flex)``;
-const ConnectionWrapper = styled(Box)`
-    margin-left: 40px;
-`;
-const InfoWrapper = styled(Box)`
-    margin-right: 40px;
-`;
-const Divider = styled.hr`
-    height: inherit;
-    width: 0;
-    margin: 0;
-    border: 0;
-    border-left: 1px solid #fff;
-`;
-const StakeText = styled.p`
-    margin: 0 15px;
-    display: flex;
-    align-items: center;
-    font-size: 18px;
-    font-family: HKGrotesk;
-`;
-const ButtonIcon = styled.img`
-    height: 24px;
-    width: 24px;
-    cursor: pointer;
-`;
 
 const perlin = Perlin.getInstance();
 
@@ -50,22 +18,33 @@ export enum StakeActions {
     None = ""
 }
 
-const ValidatorView: React.SFC<{}> = observer(() => {
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalAction, setModalAction] = useState(StakeModalActions.Place);
-    const balance = useWalletBalance();
+const ChartWrapper = styled.div`
+    border: 0;
+    word-wrap: break-word;
+    margin: 0px;
+    background-color: #151b35;
+    border-radius: 5px;
+    margin-right: 20px;
+    font-family: HKGrotesk;
+    padding: 20px;
+`;
 
-    const handlePlaceStakeClick = () => {
-        setModalOpen(true);
-        setModalAction(StakeModalActions.Place);
-    };
-    const handleWithdrawStakeClick = () => {
-        setModalAction(StakeModalActions.Withdraw);
-        setModalOpen(true);
-    };
-    const handleClose = () => {
-        setModalOpen(false);
-    };
+const ChartHeader = styled.div`
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+`;
+
+const ChartSubtitle = styled.span`
+    display: block;
+    margin-top: 5px;
+    color: #717985;
+    font-size: 14px;
+    font-weight: 500;
+`;
+
+const ValidatorView: React.SFC<{}> = observer(() => {
+    const balance = useWalletBalance();
 
     const stake = useWalletStake();
 
@@ -97,7 +76,13 @@ const ValidatorView: React.SFC<{}> = observer(() => {
     return (
         <Flex>
             <Box width={7 / 12}>
-                <SectionTitle>Chart here...</SectionTitle>
+                <ChartWrapper>
+                    <ChartHeader>
+                        Validator Performance
+                        <ChartSubtitle>Transactions Per Second</ChartSubtitle>
+                    </ChartHeader>
+                    <ValidatorChart />
+                </ChartWrapper>
             </Box>
             <Box width={5 / 12}>
                 <StakeCard
