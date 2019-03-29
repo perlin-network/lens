@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Perlin } from "./Perlin";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
@@ -42,8 +41,6 @@ const Content = styled(Box).attrs({
     padding-left: 2em;
     padding-right: 2em;
 `;
-
-const perlin = Perlin.getInstance();
 
 const routes = [
     { path: "/", component: Dashboard },
