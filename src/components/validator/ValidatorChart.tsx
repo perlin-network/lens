@@ -74,11 +74,12 @@ class Chart extends React.Component<IChartProps, IState> {
             <svg
                 width={this.width + this.margin.left + this.margin.right}
                 height={this.height + this.margin.top + this.margin.bottom}
+                style={{ backgroundColor: "#151b35" }}
             >
                 <defs>
                     <linearGradient id="gradient" x2="0%" y2="100%">
                         <stop offset="0%" stopColor="#9D92FD" />
-                        <stop offset="40%" stopColor="#151b35" />
+                        <stop offset="50%" stopColor="#151b35" />
                     </linearGradient>
                 </defs>
                 <g
