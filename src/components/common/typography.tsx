@@ -10,10 +10,10 @@ import QuickSendFailIcon from "../../assets/svg/quicksend-error.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
-    font-size: 14px;
+    font-size: 16px;
     color: #fff;
     margin-bottom: 15px;
-    font-weight: 600;
+    font-weight: 500;
 `;
 
 interface InfoIconProps {

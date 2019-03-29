@@ -60,7 +60,7 @@ export default class DataCard extends React.Component<IProps, {}> {
                     <span
                         style={{
                             fontSize: "36px",
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderTop: "0px solid white"
                         }}
                     >

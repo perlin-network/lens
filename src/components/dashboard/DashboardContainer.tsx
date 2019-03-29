@@ -19,6 +19,7 @@ const CardHeadings = styled.h2`
     font-family: HKGrotesk;
     font-size: 16px;
     padding-left: 20px;
+    font-weight: 500;
 `;
 
 const GraphBox = styled(Box)`
