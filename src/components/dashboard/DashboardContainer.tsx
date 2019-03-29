@@ -11,6 +11,8 @@ const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
+const date = new Date();
+
 export default class DashboardContainer extends React.Component<{}, {}> {
     public render() {
         return (

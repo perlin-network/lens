@@ -5,7 +5,6 @@ import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
 import { formatDistance } from "date-fns";
 import "../index.scss";
-import { getJSDocTags } from "typescript";
 
 const columns = [
     "Time",
@@ -62,8 +61,27 @@ const columns = [
 ];
 
 const perlin = Perlin.getInstance();
+
 @observer
 export default class TransactionsTable extends React.Component<{}, {}> {
+    public state = { lastUpdate: new Date() };
+
+    public shouldComponentUpdate() {
+        const now = new Date();
+        const seconds =
+            (now.getTime() - this.state.lastUpdate.getTime()) / 1000;
+        return seconds >= 20; // Re-render minimum every second
+    }
+
+    public componentDidUpdate() {
+        console.log("Updated, time changed from", this.state.lastUpdate);
+        this.setState(() => {
+            return {
+                lastUpdate: new Date()
+            };
+        });
+    }
+
     public render() {
         const dataColumns = columns;
         const data = perlin.transactions.recent;
@@ -71,7 +89,6 @@ export default class TransactionsTable extends React.Component<{}, {}> {
             <thead>
                 <tr>
                     {dataColumns.map(column => {
-                        console.log("column", { column });
                         return <th key={column}>{column}</th>;
                     })}
                 </tr>
@@ -96,7 +113,8 @@ export default class TransactionsTable extends React.Component<{}, {}> {
         // Decorate with Bootstrap CSS
         return (
             <table className="tableStyle">
-                {tableHeaders} {tableBody}
+                {tableHeaders}
+                <tbody>{tableBody}</tbody>
             </table>
         );
     }
