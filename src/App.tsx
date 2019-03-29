@@ -18,18 +18,30 @@ import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
+import MainBackgroundSVG from "./assets/svg/main-background.svg";
 
 const ContentWrapper = styled(Flex)`
-    margin: 1em 64px;
+    margin: 0px;
+    padding: 0px;
+    background-color: #0c112b;
 `;
 const SideWrapper = styled(Box).attrs({
     width: 1 / 6
 })`
+    background-color: #0c112b;
+    margin: 0px;
+    padding: 0px;
     min-width: 150px;
+    max-width: 250px;
 `;
 const Content = styled(Box).attrs({
     width: 5 / 6
-})``;
+})`
+    background-image: url(${MainBackgroundSVG});
+    margin: 0px;
+    padding-left: 2em;
+    padding-right: 2em;
+`;
 
 const perlin = Perlin.getInstance();
 
@@ -50,11 +62,11 @@ class App extends React.Component<RouteComponentProps, {}> {
     public render() {
         return (
             <>
-                <ContentWrapper className="app-size">
-                    <SideWrapper className="sidebar-background">
+                <ContentWrapper>
+                    <SideWrapper>
                         <SideNav />
                     </SideWrapper>
-                    <Content className="main-background">
+                    <Content>
                         <Navbar />
                         <Switch>
                             {routes.map(route => (
