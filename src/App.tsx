@@ -23,6 +23,7 @@ const ContentWrapper = styled(Flex)`
     margin: 0px;
     padding: 0px;
     background-color: #0c112b;
+    min-height: 100vh;
 `;
 const SideWrapper = styled(Box).attrs({
     width: 1 / 6
