@@ -4,13 +4,18 @@
 
 @font-face {
     font-family: "Montserrat";
-    src: url("./assets/fonts/montserrat/montserrat-regular.ttf");
-    font-weight: normal;
+    src: url("./assets/fonts/montserrat/montserrat-regular.otf");
+    font-weight: 400;
 }
 @font-face {
     font-family: "Montserrat";
-    src: url("./assets/fonts/montserrat/montserrat-bold.ttf");
-    font-weight: bold;
+    src: url("./assets/fonts/montserrat/montserrat-medium.otf");
+    font-weight: 500;
+}
+@font-face {
+    font-family: "Montserrat";
+    src: url("./assets/fonts/montserrat/montserrat-semibold.otf");
+    font-weight: 600;
 }
 @font-face {
     font-family: "HKGrotesk";
