@@ -1,12 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Flex, Box } from "@rebass/grid";
-import { SectionTitle } from "../../common/typography";
 import SendFail from "./SendFail";
 import AccountDetected from "./AccountDetected";
-import DashboardCard from "../DataCard";
 import "./quicksend.scss";
-import { Card } from "../../common/core";
 
 const QuickSendHeading = styled.p`
     font-family: Montserrat;

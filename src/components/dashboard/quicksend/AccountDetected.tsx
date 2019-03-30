@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Perlin } from "../../../Perlin";
 import styled from "styled-components";
-import { SectionTitle } from "../../common/typography";
 import "./quicksend.scss";
 import { Flex, Box } from "@rebass/grid";
+import { observer } from "mobx-react";
 
 interface IProps {
     recipientID: string;
@@ -19,6 +19,7 @@ interface IState {
 }
 const perlin = Perlin.getInstance();
 
+@observer
 export default class AccountDetected extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);

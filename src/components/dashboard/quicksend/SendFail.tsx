@@ -1,7 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Flex, Box } from "@rebass/grid";
-import { SectionTitle } from "../../common/typography";
 import { QuickSendErrorIcon } from "../../common/typography";
 
 const FailPrompt = styled.div`

@@ -8,6 +8,7 @@ import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import DataCard from "./DataCard";
 import "./dashboard.scss";
+import { observer } from "mobx-react";
 
 const perlin = Perlin.getInstance();
 
@@ -27,6 +28,7 @@ const GraphBox = styled(Box)`
     border-radius: 5px;
 `;
 
+@observer
 export default class DashboardContainer extends React.Component {
     public render() {
         return (
