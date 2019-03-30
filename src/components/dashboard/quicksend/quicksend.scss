@@ -1,15 +1,18 @@
 .detected-outer-header {
     grid-area: detected-outer-header;
-    background-color: #161c39;
+    background-color: #171d39;
 }
 .detected-outer-recipient {
     grid-area: detected-outer-recipient;
+    background-color: #1b213d;
 }
 .detected-outer-sendfunds {
     grid-area: detected-outer-sendfunds;
+    background-color: #1b213d;
 }
 .detected-outer-recipient-content {
     grid-area: detected-outer-recipient-content;
+    background-color: #1b213d;
 }
 .detected-inner-amount {
     grid-area: detected-inner-amount;
@@ -36,6 +39,7 @@
 }
 .detected-grid {
     display: grid;
+    border-radius: 5px;
     width: 100%;
     grid-template-areas:
         "detected-outer-header detected-outer-header"
@@ -44,4 +48,10 @@
     grid-gap: 30px;
     padding: 10px;
     grid-column-gap: 10px;
+}
+
+input::placeholder {
+    color: #5a6074;
+    font-size: 12px;
+    opacity: 30%;
 }

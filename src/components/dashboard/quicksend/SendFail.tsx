@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../../common/typography";
+import { QuickSendErrorIcon } from "../../common/typography";
 
 const FailPrompt = styled.div`
     background-color: #351a35;
@@ -12,6 +13,13 @@ const FailPrompt = styled.div`
 `;
 export default class SendFail extends React.Component<{}, {}> {
     public render() {
-        return <FailPrompt>Sorry, nothing matched that address</FailPrompt>;
+        return (
+            <FailPrompt style={{ verticalAlign: "middle" }}>
+                <QuickSendErrorIcon
+                    style={{ marginRight: "10px", verticalAlign: "middle" }}
+                />
+                Sorry, nothing matched that address
+            </FailPrompt>
+        );
     }
 }

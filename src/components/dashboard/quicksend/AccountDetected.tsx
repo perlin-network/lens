@@ -1,13 +1,17 @@
 import * as React from "react";
 import { Perlin } from "../../../Perlin";
 import styled from "styled-components";
-import { Flex, Box } from "@rebass/grid";
 import { SectionTitle } from "../../common/typography";
 import "./quicksend.scss";
+import { Flex, Box } from "@rebass/grid";
 
 interface IProps {
     recipientID: string;
 }
+
+const Row = styled(Flex)`
+    margin-bottom: ${props => props.theme.margin.row};
+`;
 
 interface IState {
     toggleComponent: string;
@@ -34,39 +38,46 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             : "hideComp"
                     }
                 >
-                    <div className="detected-grid">
-                        <div className="detected-outer-header">
-                            Detected An Account ID
-                        </div>
-                        <div className="detected-outer-recipient">
-                            Recipient
-                        </div>
-                        <div className="detected-outer-recipient-content">
-                            {this.props.recipientID}
-                            <br />
-                            Recipient balance:
-                        </div>
-                        <div className="detected-outer-sendfunds">
-                            Send Funds
-                        </div>
-                        <div className="detected-outer-sendfunds-content">
-                            <div className="detected-inner-amount">Amount</div>
-                            <div className="detected-inner-address">
-                                <input
-                                    placeholder="Enter Amount"
-                                    value={this.state.inputPerls}
-                                    onChange={this.updateInputPerls}
-                                />
-                            </div>
-                            <div className="detected-inner-checked">
-                                Double checked
-                            </div>
-                            <div className="detected-inner-sendperls">
-                                <button onClick={this.handleButtonClick}>
-                                    Send Perls
-                                </button>
-                            </div>
-                        </div>
+                    <div>
+                        <Row>
+                            <Box
+                                width={1}
+                                style={{ backgroundColor: "#171d39" }}
+                            >
+                                Detected An Account ID
+                            </Box>
+                        </Row>
+                        <Row>
+                            <Box width={1 / 2}>Recipient</Box>
+                            <Box width={1 / 2}>Send Funds</Box>
+                        </Row>
+                        <Row>
+                            <Box width={1 / 2}>
+                                {this.props.recipientID}
+                                <br />
+                                Recipient balance:
+                            </Box>
+                            <Box width={1 / 2}>
+                                <div className="detected-inner-amount">
+                                    Amount
+                                </div>
+                                <div className="detected-inner-address">
+                                    <input
+                                        placeholder="Enter Amount"
+                                        value={this.state.inputPerls}
+                                        onChange={this.updateInputPerls}
+                                    />
+                                </div>
+                                <div className="detected-inner-checked">
+                                    Double checked
+                                </div>
+                                <div className="detected-inner-sendperls">
+                                    <button onClick={this.handleButtonClick}>
+                                        Send Perls
+                                    </button>
+                                </div>
+                            </Box>
+                        </Row>
                     </div>
                 </div>
 
