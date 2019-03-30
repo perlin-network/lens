@@ -40,7 +40,12 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                 >
                     <div>
                         <Row>
-                            <Box width={1}>Detected An Account ID</Box>
+                            <Box
+                                width={1}
+                                style={{ backgroundColor: "#171d39" }}
+                            >
+                                Detected An Account ID
+                            </Box>
                         </Row>
                         <Row>
                             <Box width={1 / 2}>Recipient</Box>
