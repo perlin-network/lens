@@ -81,7 +81,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                         Validator Performance
                         <ChartSubtitle>Transactions Per Second</ChartSubtitle>
                     </ChartHeader>
-                    <ValidatorChart />
+                    <ValidatorChart csv={getSampleData()} />
                 </ChartWrapper>
             </Box>
             <Box width={5 / 12}>
@@ -100,6 +100,22 @@ const ValidatorView: React.SFC<{}> = observer(() => {
         </Flex>
     );
 });
+
+const getSampleData = (): string => {
+    return `date,temperature
+    201901,0
+    201902,0
+    201903,0
+    201904,0
+    201905,0
+    201906,0
+    201907,0
+    201908,0
+    201909,0
+    201910,0
+    201911,0
+    201912,-10`;
+};
 
 const useWalletStake = () => {
     const stake = useComputed(() => {

@@ -1,5 +1,4 @@
 import * as React from "react";
-import { createRef } from "react";
 import * as d3 from "d3";
 
 // @ts-ignore
@@ -7,6 +6,7 @@ import { withSize } from "react-sizeme";
 
 interface IChartProps {
     size: any;
+    csv: string;
 }
 
 interface IState {
@@ -20,6 +20,9 @@ class Chart extends React.Component<IChartProps, IState> {
     private y: any;
     private area: any;
     private valueline: any;
+
+    private gridline = React.createRef<any>();
+    private yAxis = React.createRef<any>();
 
     private margin = {
         top: 20,
@@ -42,7 +45,7 @@ class Chart extends React.Component<IChartProps, IState> {
         this.x = d3.scaleTime().range([0, this.width]);
         this.y = d3.scaleLinear().range([this.height, 0]);
 
-        const parseDate = d3.timeParse("%Y%m%d");
+        const parseDate = d3.timeParse("%Y%m");
         this.area = d3
             .area()
             .x((d: any) => this.x(d.date))
@@ -54,19 +57,25 @@ class Chart extends React.Component<IChartProps, IState> {
             .x((d: any) => this.x(d.date))
             .y((d: any) => this.y(d.temperature));
 
-        const rawData = d3.csvParse(this.getData());
+        const rawData = d3.csvParse(this.props.csv);
         rawData.forEach((d: any) => {
             d.date = parseDate(d.date.replace(/\s/g, ""));
             d.temperature = +d.temperature;
         });
-        // @ts-ignore
         this.x.domain([rawData[0].date, rawData[rawData.length - 1].date]);
-        // @ts-ignore
-        this.y.domain(d3.extent(rawData, (d: any) => d.temperature));
+        this.y.domain([-10, 50]);
 
         this.setState({
             data: rawData
         });
+
+        d3.select(this.gridline.current).call(
+            d3
+                .axisBottom(this.x)
+                .ticks(10)
+                .tickSize(-this.height)
+        );
+        d3.select(this.yAxis.current).call(d3.axisLeft(this.y));
     }
 
     public render() {
@@ -104,32 +113,17 @@ class Chart extends React.Component<IChartProps, IState> {
                             d={this.area(this.state.data)}
                         />
                     ) : null}
+                    <g ref={this.yAxis} style={{ opacity: 0.15 }}>
+                        <text>Temperature</text>
+                    </g>
+                    <g
+                        transform={`translate(0, ${this.height})`}
+                        ref={this.gridline}
+                        style={{ opacity: 0.15 }}
+                    />
                 </g>
             </svg>
         );
-    }
-
-    public getData() {
-        return `date,temperature
-        20120912,55.7
-        20120913,54.3
-        20120914,55.2
-        20120915,54.3
-        20120916,52.9
-        20120917,54.8
-        20120918,54.8
-        20120919,56.8
-        20120920,55.4
-        20120921,55.8
-        20120922,55.9
-        20120923,52.8
-        20120924,54.5
-        20120925,53.3
-        20120926,53.6
-        20120927,52.1
-        20120928,52.6
-        20120929,53.9
-        20120930,55.1`;
     }
 }
 
