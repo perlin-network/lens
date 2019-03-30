@@ -2,65 +2,59 @@ import * as React from "react";
 import { useState } from "react";
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
-import { Card } from "../common/core";
-import { InfoIcon, InfoText, InfoTitle } from "../common/typography";
+
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
-import PlaceStakeIcon from "../../assets/svg/place-stake-icon.svg";
-import WithdrawStakeIcon from "../../assets/svg/withdraw-stake-icon.svg";
-import StakeModal, { StakeModalActions } from "./StakeModal";
+import { ValidatorChart } from "./ValidatorChart";
 import { useWalletBalance } from "../wallet/WalletView";
 
-const LeftBlock = styled(Flex)``;
-const ConnectionWrapper = styled(Box)`
-    margin-left: 40px;
-`;
-const InfoWrapper = styled(Box)`
-    margin-right: 40px;
-`;
-const Divider = styled.hr`
-    height: inherit;
-    width: 0;
-    margin: 0;
-    border: 0;
-    border-left: 1px solid #fff;
-`;
-const StakeText = styled.p`
-    margin: 0 15px;
-    display: flex;
-    align-items: center;
-    font-size: 18px;
-    font-family: HKGrotesk;
-`;
-const ButtonIcon = styled.img`
-    height: 24px;
-    width: 24px;
-    cursor: pointer;
-`;
+import { StakeCard } from "./StakeCard";
 
 const perlin = Perlin.getInstance();
 
+export enum StakeActions {
+    Place = "Place",
+    Withdraw = "Withdraw",
+    None = ""
+}
+
+const ChartWrapper = styled.div`
+    border: 0;
+    word-wrap: break-word;
+    margin: 0px;
+    background-color: #151b35;
+    border-radius: 5px;
+    margin-right: 20px;
+    font-family: HKGrotesk;
+    padding: 20px;
+`;
+
+const ChartHeader = styled.div`
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+`;
+
+const ChartSubtitle = styled.span`
+    display: block;
+    margin-top: 5px;
+    color: #717985;
+    font-size: 14px;
+    font-weight: 500;
+`;
+
 const ValidatorView: React.SFC<{}> = observer(() => {
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalAction, setModalAction] = useState(StakeModalActions.Place);
     const balance = useWalletBalance();
 
-    const handlePlaceStakeClick = () => {
-        setModalOpen(true);
-        setModalAction(StakeModalActions.Place);
-    };
-    const handleWithdrawStakeClick = () => {
-        setModalAction(StakeModalActions.Withdraw);
-        setModalOpen(true);
-    };
-    const handleClose = () => {
-        setModalOpen(false);
-    };
+    const stake = useWalletStake();
+
+    const [action, setAction] = useState(StakeActions.None);
+
     const handlePlaceStake = async (amount: number) => {
         if (!isNaN(amount)) {
             try {
                 await perlin.placeStake(amount);
-                setModalOpen(false);
+                // setModalOpen(false);
             } catch (err) {
                 console.log(err);
             }
@@ -71,62 +65,57 @@ const ValidatorView: React.SFC<{}> = observer(() => {
         if (!isNaN(amount)) {
             try {
                 await perlin.withdrawStake(amount);
-                setModalOpen(false);
+                // setModalOpen(false);
             } catch (err) {
                 console.log(err);
             }
         }
         // display error message
     };
-    const stake = useWalletStake();
 
     return (
-        <Card>
-            <LeftBlock>
-                <InfoWrapper>
-                    <InfoTitle>Your Earnings</InfoTitle>
-                    <InfoText>
-                        <InfoIcon />
-                        1000
-                    </InfoText>
-                </InfoWrapper>
-                <InfoWrapper>
-                    <InfoTitle>Your Stakes</InfoTitle>
-                    <Flex alignItems="center">
-                        <ButtonIcon
-                            src={PlaceStakeIcon}
-                            onClick={handlePlaceStakeClick}
-                        />
-                        <StakeText>
-                            <InfoIcon />
-                            {stake ? stake : "N/A"}
-                        </StakeText>
-                        <ButtonIcon
-                            src={WithdrawStakeIcon}
-                            onClick={handleWithdrawStakeClick}
-                        />
-                    </Flex>
-                </InfoWrapper>
-            </LeftBlock>
-            <Divider />
-            <ConnectionWrapper>
-                <InfoTitle>Connected As:</InfoTitle>
-                <InfoText breakWord={true}>{perlin.ledger.public_key}</InfoText>
-            </ConnectionWrapper>
-            <StakeModal
-                open={modalOpen}
-                action={modalAction}
-                onClose={handleClose}
-                onSubmit={
-                    modalAction === StakeModalActions.Place
-                        ? handlePlaceStake
-                        : handleWithdrawStake
-                }
-                balance={balance}
-            />
-        </Card>
+        <Flex>
+            <Box width={7 / 12}>
+                <ChartWrapper>
+                    <ChartHeader>
+                        Validator Performance
+                        <ChartSubtitle>Transactions Per Second</ChartSubtitle>
+                    </ChartHeader>
+                    <ValidatorChart csv={getSampleData()} />
+                </ChartWrapper>
+            </Box>
+            <Box width={5 / 12}>
+                <StakeCard
+                    stake={stake}
+                    balance={balance}
+                    setAction={setAction}
+                    action={action}
+                    onSubmit={
+                        action === StakeActions.Place
+                            ? handlePlaceStake
+                            : handleWithdrawStake
+                    }
+                />
+            </Box>
+        </Flex>
     );
 });
+
+const getSampleData = (): string => {
+    return `date,temperature
+    201901,0
+    201902,0
+    201903,0
+    201904,0
+    201905,0
+    201906,0
+    201907,0
+    201908,0
+    201909,0
+    201910,0
+    201911,0
+    201912,-10`;
+};
 
 const useWalletStake = () => {
     const stake = useComputed(() => {
