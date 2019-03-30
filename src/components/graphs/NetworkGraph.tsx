@@ -85,7 +85,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
             links.alpha = 0.6;
             this.edges.forEach(link => {
                 const { source, target } = link;
-                links.lineStyle(3, 0x57305e);
+                links.lineStyle(3, 0x4a41d1);
                 links.moveTo(source.x, source.y);
                 links.lineTo(target.x, target.y);
             });
@@ -175,8 +175,8 @@ function getInteractiveNode(self: string) {
         gfx: new PIXI.Graphics()
     };
     const nodeSize = 10;
-    node.gfx.beginFill(0x7667cb);
-    node.gfx.lineStyle(1, 0xffffff);
+    node.gfx.beginFill(0x4a41d1);
+    node.gfx.lineStyle(1, 0x4a41d1);
     node.gfx.drawCircle(0, 0, nodeSize);
     node.gfx.interactive = true;
     node.gfx.buttonMode = true;
@@ -194,7 +194,7 @@ function getInteractiveNode(self: string) {
 
     // on node mouseout
     node.gfx.on("mouseout", () => {
-        node.gfx.lineStyle(0, 0xffffff);
+        node.gfx.lineStyle(0, 0xffffff00);
         node.gfx.drawCircle(0, 0, nodeSize);
         networkTooltip.visible = false;
     });

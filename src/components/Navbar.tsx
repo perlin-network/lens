@@ -18,11 +18,8 @@ export default class Navbar extends React.Component<{}, {}> {
     public render() {
         return (
             <Wrapper>
-                <Box width={1 / 6}>
-                    <img src={perlinLogo} style={{ width: "12em" }} />
-                </Box>
-                <Box width={3 / 6} />
-                <Box width={2 / 6}>
+                <Box width={2 / 3} />
+                <Box width={1 / 3}>
                     <div className="QR-grid">
                         <div className="QR-grid-row1">
                             {perlin.publicKeyHex}

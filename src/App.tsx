@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Perlin } from "./Perlin";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
@@ -18,31 +17,31 @@ import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
-import BackgroundSVG from "./assets/svg/background.svg";
-
-const BackgroundWave = styled.div`
-    position: absolute;
-    top: -250px;
-    right: 0;
-    left: 0;
-    height: 800px;
-    z-index: -1;
-    background: url(${BackgroundSVG}) bottom center / auto 100% no-repeat;
-`;
+import MainBackgroundSVG from "./assets/svg/main-background.svg";
 
 const ContentWrapper = styled(Flex)`
-    margin: 1em 64px;
+    margin: 0px;
+    padding: 0px;
+    background-color: #0c112b;
+    min-height: 100vh;
 `;
 const SideWrapper = styled(Box).attrs({
     width: 1 / 6
 })`
+    background-color: #0c112b;
+    margin: 0px;
+    padding: 0px;
     min-width: 150px;
+    max-width: 250px;
 `;
 const Content = styled(Box).attrs({
     width: 5 / 6
-})``;
-
-const perlin = Perlin.getInstance();
+})`
+    background-image: url(${MainBackgroundSVG});
+    margin: 0px;
+    padding-left: 2em;
+    padding-right: 2em;
+`;
 
 const routes = [
     { path: "/", component: Dashboard },
@@ -61,13 +60,12 @@ class App extends React.Component<RouteComponentProps, {}> {
     public render() {
         return (
             <>
-                <BackgroundWave />
-                <Navbar />
                 <ContentWrapper>
                     <SideWrapper>
                         <SideNav />
                     </SideWrapper>
                     <Content>
+                        <Navbar />
                         <Switch>
                             {routes.map(route => (
                                 <Route

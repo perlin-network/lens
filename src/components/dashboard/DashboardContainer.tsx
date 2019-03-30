@@ -1,40 +1,91 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
+import { Perlin } from "../../Perlin";
 import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
-import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
-import WalletView from "../wallet/WalletView";
+import QuickSend from "./quicksend/QuickSend";
+import DataCard from "./DataCard";
+import "./dashboard.scss";
+
+const perlin = Perlin.getInstance();
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
-export default class DashboardContainer extends React.Component<{}, {}> {
+const CardHeadings = styled.h2`
+    font-family: HKGrotesk;
+    font-size: 16px;
+    padding-left: 20px;
+    font-weight: 500;
+`;
+
+const GraphBox = styled(Box)`
+    background-color: #151c35;
+    border-radius: 5px;
+`;
+
+export default class DashboardContainer extends React.Component {
     public render() {
         return (
             <>
                 <Row>
                     <Box width={1}>
-                        <WalletView />
+                        <QuickSend />
                     </Box>
                 </Row>
                 <Row>
-                    <Box width={1 / 2}>
-                        <SectionTitle>Transaction Graph</SectionTitle>
-                        <TransactionGraphPixi />
-                    </Box>
-                    <Box width={1 / 2} style={{ marginLeft: "40px" }}>
-                        <SectionTitle>Network Graph</SectionTitle>
+                    <div className="cards-row">
+                        <div className="card-cell">
+                            <DataCard
+                                heading="Wallet Balance"
+                                value={perlin.account.balance.toString()}
+                                unit="PERLs"
+                            />
+                        </div>
+                        <div className="card-cell">
+                            <DataCard
+                                heading="Your Earnings"
+                                value="400000"
+                                unit="PERLs"
+                            />
+                        </div>
+                        <div className="card-cell">
+                            <DataCard
+                                heading="Your Stake"
+                                value="5000"
+                                unit="PERLs"
+                            />
+                        </div>
+                        <div className="card-cell">
+                            <DataCard
+                                heading="Network Load"
+                                value="10334"
+                                unit="Avg TPS"
+                            />
+                        </div>
+                    </div>
+                </Row>
+                <Row>
+                    <GraphBox width={1 / 2}>
+                        <CardHeadings>Network</CardHeadings>
+                        <hr />
                         <NetworkGraph />
+                    </GraphBox>
+                    <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
+                        <CardHeadings>Transactions</CardHeadings>
+                        <hr />
+                        <TransactionGraphPixi />
+                    </GraphBox>
+                </Row>
+                <Row>
+                    <Box width={1 / 1}>
+                        <CardHeadings>Transactions</CardHeadings>
+                        <TransactionsTable />
                     </Box>
                 </Row>
-                <Box width={1}>
-                    <SectionTitle>Transactions</SectionTitle>
-                    <TransactionsTable />
-                </Box>
-                <Row />
             </>
         );
     }

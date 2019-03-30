@@ -53,7 +53,6 @@ export default class HostInput extends React.Component<IProps, IState> {
     };
 
     public getHostValue = () => {
-        console.log("hostInputHost", this.state.newHost);
         return this.state.newHost;
     };
 

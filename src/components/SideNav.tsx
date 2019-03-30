@@ -1,19 +1,22 @@
 import * as React from "react";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
-import DashboardIcon from "../assets/svg/Dashboard.svg";
-import WalletIcon from "../assets/svg/Wallet.svg";
-import NetworkIcon from "../assets/svg/Network.svg";
-import ValidatorIcon from "../assets/svg/Validator.svg";
-import ContractIcon from "../assets/svg/Contracts.svg";
-import SettingsIcon from "../assets/svg/Settings.svg";
+import DashboardIcon from "../assets/svg/navbar-dashboard.svg";
+import NetworkIcon from "../assets/svg/navbar-network.svg";
+import ValidatorIcon from "../assets/svg/navbar-validator.svg";
+import DeveloperIcon from "../assets/svg/navbar-developer.svg";
+import SettingsIcon from "../assets/svg/navbar-settings.svg";
+import LogoutIcon from "../assets/svg/navbar-logout.svg";
+import perlinLogo from "../assets/svg/perlin-logo.svg";
 
 const NavIcon = styled.img`
     height: 16px;
     margin-right: 10px;
 `;
 const NavItem = styled.div<INavItemProps>`
-    font-family: Montserrat;
+    font-family: HKGrotesk;
+    font-size: 1em;
+    opacity: 0.5;
     display: flex;
     align-items: center;
     height: 36.5px;
@@ -24,16 +27,10 @@ const NavItem = styled.div<INavItemProps>`
     width: 135px;
     ${props =>
         props.active &&
-        `&::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            border-bottom-right-radius: 3.2px;
-            border-top-right-radius: 3.2px;
-            box-shadow: 4px 0 7px 0 rgba(48, 48, 48, 0.1);
-            background-color: #ffffff;
+        `{
+            font-weight: bold;
+            opacity: 1.0;
+
         }`}
 `;
 
@@ -49,11 +46,11 @@ interface INavItem {
 
 const items: INavItem[] = [
     { title: "Dashboard", link: "/", icon: DashboardIcon },
-    { title: "Wallet", link: "/wallet", icon: WalletIcon },
     { title: "Network", link: "/network", icon: NetworkIcon },
     { title: "Validator", link: "/validator", icon: ValidatorIcon },
-    { title: "Smart contract", link: "/contracts", icon: ContractIcon },
-    { title: "Settings", link: "/settings", icon: SettingsIcon }
+    { title: "Developer", link: "/contracts", icon: DeveloperIcon },
+    { title: "Settings", link: "/settings", icon: SettingsIcon },
+    { title: "Logout", link: "/logout", icon: LogoutIcon }
 ];
 
 class SideNav extends React.Component<RouteComponentProps, {}> {
@@ -62,6 +59,15 @@ class SideNav extends React.Component<RouteComponentProps, {}> {
 
         return (
             <>
+                <img
+                    src={perlinLogo}
+                    style={{
+                        maxWidth: "150px",
+                        padding: "20px",
+                        marginBottom: "2em"
+                    }}
+                />
+
                 {items.map(item => (
                     <NavItem
                         key={item.title}
