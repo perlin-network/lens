@@ -1,5 +1,4 @@
 import * as React from "react";
-// import ReactTable from "react-table";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
