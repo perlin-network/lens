@@ -1,0 +1,27 @@
+
+<svg width="58px" height="19px" viewBox="0 0 58 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <linearGradient x1="123.308101%" y1="49.9384426%" x2="-38.5724687%" y2="50.0615574%" id="linearGradient-1">
+            <stop stop-color="#74FFE4" offset="0%"></stop>
+            <stop stop-color="#74FFE4" offset="16.0286646%"></stop>
+            <stop stop-color="#A078FF" offset="49.9938285%"></stop>
+            <stop stop-color="#FF95B3" offset="78.1540329%"></stop>
+            <stop stop-color="#FFA5A5" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="66.23432%" y1="0%" x2="30.3853357%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#74FFE4" offset="0%"></stop>
+            <stop stop-color="#74FFE4" offset="16.0286646%"></stop>
+            <stop stop-color="#A078FF" offset="49.9938285%"></stop>
+            <stop stop-color="#FF95B3" offset="78.1540329%"></stop>
+            <stop stop-color="#FFA5A5" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="🖥-Desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dashboard----Morph-Dropdown---Sent" transform="translate(-847.000000, -594.000000)" stroke-width="2">
+            <g id="unite" transform="translate(846.000000, 595.000000)">
+                <path d="M1,8 L57,8" id="Path" stroke="url(#linearGradient-1)"></path>
+                <polyline id="Path" stroke="url(#linearGradient-2)" points="49 0 57 8.5 49 17"></polyline>
+            </g>
+        </g>
+    </g>
+</svg>

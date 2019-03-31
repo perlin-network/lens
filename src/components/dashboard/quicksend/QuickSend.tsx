@@ -19,7 +19,7 @@ const QuickSendInput = styled.input`
     border: 1px solid #2e345100;
     color: white;
     width: 75%;
-    padding: 20px;
+    padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
 `;
