@@ -22,6 +22,7 @@ const Row = styled(Flex)`
 interface IState {
     toggleComponent: string;
     inputPerls: string;
+    doubleChecked: boolean;
 }
 
 const SendPerlsInput = styled.input`
@@ -59,9 +60,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         super(props);
         this.state = {
             toggleComponent: "showDetectedAccount",
-            inputPerls: ""
+            inputPerls: "",
+            doubleChecked: false
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
+        this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
     }
     /*getRecipientBalance = async (recipientID: string) => {
         try {
@@ -155,7 +158,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     <input
                                         type="checkbox"
                                         name="confirmSendPerls"
-                                        value="confirmSendPerls"
+                                        checked={this.state.doubleChecked}
+                                        onChange={this.handleCheckboxChange}
                                         style={{
                                             border: "1px solid #3a3f5b",
                                             backgroundColor: "#00000000",
@@ -228,16 +232,23 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         );
     }
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
-        const value = e.target.value;
-        this.setState({ inputPerls: value });
+        this.setState({ inputPerls: e.target.value });
     }
     private handleButtonClick = () => {
-        if (this.successfulSend()) {
-            this.setState({ toggleComponent: "showSendConfirmation" });
+        if (this.state.doubleChecked) {
+            if (this.successfulSend()) {
+                this.setState({ toggleComponent: "showSendConfirmation" });
+            } else {
+                this.setState({ toggleComponent: "showDetectedAccount" }); // if fail, toggle fail component
+            }
         } else {
-            this.setState({ toggleComponent: "showDetectedAccount" }); // if fail, toggle fail component
+            console.log("Please double-check your PERLs before sending");
         }
     };
+    private handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const doubleChecked = e.target.checked;
+        this.setState({ doubleChecked });
+    }
     private successfulSend = () => {
         if (
             this.state.inputPerls !== "" &&
