@@ -27,6 +27,7 @@ const QuickSendInput = styled.input`
         border: 1px solid #4a41d1;
     }
     &:focus {
+        cursor: text;
         border: 1px solid #4a41d1;
         outline: 0;
     }
@@ -46,6 +47,7 @@ export default class QuickSend extends React.Component<{}, IState> {
         };
         this.updateinputID = this.updateinputID.bind(this);
         this.onEnter = this.onEnter.bind(this);
+        this.handleRestart = this.handleRestart.bind(this);
     }
 
     public render() {
@@ -75,7 +77,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                             : "hideComp"
                     }
                 >
-                    <SendFail />
+                    <SendFail restartComponents={this.handleRestart} />
                 </div>
             </>
         );
@@ -97,4 +99,9 @@ export default class QuickSend extends React.Component<{}, IState> {
         const re = /[0-9A-Fa-f]{64}/g;
         return re.test(this.state.inputID);
     };
+    private handleRestart(restart: boolean) {
+        if (restart) {
+            this.setState({ toggleComponent: "" });
+        }
+    }
 }

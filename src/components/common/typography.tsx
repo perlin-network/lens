@@ -10,6 +10,7 @@ import QuickSendFail from "../../assets/svg/quicksend-error.svg";
 import QuickSendSuccess from "../../assets/svg/quicksend-success.svg";
 import QuickSendThumbsUp from "../../assets/svg/quicksend-thumbsup.svg";
 import QuickSendArrow from "../../assets/svg/quicksend-arrow.svg";
+import CancelCard from "../../assets/svg/cancel-card.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -81,6 +82,15 @@ const QuickSendArrowIcon = styled.img.attrs({ src: QuickSendArrow })`
     max-width: 100px;
     margin-right: 10px;
 `;
+const CancelCardIcon = styled.img.attrs({ src: CancelCard })`
+    max-height: 16px;
+    max-width: 16px;
+    top: 20px;
+    right: 20px;
+    &:hover {
+        cursor: pointer;
+    }
+`;
 
 interface InfoTextProps {
     breakWord?: boolean;
@@ -119,5 +129,6 @@ export {
     QuickSendErrorIcon,
     QuickSendSuccessIcon,
     QuickSendThumbsUpIcon,
-    QuickSendArrowIcon
+    QuickSendArrowIcon,
+    CancelCardIcon
 };

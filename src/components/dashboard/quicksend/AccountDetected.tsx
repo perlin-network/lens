@@ -15,15 +15,15 @@ interface IProps {
     recipientID: string;
 }
 
-const Row = styled(Flex)`
-    margin-bottom: ${props => props.theme.margin.row};
-`;
-
 interface IState {
     toggleComponent: string;
     inputPerls: string;
     doubleChecked: boolean;
 }
+
+const Row = styled(Flex)`
+    margin-bottom: ${props => props.theme.margin.row};
+`;
 
 const SendPerlsInput = styled.input`
     font-family: HKGrotesk;
