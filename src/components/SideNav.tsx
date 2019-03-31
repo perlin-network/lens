@@ -9,14 +9,21 @@ import SettingsIcon from "../assets/svg/navbar-settings.svg";
 import LogoutIcon from "../assets/svg/navbar-logout.svg";
 import perlinLogo from "../assets/svg/perlin-logo.svg";
 
-const NavIcon = styled.img`
+const NavIcon = styled.img<INavItemProps>`
     height: 16px;
     margin-right: 10px;
+    opacity: 0.5;
+    ${props =>
+        props.active &&
+        `{
+            font-weight: bold;
+            opacity: 1.0;
+
+        }`}
 `;
 const NavItem = styled.div<INavItemProps>`
     font-family: HKGrotesk;
     font-size: 1em;
-    opacity: 0.5;
     display: flex;
     align-items: center;
     height: 36.5px;
@@ -25,6 +32,10 @@ const NavItem = styled.div<INavItemProps>`
     cursor: pointer;
     position: relative;
     width: 135px;
+    &:hover {
+        font-weight: bold;
+        color: white;
+    }
     ${props =>
         props.active &&
         `{
@@ -76,7 +87,10 @@ class SideNav extends React.Component<RouteComponentProps, {}> {
                         }
                         active={pathname === item.link}
                     >
-                        <NavIcon src={item.icon} />
+                        <NavIcon
+                            src={item.icon}
+                            active={pathname === item.link}
+                        />
                         {item.title}
                     </NavItem>
                 ))}
