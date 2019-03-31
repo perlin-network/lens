@@ -22,6 +22,14 @@ const QuickSendInput = styled.input`
     padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
 `;
 
 interface IState {

@@ -35,6 +35,14 @@ const SendPerlsInput = styled.input`
     padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
 `;
 
 const SendPerlsButton = styled.button`
@@ -50,6 +58,15 @@ const SendPerlsButton = styled.button`
     padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
+    &:hover {
+        cursor: pointer;
+        background-color: #d4d5da;
+    }
+    &:focus {
+        background-color: #d4d5da;
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
 `;
 
 const perlin = Perlin.getInstance();
