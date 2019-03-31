@@ -7,6 +7,7 @@ import DataCardNetworkIcon from "../../assets/svg/datacard-network.svg";
 import DataCardStakeIcon from "../../assets/svg/datacard-stake.svg";
 import DataCardWalletIcon from "../../assets/svg/datacard-wallet.svg";
 import QuickSendFailIcon from "../../assets/svg/quicksend-error.svg";
+import DataCopyIcon from "../../assets/svg/copy-icon.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -61,6 +62,11 @@ const QuickSendErrorIcon = styled.img.attrs({ src: QuickSendFailIcon })`
     max-width: 24px;
 `;
 
+const CopyIcon = styled.img.attrs({ src: DataCopyIcon })`
+    max-height: 24px;
+    max-width: 24px;
+`;
+
 interface InfoTextProps {
     breakWord?: boolean;
 }
@@ -95,5 +101,6 @@ export {
     EarningsIcon,
     StakeIcon,
     NetworkIcon,
-    QuickSendErrorIcon
+    QuickSendErrorIcon,
+    CopyIcon
 };
