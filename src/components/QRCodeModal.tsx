@@ -62,6 +62,7 @@ const QRWrapper = styled.div`
     background-color: white;
     border-radius: 50%;
     padding: 50px 50px 50px 50px;
+    margin-bottom: 25px;
 
     & > * {
         height: auto;
