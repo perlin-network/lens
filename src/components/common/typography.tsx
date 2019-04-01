@@ -11,6 +11,7 @@ import QuickSendSuccess from "../../assets/svg/quicksend-success.svg";
 import QuickSendThumbsUp from "../../assets/svg/quicksend-thumbsup.svg";
 import QuickSendArrow from "../../assets/svg/quicksend-arrow.svg";
 import CancelCard from "../../assets/svg/cancel-card.svg";
+import DataCopyIcon from "../../assets/svg/copy-icon.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -61,6 +62,11 @@ const NetworkIcon = styled.img.attrs({ src: DataCardNetwork })`
 `;
 
 const QuickSendErrorIcon = styled.img.attrs({ src: QuickSendFail })`
+    max-height: 24px;
+    max-width: 24px;
+`;
+
+const CopyIcon = styled.img.attrs({ src: DataCopyIcon })`
     max-height: 24px;
     max-width: 24px;
 `;
@@ -127,6 +133,7 @@ export {
     StakeIcon,
     NetworkIcon,
     QuickSendErrorIcon,
+    CopyIcon,
     QuickSendSuccessIcon,
     QuickSendThumbsUpIcon,
     QuickSendArrowIcon,

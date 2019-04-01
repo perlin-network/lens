@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="16" viewBox="0 0 14 16">
+  <g id="Icon_16px_" data-name="Icon/16px " transform="translate(-1)" opacity="0.3">
+    <g id="Icon">
+      <g id="single-copy-04" transform="translate(1)">
+        <path id="Path" d="M9,0H1A.945.945,0,0,0,0,1V11a.945.945,0,0,0,1,1H9a.945.945,0,0,0,1-1V1A.945.945,0,0,0,9,0Z" transform="translate(0 4)" fill="#fff"/>
+        <path id="Path-2" data-name="Path" d="M10,0H0V2H9V13h2V1A.945.945,0,0,0,10,0Z" transform="translate(3)" fill="#fff"/>
+      </g>
+    </g>
+  </g>
+</svg>
