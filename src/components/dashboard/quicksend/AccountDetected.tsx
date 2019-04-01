@@ -7,18 +7,22 @@ import { observer } from "mobx-react";
 import {
     QuickSendSuccessIcon,
     QuickSendThumbsUpIcon,
-    QuickSendArrowIcon
+    QuickSendArrowIcon,
+    CancelCardIcon
 } from "../../common/typography";
 import { QRCode } from "react-qr-svg";
 
 interface IProps {
     recipientID: string;
+    restartComponents: any;
+    fixRecipient: boolean;
 }
 
 interface IState {
     toggleComponent: string;
     inputPerls: string;
     doubleChecked: boolean;
+    recipient: string;
 }
 
 const Row = styled(Flex)`
@@ -78,10 +82,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         this.state = {
             toggleComponent: "showDetectedAccount",
             inputPerls: "",
-            doubleChecked: false
+            doubleChecked: false,
+            recipient: this.props.recipientID
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
+    }
+    public componentWillReceiveProps(nextProps: IProps) {
+        if (nextProps.fixRecipient === false) {
+            this.setState({ recipient: nextProps.recipientID });
+        }
     }
     /*getRecipientBalance = async (recipientID: string) => {
         try {
@@ -103,9 +113,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     <div
                         style={{
                             backgroundColor: "#1b213d",
-                            paddingBottom: "20px"
+                            paddingBottom: "20px",
+                            position: "relative"
                         }}
                     >
+                        <CancelCardIcon
+                            style={{ position: "absolute" }}
+                            onClick={this.cancelSend}
+                        />
                         <Row>
                             <Box
                                 width={1}
@@ -148,7 +163,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         />
                                     </Box>
                                     <Box width={3 / 5}>
-                                        {this.props.recipientID}
+                                        {this.state.recipient}
                                         <br />
                                         Recipient balance:
                                     </Box>
@@ -159,13 +174,12 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 className="right-padding break-word"
                             >
                                 <div>Amount</div>
-                                <div>
-                                    <SendPerlsInput
-                                        placeholder="Enter Amount"
-                                        value={this.state.inputPerls}
-                                        onChange={this.updateInputPerls}
-                                    />
-                                </div>
+                                <SendPerlsInput
+                                    placeholder="Enter Amount"
+                                    value={this.state.inputPerls}
+                                    onChange={this.updateInputPerls}
+                                />
+                                Fee: 0.00001 PERLs
                                 <div
                                     style={{
                                         marginTop: "20px",
@@ -205,9 +219,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     }
                     style={{
                         backgroundColor: "#1b213d",
-                        paddingBottom: "20px"
+                        paddingBottom: "20px",
+                        position: "relative"
                     }}
                 >
+                    <CancelCardIcon
+                        style={{ position: "absolute" }}
+                        onClick={this.cancelSend}
+                    />
                     <Row style={{ padding: "40px" }}>
                         <Box width={1 / 6}>
                             <QuickSendThumbsUpIcon />
@@ -241,7 +260,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             width={2 / 5}
                             className="break-word vertical-center-align"
                         >
-                            To {this.props.recipientID}
+                            To {this.state.recipient}
                         </Box>
                     </Row>
                 </div>
@@ -272,7 +291,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             !isNaN(Number(this.state.inputPerls))
         ) {
             perlin.transfer(
-                this.props.recipientID,
+                this.state.recipient,
                 Number(this.state.inputPerls)
             );
             // further validation required for successful send
@@ -281,5 +300,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             console.log("not a number");
             return false;
         }
+    };
+    private cancelSend = () => {
+        this.props.restartComponents(true);
+        this.setState({
+            toggleComponent: "showDetectedAccount",
+            inputPerls: "",
+            doubleChecked: false
+        });
     };
 }
