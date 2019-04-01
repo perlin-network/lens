@@ -1,13 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
-import { useState } from "react";
+
 import "../index.scss";
 import { Flex, Box } from "@rebass/grid";
 import { Perlin } from "../Perlin";
 import { observer } from "mobx-react-lite";
-import { QRCode } from "react-qr-svg";
 import { CopyIcon } from "./common/typography";
-import QRCodeModal from "./QRCodeModal";
+import { QRCodeWidget } from "./common/qr";
 import { useWalletBalance } from "./wallet/WalletView";
 
 const Header = styled(Flex)`
@@ -83,7 +82,6 @@ const perlin = Perlin.getInstance();
 const Navbar: React.SFC<{}> = observer(() => {
     const balance = useWalletBalance();
     const pubKey = perlin.publicKeyHex;
-    const [qrmodalOpen, setQrmodalOpen] = useState(false);
 
     const copyPubkeyToClipboard = () => {
         const el = document.createElement("textarea");
@@ -97,14 +95,6 @@ const Navbar: React.SFC<{}> = observer(() => {
         document.body.removeChild(el);
 
         // todo : show success message
-    };
-
-    const handleClose = () => {
-        setQrmodalOpen(false);
-    };
-
-    const showQrModal = () => {
-        setQrmodalOpen(true);
     };
 
     return (
@@ -121,15 +111,13 @@ const Navbar: React.SFC<{}> = observer(() => {
                     My Balance
                     <span>{balance ? balance : "N/A"}&nbsp;PERLs</span>
                 </Item>
-                <QRWrapper onClick={showQrModal}>
-                    <QRCode value={perlin.publicKeyHex} />
-                </QRWrapper>
+                <QRCodeWidget
+                    publicKeyHex={pubKey}
+                    clickable={true}
+                    width={50}
+                    height={50}
+                />
             </Container>
-            <QRCodeModal
-                open={qrmodalOpen}
-                onClose={handleClose}
-                pubkey={pubKey}
-            />
         </Header>
     );
 });
