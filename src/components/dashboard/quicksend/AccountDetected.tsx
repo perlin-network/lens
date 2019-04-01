@@ -113,7 +113,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     <div
                         style={{
                             backgroundColor: "#1b213d",
-                            paddingBottom: "20px",
+                            paddingBottom: "15px",
                             position: "relative"
                         }}
                     >
@@ -126,14 +126,20 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 width={1}
                                 style={{
                                     backgroundColor: "#171d39",
-                                    padding: "20px"
+                                    padding: "15px"
                                 }}
                             >
                                 <QuickSendSuccessIcon />
                                 Detected An Account ID
                             </Box>
                         </Row>
-                        <Row className="left-right-padding break-word">
+                        <Row
+                            className="break-word"
+                            style={{
+                                paddingLeft: "40px",
+                                paddingRight: "40px"
+                            }}
+                        >
                             <Box
                                 width={1 / 2}
                                 style={{ fontWeight: 500, fontSize: "16px" }}
@@ -147,11 +153,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 Send Funds
                             </Box>
                         </Row>
-                        <Row>
-                            <Box
-                                width={1 / 2}
-                                className="left-right-padding break-word"
-                            >
+                        <Row
+                            className="break-word"
+                            style={{
+                                paddingLeft: "40px",
+                                paddingRight: "40px"
+                            }}
+                        >
+                            <Box width={1 / 2} className="break-word">
                                 <Row>
                                     <Box width={1 / 5}>
                                         <QRCode
@@ -169,10 +178,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     </Box>
                                 </Row>
                             </Box>
-                            <Box
-                                width={1 / 2}
-                                className="right-padding break-word"
-                            >
+                            <Box width={1 / 2} className="break-word">
                                 <div>Amount</div>
                                 <SendPerlsInput
                                     placeholder="Enter Amount"
@@ -219,7 +225,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     }
                     style={{
                         backgroundColor: "#1b213d",
-                        paddingBottom: "20px",
+                        paddingBottom: "15px",
                         position: "relative"
                     }}
                 >
@@ -227,12 +233,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         style={{ position: "absolute" }}
                         onClick={this.cancelSend}
                     />
-                    <Row style={{ padding: "40px" }}>
-                        <Box width={1 / 6}>
+                    <Row style={{ padding: "40px 20px 40px 40px" }}>
+                        <Box width={1 / 7}>
                             <QuickSendThumbsUpIcon />
                         </Box>
-                        <Box width={3 / 6} style={{ height: "100px" }}>
-                            <div style={{ verticalAlign: "middle" }}>
+                        <Box
+                            width={4 / 7}
+                            style={{ height: "100px" }}
+                            className="table-outer"
+                        >
+                            <div className="perlsSent table-inner">
                                 <span style={{ fontWeight: 500 }}>
                                     Your {this.state.inputPerls} PERLs are on
                                     their way!
@@ -242,7 +252,12 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </div>
                         </Box>
                     </Row>
-                    <Row style={{ padding: "20px" }}>
+                    <Row
+                        style={{
+                            paddingLeft: "40px",
+                            paddingRight: "40px"
+                        }}
+                    >
                         <Box
                             width={2 / 5}
                             className="break-word vertical-center-align"

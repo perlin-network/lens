@@ -11,7 +11,7 @@ const FailPrompt = styled.div`
     background-color: #351a35;
     color: white;
     width: 75%;
-    padding: 20px;
+    padding: 15px;
     vertical-align: middle;
 `;
 export default class SendFail extends React.Component<IProps, {}> {
