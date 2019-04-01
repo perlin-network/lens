@@ -25,11 +25,6 @@ interface IState {
     newHost: string;
 }
 
-interface IHostItem {
-    id: number;
-    value: string;
-}
-
 interface IProps {
     disabled: boolean;
     initialHost: string;

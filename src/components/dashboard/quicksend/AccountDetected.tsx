@@ -89,10 +89,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
     }
     public componentWillReceiveProps(nextProps: IProps) {
-        // You don't have to do this check first, but it can help prevent an unneeded render
         if (nextProps.fixRecipient === false) {
-            console.log("Is it fixed?", nextProps.fixRecipient);
-            this.setState({ recipient: this.props.recipientID });
+            this.setState({ recipient: nextProps.recipientID });
         }
     }
     /*getRecipientBalance = async (recipientID: string) => {
