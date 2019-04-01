@@ -68,7 +68,15 @@ export default class QuickSend extends React.Component<{}, IState> {
                             : "hideComp"
                     }
                 >
-                    <AccountDetected recipientID={this.state.inputID} />
+                    <AccountDetected
+                        recipientID={this.state.inputID}
+                        restartComponents={this.handleRestart}
+                        fixRecipient={
+                            this.state.toggleComponent === "showDetectedAccount"
+                                ? true
+                                : false
+                        }
+                    />
                 </div>
                 <div
                     className={
