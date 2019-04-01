@@ -23,6 +23,7 @@ interface IState {
     inputPerls: string;
     doubleChecked: boolean;
     recipient: string;
+    recipientBalance: number;
 }
 
 const Row = styled(Flex)`
@@ -83,7 +84,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             toggleComponent: "showDetectedAccount",
             inputPerls: "",
             doubleChecked: false,
-            recipient: this.props.recipientID
+            recipient: this.props.recipientID,
+            recipientBalance: 0
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -91,6 +93,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     public componentWillReceiveProps(nextProps: IProps) {
         if (nextProps.fixRecipient === false) {
             this.setState({ recipient: nextProps.recipientID });
+        }
+    }
+    public async componentDidMount() {
+        try {
+            const balance = await this.getAccountBalance(this.state.recipient);
+            this.setState({ recipientBalance: balance });
+        } catch (error) {
+            // ignore error
         }
     }
     /*getRecipientBalance = async (recipientID: string) => {
@@ -175,6 +185,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         {this.state.recipient}
                                         <br />
                                         Recipient balance:
+                                        {this.state.recipientBalance}
                                     </Box>
                                 </Row>
                             </Box>
@@ -262,7 +273,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             width={2 / 5}
                             className="break-word vertical-center-align"
                         >
-                            From {perlin.publicKeyHex}
+                            <span style={{ fontWeight: 500 }}>
+                                From {perlin.publicKeyHex}
+                            </span>
+                            <br />
+                            My balance: {perlin.account.balance}
                         </Box>
                         <Box
                             width={1 / 5}
@@ -275,13 +290,18 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             width={2 / 5}
                             className="break-word vertical-center-align"
                         >
-                            To {this.state.recipient}
+                            <span style={{ fontWeight: 500 }}>
+                                From {this.state.recipient}
+                            </span>
+                            <br />
+                            Recipient balance: {this.state.recipientBalance}
                         </Box>
                     </Row>
                 </div>
             </>
         );
     }
+
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ inputPerls: e.target.value });
     }
@@ -309,6 +329,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                 this.state.recipient,
                 Number(this.state.inputPerls)
             );
+            console.log("This is the balance", perlin.account.balance);
             // further validation required for successful send
             return true;
         } else {
@@ -324,4 +345,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             doubleChecked: false
         });
     };
+    private async getAccountBalance(recipientID: string) {
+        const account = await perlin.getAccount(recipientID);
+        return account ? account.balance : 0;
+    }
 }

@@ -49,22 +49,15 @@ export default class DashboardContainer extends React.Component {
                         </div>
                         <div className="card-cell">
                             <DataCard
-                                heading="Your Earnings"
-                                value="400000"
-                                unit="PERLs"
-                            />
-                        </div>
-                        <div className="card-cell">
-                            <DataCard
                                 heading="Your Stake"
-                                value="5000"
+                                value={perlin.account.stake.toString()}
                                 unit="PERLs"
                             />
                         </div>
                         <div className="card-cell">
                             <DataCard
                                 heading="Network Load"
-                                value="10334"
+                                value="34234"
                                 unit="Avg TPS"
                             />
                         </div>
