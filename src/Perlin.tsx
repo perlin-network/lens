@@ -44,7 +44,7 @@ class Perlin {
                 break;
             case Tag.TRANSFER:
                 tx.payload = Perlin.parseTransferTransaction(
-                    Buffer.from(tx.payload, "hex")
+                    Buffer.from(tx.payload, "base64")
                 );
                 break;
         }
@@ -409,7 +409,8 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<[]> {
-        return await this.getJSON("/tx", { offset, limit });
+        const output = await this.getJSON("/tx", { offset, limit });
+        return output;
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
