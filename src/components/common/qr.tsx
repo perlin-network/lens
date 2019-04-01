@@ -107,11 +107,16 @@ interface IQRCodeWidgetProps {
     clickable?: boolean;
 }
 
-const QRWidgetWrapper = styled.button<{ width: number; height: number }>`
+const QRWidgetWrapper = styled.button<{
+    width: number;
+    height: number;
+    clickable: boolean;
+}>`
     border: none;
     text-align: center;
     text-decoration: none;
-    cursor: pointer;
+    ${props => props.clickable && `cursor: pointer;`}
+    
     height: ${props => props.height}px;
     width: ${props => props.width}px;
     margin: 8px 0px 8px 0px;
@@ -128,9 +133,13 @@ const QRWidgetWrapper = styled.button<{ width: number; height: number }>`
         outline: none;
     }
 
-    &:hover {
-        opacity: 0.8;
-    }
+    ${props =>
+        props.clickable &&
+        `&:hover {
+            opacity: 0.8;
+        }`}
+
+    
 `;
 
 const QRCodeWidget: React.FunctionComponent<IQRCodeWidgetProps> = ({
@@ -154,6 +163,7 @@ const QRCodeWidget: React.FunctionComponent<IQRCodeWidgetProps> = ({
                 onClick={showQrModal}
                 width={width}
                 height={height}
+                clickable={clickable}
             >
                 <QRCode value={publicKeyHex} />
             </QRWidgetWrapper>
