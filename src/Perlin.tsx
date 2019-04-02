@@ -396,8 +396,10 @@ class Perlin {
             switch (data.event) {
                 case "balance_updated":
                     this.account.balance = data.balance;
+                    break;
                 case "stake_updated":
                     this.account.stake = data.stake;
+                    break;
                 case "num_pages_updated":
                     this.account.num_mem_pages = data.num_pages;
             }
