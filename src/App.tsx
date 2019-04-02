@@ -41,6 +41,8 @@ const Content = styled(Box).attrs({
     margin: 0px;
     padding-left: 2em;
     padding-right: 2em;
+    background-size: 100% 1500px;
+    background-repeat: no-repeat;
 `;
 
 const routes = [
