@@ -224,8 +224,19 @@ function getInteractiveNode(
         } = node.gfx.transform.worldTransform;
         const { a: scale } = node.gfx.transform.worldTransform;
 
-        node.gfx.lineStyle(1, 0xffffff);
-        node.gfx.drawCircle(0, 0, nodeSize);
+        const circle = new PIXI.Graphics();
+        const shadow = new PIXI.Graphics();
+
+        shadow.beginFill(0x3326ff);
+        shadow.drawCircle(0, 0, nodeSize);
+        shadow.filters = [new PIXI.filters.BlurFilter(nodeSize * scale)];
+
+        node.gfx.addChild(shadow);
+        node.gfx.addChild(circle);
+
+        circle.beginFill(0x4a41d1);
+        circle.lineStyle(1, 0xffffff);
+        circle.drawCircle(0, 0, nodeSize);
 
         networkTooltip.x = transformedX;
         networkTooltip.y = transformedY - (node.gfx.height / 2) * scale;
@@ -238,7 +249,10 @@ function getInteractiveNode(
 
     // on node mouseout
     node.gfx.on("mouseout", () => {
+        node.gfx.removeChildren();
+
         node.gfx.clear();
+
         node.gfx.lineStyle(1, 0x0c122b);
         node.gfx.beginFill(0x4a41d1);
         node.gfx.drawCircle(0, 0, nodeSize);
