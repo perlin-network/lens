@@ -225,13 +225,13 @@ function getInteractiveNode(
         const { a: scale } = node.gfx.transform.worldTransform;
 
         const circle = new PIXI.Graphics();
-        const shadow = new PIXI.Graphics();
+        const glow = new PIXI.Graphics();
 
-        shadow.beginFill(0x3326ff);
-        shadow.drawCircle(0, 0, nodeSize);
-        shadow.filters = [new PIXI.filters.BlurFilter(nodeSize * scale)];
+        glow.beginFill(0x3326ff);
+        glow.drawCircle(0, 0, nodeSize);
+        glow.filters = [new PIXI.filters.BlurFilter(nodeSize * scale)];
 
-        node.gfx.addChild(shadow);
+        node.gfx.addChild(glow);
         node.gfx.addChild(circle);
 
         circle.beginFill(0x4a41d1);
