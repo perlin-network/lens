@@ -144,8 +144,8 @@ const QRWidgetWrapper = styled.button<{
 
 const QRCodeWidget: React.FunctionComponent<IQRCodeWidgetProps> = ({
     publicKeyHex,
-    width = 50,
-    height = 50,
+    width,
+    height,
     clickable = false
 }) => {
     const [qrmodalOpen, setQrmodalOpen] = useState(false);
@@ -161,8 +161,8 @@ const QRCodeWidget: React.FunctionComponent<IQRCodeWidgetProps> = ({
         <>
             <QRWidgetWrapper
                 onClick={showQrModal}
-                width={width}
-                height={height}
+                width={width === undefined ? 50 : width}
+                height={height === undefined ? 50 : height}
                 clickable={clickable}
             >
                 <QRCode value={publicKeyHex} />

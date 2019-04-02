@@ -54,7 +54,10 @@ export default class QuickSend extends React.Component<{}, IState> {
         return (
             <>
                 <QuickSendHeading>Quick Send</QuickSendHeading>
-                <p style={{ color: "#D8D8D8" }}>Lorem ipsum </p>
+                <p style={{ color: "#D8D8D8" }} className="break-word-normal">
+                    Input a contract/transaction ID or address to view
+                    interaction options.
+                </p>
                 <QuickSendInput
                     placeholder="Enter an account ID, Contract ID or Transaction ID"
                     value={this.state.inputID}

@@ -10,7 +10,7 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { QRCode } from "react-qr-svg";
+import { QRCodeModal, QRCodeWidget } from "../../common/qr";
 
 interface IProps {
     recipientID: string;
@@ -103,13 +103,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             // ignore error
         }
     }
-    /*getRecipientBalance = async (recipientID: string) => {
-        try {
-            return await perlin.getAccount(recipientID);
-        } catch (err) {
-            console.log(err);
-        }
-    };*/
     public render() {
         return (
             <>
@@ -172,20 +165,36 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         >
                             <Box width={1 / 2} className="break-word">
                                 <Row>
-                                    <Box width={1 / 5}>
-                                        <QRCode
-                                            value={perlin.publicKeyHex}
-                                            style={{
-                                                width: "40px",
-                                                height: "40px"
-                                            }}
+                                    <Box width={2 / 9}>
+                                        <QRCodeWidget
+                                            publicKeyHex={this.state.recipient}
+                                            width={90}
+                                            height={90}
                                         />
                                     </Box>
-                                    <Box width={3 / 5}>
-                                        {this.state.recipient}
-                                        <br />
-                                        Recipient balance:
-                                        {this.state.recipientBalance}
+                                    <Box
+                                        width={5 / 9}
+                                        style={{
+                                            paddingTop: "15px",
+                                            fontSize: "16px",
+                                            fontWeight: 500,
+                                            paddingLeft: "20px"
+                                        }}
+                                    >
+                                        <div>
+                                            {this.state.recipient}
+                                            <br />
+                                            <span
+                                                style={{
+                                                    fontWeight: 400,
+                                                    fontSize: "12px",
+                                                    opacity: 0.6
+                                                }}
+                                            >
+                                                Recipient balance:{" "}
+                                                {this.state.recipientBalance}
+                                            </span>
+                                        </div>
                                     </Box>
                                 </Row>
                             </Box>
@@ -253,13 +262,17 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             style={{ height: "100px" }}
                             className="table-outer"
                         >
-                            <div className="perlsSent table-inner">
+                            <div className="perlsSent table-inner break-word-normal">
                                 <span style={{ fontWeight: 500 }}>
                                     Your {this.state.inputPerls} PERLs are on
                                     their way!
                                 </span>
                                 <br />
-                                Lorem ipsum
+                                <span style={{ opacity: 0.6 }}>
+                                    Your PERL tokens are being processed by our
+                                    lighting fast consensus mechanism and will
+                                    be transferred in a few seconds.
+                                </span>
                             </div>
                         </Box>
                     </Row>
@@ -270,31 +283,64 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         }}
                     >
                         <Box
-                            width={2 / 5}
+                            width={1 / 8}
                             className="break-word vertical-center-align"
                         >
-                            <span style={{ fontWeight: 500 }}>
-                                From {perlin.publicKeyHex}
-                            </span>
-                            <br />
-                            My balance: {perlin.account.balance}
+                            <QRCodeWidget
+                                publicKeyHex={perlin.publicKeyHex}
+                                width={40}
+                                height={40}
+                            />
+                        </Box>
+                        <Box width={3 / 8} className="break-word">
+                            <div
+                                style={{
+                                    fontWeight: 400,
+                                    fontSize: "12px",
+                                    paddingLeft: "10px",
+                                    paddingTop: "7px"
+                                }}
+                            >
+                                {perlin.publicKeyHex}
+                                <br />
+                                <span style={{ opacity: 0.6 }}>
+                                    My Balance: {perlin.account.balance}
+                                </span>
+                            </div>
                         </Box>
                         <Box
-                            width={1 / 5}
+                            width={2 / 8}
                             className="vertical-center-align"
                             style={{ textAlign: "center" }}
                         >
                             <QuickSendArrowIcon />
                         </Box>
                         <Box
-                            width={2 / 5}
+                            width={1 / 8}
                             className="break-word vertical-center-align"
                         >
-                            <span style={{ fontWeight: 500 }}>
-                                From {this.state.recipient}
-                            </span>
-                            <br />
-                            Recipient balance: {this.state.recipientBalance}
+                            <QRCodeWidget
+                                publicKeyHex={this.state.recipient}
+                                width={40}
+                                height={40}
+                            />
+                        </Box>
+                        <Box width={3 / 8} className="break-word">
+                            <div
+                                style={{
+                                    fontWeight: 400,
+                                    fontSize: "12px",
+                                    paddingLeft: "10px",
+                                    paddingTop: "7px"
+                                }}
+                            >
+                                {this.state.recipient}
+                                <br />
+                                <span style={{ opacity: 0.6 }}>
+                                    Recipient Balance:{" "}
+                                    {this.state.recipientBalance}
+                                </span>
+                            </div>
                         </Box>
                     </Row>
                 </div>
