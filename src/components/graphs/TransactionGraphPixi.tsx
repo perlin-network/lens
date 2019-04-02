@@ -7,29 +7,29 @@ import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { when } from "mobx";
 import { ITransaction } from "../../types/Transaction";
+import styled from "styled-components";
+import Tooltip from "./Tooltip";
 
 const perlin = Perlin.getInstance();
 
-const transTooltip = new PIXI.Text("Transaction:", {
-    fontFamily: "Montserrat,HKGrotesk,Roboto",
-    fontSize: 12,
-    fill: "white",
-    align: "left"
-});
-transTooltip.visible = false;
-const transTooltipAmount = new PIXI.Text("", {
-    fontFamily: "Montserrat,HKGrotesk,Roboto",
-    fontSize: 16,
-    fill: "white",
-    align: "left"
-});
-transTooltipAmount.visible = false;
-const transTooltipStatus = new PIXI.Text("", {
-    fontFamily: "Montserrat,HKGrotesk,Roboto",
-    fontSize: 12,
-    align: "left"
-});
-transTooltipStatus.visible = false;
+const transTooltip = {
+    text: "",
+    title: "",
+    x: 0,
+    y: 0,
+    visible: false,
+    status: ""
+};
+
+const Wrapper = styled.div`
+    position: relative;
+
+    .graph-container {
+        width: 100%;
+        height: 300px;
+        margin-bottom: 0;
+    }
+`;
 
 class TGraph extends React.Component<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
@@ -57,7 +57,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
         window.addEventListener("resize", this.updateDimensions.bind(this));
 
         const width = this.props.size.width;
-        const height = this.props.size.height || 400;
+        const height = this.props.size.height || 300;
 
         const stage = new PIXI.Container();
         this.renderer = PIXI.autoDetectRenderer({
@@ -83,7 +83,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
             .forceSimulation(this.nodes)
             .force("link", d3.forceLink(this.links).id((d: any) => d.id))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-100))
+            .force("charge", d3.forceManyBody().strength(-50))
             .force("collision", d3.forceCollide().radius(3))
             .force("x", d3.forceX())
             .force("y", d3.forceY())
@@ -96,13 +96,12 @@ class TGraph extends React.Component<{ size: any }, {}> {
             });
 
             links.clear();
-            links.alpha = 0.6;
 
             this.links.forEach(link => {
                 const { source, target } = link;
-
-                links.lineStyle(3, 0x57305e);
+                links.lineStyle(1, 0x4038bd);
                 links.moveTo(source.x, source.y);
+
                 links.lineTo(target.x, target.y);
             });
 
@@ -119,16 +118,23 @@ class TGraph extends React.Component<{ size: any }, {}> {
             simulation.alpha(1).restart();
         };
 
+        const mouseHandleUpdate = (isMouseOver: boolean) => {
+            if (isMouseOver) {
+                render();
+                simulation.stop();
+            } else {
+                simulation.restart();
+            }
+            this.forceUpdate();
+        };
+
         when(
             () => perlin.transactions.recent.length > 0,
             () => {
                 const recent = perlin.transactions.recent;
-                stage.addChild(transTooltip);
-                stage.addChild(transTooltipAmount);
-                stage.addChild(transTooltipStatus);
 
                 recent.forEach((tx: ITransaction, index: number) => {
-                    const node = getInteractiveNode(tx);
+                    const node = getInteractiveNode(tx, mouseHandleUpdate);
                     stage.addChild(node.gfx);
                     this.nodes.push(node);
                     this.store.set(tx.id, index);
@@ -160,7 +166,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
                     l => l.source.id !== popped.id && l.target.id !== popped.id
                 );
             }
-            const node = getInteractiveNode(tx);
+            const node = getInteractiveNode(tx, mouseHandleUpdate);
             stage.addChild(node.gfx);
             this.nodes.push(node);
             this.store.set(tx.id, 1);
@@ -182,36 +188,28 @@ class TGraph extends React.Component<{ size: any }, {}> {
 
     public render() {
         return (
-            <div
-                style={{ width: "100%", height: 400, marginBottom: 0 }}
-                ref={this.networkGraphRef}
-            />
+            <Wrapper>
+                <div className="graph-container" ref={this.networkGraphRef} />
+                <Tooltip {...transTooltip} />
+            </Wrapper>
         );
     }
 }
 
-function getInteractiveNode(tx: ITransaction) {
+function getInteractiveNode(
+    tx: ITransaction,
+    update: (isMouseOver: boolean) => void
+) {
     const node = {
         id: tx.id,
         payload: tx.payload ? tx.payload.amount : undefined,
         gfx: new PIXI.Graphics()
     };
 
-    const nodeSize = node.payload === undefined ? 1 : getNodeSize(node.payload);
-    if (tx.status === "applied") {
-        node.gfx.beginFill(0x7668cb);
-        transTooltipStatus.text = "Applied";
-        transTooltipStatus.style.fill = 0x7668cb;
-    } else if (tx.status === "accepted") {
-        node.gfx.beginFill(0x6bad1d);
-        transTooltipStatus.text = "Accepted";
-        transTooltipStatus.style.fill = 0x6bad1d;
-    } else if (tx.status === "failed") {
-        node.gfx.beginFill(0x940f1f);
-        transTooltipStatus.text = "Failed";
-        transTooltipStatus.style.fill = 0x940f1f;
-    }
-    node.gfx.lineStyle(1, 0xffffff);
+    const nodeSize = node.payload === undefined ? 6 : getNodeSize(node.payload);
+
+    node.gfx.beginFill(0x4a41d1);
+    node.gfx.lineStyle(1, 0x0c122b);
     node.gfx.drawCircle(0, 0, nodeSize);
 
     if (node.payload !== undefined) {
@@ -221,31 +219,35 @@ function getInteractiveNode(tx: ITransaction) {
 
         // on node mouseover
         node.gfx.on("mouseover", () => {
-            node.gfx.lineStyle(2, 0xffffff);
+            const {
+                tx: transformedX,
+                ty: transformedY
+            } = node.gfx.transform.worldTransform;
+            const { a: scale } = node.gfx.transform.worldTransform;
+
+            node.gfx.lineStyle(1, 0xffffff);
             node.gfx.drawCircle(0, 0, nodeSize);
 
-            transTooltip.x = node.gfx.x + (nodeSize + 15);
-            transTooltip.y = node.gfx.y - 20;
+            transTooltip.x = transformedX;
+            transTooltip.y = transformedY - (node.gfx.height / 2) * scale;
 
-            transTooltipAmount.text = node.payload + " PERLs";
-            transTooltipAmount.x = node.gfx.x + (nodeSize + 15);
-            transTooltipAmount.y = node.gfx.y - 5;
-
-            transTooltipStatus.x = node.gfx.x + (nodeSize + 15);
-            transTooltipStatus.y = node.gfx.y + 15;
-
+            transTooltip.title = "Transaction";
+            transTooltip.text = node.payload + " PERLs";
             transTooltip.visible = true;
-            transTooltipAmount.visible = true;
-            transTooltipStatus.visible = true;
+            transTooltip.status = tx.status;
+
+            update(true);
         });
 
         // on node mouseout
         node.gfx.on("mouseout", () => {
-            node.gfx.lineStyle(0, 0xffffff);
+            node.gfx.clear();
+            node.gfx.lineStyle(1, 0x0c122b);
+            node.gfx.beginFill(0x4a41d1);
             node.gfx.drawCircle(0, 0, nodeSize);
+
             transTooltip.visible = false;
-            transTooltipAmount.visible = false;
-            transTooltipStatus.visible = false;
+            update(false);
         });
     }
 
@@ -254,7 +256,7 @@ function getInteractiveNode(tx: ITransaction) {
 
 // TODO: allocate node sizes based on the overall payload distribution, updated with every added transaction
 function getNodeSize(payload: number): number {
-    return Math.log(payload) + 5;
+    return Math.log(payload) + 6;
 }
 
 const TransactionGraphPixi = withSize()(TGraph);

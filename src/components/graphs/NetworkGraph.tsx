@@ -5,14 +5,25 @@ import { withSize } from "react-sizeme";
 import * as React from "react";
 import { createRef } from "react";
 import { when } from "mobx";
+import Tooltip from "./Tooltip";
+import styled from "styled-components";
 
 const perlin = Perlin.getInstance();
-const networkTooltip = new PIXI.Text("", {
-    fontFamily: "Montserrat,HKGrotesk,Roboto",
-    fontSize: 12,
-    fill: "white",
-    align: "left"
-});
+const networkTooltip = {
+    text: "",
+    x: 0,
+    y: 0,
+    visible: false
+};
+const Wrapper = styled.div`
+    position: relative;
+
+    .graph-container {
+        width: 100%;
+        height: 300px;
+        margin-bottom: 0;
+    }
+`;
 
 class NGraph extends React.Component<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
@@ -39,7 +50,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
         window.addEventListener("resize", this.updateDimensions.bind(this));
 
         const width = this.props.size.width;
-        const height = this.props.size.height || 400;
+        const height = this.props.size.height || 300;
 
         const stage = new PIXI.Container();
         this.renderer = PIXI.autoDetectRenderer({
@@ -69,7 +80,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 //            .distance(100)
             )
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-200))
+            .force("charge", d3.forceManyBody().strength(-400))
             .force("collide", d3.forceCollide().radius(3))
             .force("x", d3.forceX())
             .force("y", d3.forceY())
@@ -82,10 +93,10 @@ class NGraph extends React.Component<{ size: any }, {}> {
             });
 
             links.clear();
-            links.alpha = 0.6;
+
             this.edges.forEach(link => {
                 const { source, target } = link;
-                links.lineStyle(3, 0x4a41d1);
+                links.lineStyle(1, 0x413bb6);
                 links.moveTo(source.x, source.y);
                 links.lineTo(target.x, target.y);
             });
@@ -101,17 +112,29 @@ class NGraph extends React.Component<{ size: any }, {}> {
             simulation.alpha(1).restart();
         };
 
+        const mouseHandleUpdate = (isMouseOver: boolean) => {
+            if (isMouseOver) {
+                render();
+                simulation.stop();
+            } else {
+                simulation.restart();
+            }
+            this.forceUpdate();
+        };
+
         when(
             () => perlin.ledger.address.length > 0,
             () => {
-                stage.addChild(networkTooltip);
-
                 // Add nodes
                 const self = perlin.ledger.address;
                 if (self.length === 0) {
                     return;
                 }
-                const node = getInteractiveNode(perlin.ledger.address);
+                const node = getInteractiveNode(
+                    perlin.ledger.address,
+                    mouseHandleUpdate,
+                    true
+                );
                 this.nodes.push(node);
                 stage.addChild(node.gfx);
 
@@ -136,7 +159,10 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 // If peer node doesn't already exist, make a new node and link it
                 peers.forEach(peer => {
                     if (this.peerMap.get(peer) === undefined) {
-                        const peerNode = getInteractiveNode(peer);
+                        const peerNode = getInteractiveNode(
+                            peer,
+                            mouseHandleUpdate
+                        );
                         this.nodes.push(peerNode);
                         stage.addChild(peerNode.gfx);
 
@@ -160,43 +186,65 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
     public render() {
         return (
-            <div
-                style={{ width: "100%", height: 400, marginBottom: 0 }}
-                ref={this.networkGraphRef}
-            />
+            <Wrapper>
+                <div className="graph-container" ref={this.networkGraphRef} />
+                <Tooltip {...networkTooltip} />
+            </Wrapper>
         );
     }
 }
 
-function getInteractiveNode(self: string) {
+function getInteractiveNode(
+    self: string,
+    update: (isMouseOver: boolean) => void,
+    isLocal: boolean = false
+) {
     const node = {
         id: self,
         label: self,
         gfx: new PIXI.Graphics()
     };
-    const nodeSize = 10;
-    node.gfx.beginFill(0x4a41d1);
-    node.gfx.lineStyle(1, 0x4a41d1);
-    node.gfx.drawCircle(0, 0, nodeSize);
+    const nodeSize = isLocal ? 12 : 6;
+
     node.gfx.interactive = true;
     node.gfx.buttonMode = true;
-    node.gfx.hitArea = new PIXI.Circle(0, 0, nodeSize);
+    node.gfx.hitArea = new PIXI.Circle(0, 0, nodeSize + 2);
+
+    node.gfx.beginFill(0x4a41d1);
+    node.gfx.lineStyle(1, 0x0c122b);
+    node.gfx.drawCircle(0, 0, nodeSize);
+
+    node.gfx.addChild(node.gfx);
 
     // on node mouseover
     node.gfx.on("mouseover", () => {
-        node.gfx.lineStyle(2, 0xffffff, 1);
+        const {
+            tx: transformedX,
+            ty: transformedY
+        } = node.gfx.transform.worldTransform;
+        const { a: scale } = node.gfx.transform.worldTransform;
+
+        node.gfx.lineStyle(1, 0xffffff);
         node.gfx.drawCircle(0, 0, nodeSize);
+
+        networkTooltip.x = transformedX;
+        networkTooltip.y = transformedY - (node.gfx.height / 2) * scale;
+
         networkTooltip.text = self;
-        networkTooltip.x = node.gfx.x + 20;
-        networkTooltip.y = node.gfx.y - 5;
         networkTooltip.visible = true;
+
+        update(true);
     });
 
     // on node mouseout
     node.gfx.on("mouseout", () => {
-        node.gfx.lineStyle(0, 0xffffff00);
+        node.gfx.clear();
+        node.gfx.lineStyle(1, 0x0c122b);
+        node.gfx.beginFill(0x4a41d1);
         node.gfx.drawCircle(0, 0, nodeSize);
+
         networkTooltip.visible = false;
+        update(false);
     });
     return node;
 }

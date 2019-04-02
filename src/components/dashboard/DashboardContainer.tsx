@@ -18,14 +18,22 @@ const Row = styled(Flex)`
 
 const CardHeadings = styled.h2`
     font-family: HKGrotesk;
-    font-size: 16px;
+    font-size: 20px;
     padding-left: 20px;
-    font-weight: 500;
+    font-weight: normal;
 `;
 
 const GraphBox = styled(Box)`
-    background-color: #151c35;
-    border-radius: 5px;
+    background-color: #151b35;
+    border-radius: 4px;
+`;
+
+const Divider = styled.hr`
+    border: none;
+    height: 1px;
+    background: #686c7c;
+    opacity: 0.2;
+    margin: 0;
 `;
 
 @observer
@@ -66,12 +74,12 @@ export default class DashboardContainer extends React.Component {
                 <Row>
                     <GraphBox width={1 / 2}>
                         <CardHeadings>Network</CardHeadings>
-                        <hr />
+                        <Divider />
                         <NetworkGraph />
                     </GraphBox>
                     <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
                         <CardHeadings>Transactions</CardHeadings>
-                        <hr />
+                        <Divider />
                         <TransactionGraphPixi />
                     </GraphBox>
                 </Row>
