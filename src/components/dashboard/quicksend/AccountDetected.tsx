@@ -24,6 +24,7 @@ interface IState {
     doubleChecked: boolean;
     recipient: string;
     recipientBalance: number;
+    errorMessage: string;
 }
 
 const Row = styled(Flex)`
@@ -85,7 +86,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             inputPerls: "",
             doubleChecked: false,
             recipient: this.props.recipientID,
-            recipientBalance: 0
+            recipientBalance: 0,
+            errorMessage: ""
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -227,10 +229,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </div>
                                 <div>
                                     <SendPerlsButton
-                                        onClick={this.handleButtonClick}
+                                        onClick={this.handleSendButton}
                                     >
                                         Send {this.state.inputPerls} PERLs
                                     </SendPerlsButton>
+                                </div>
+                                <div>
+                                    <this.ErrorMessage />
                                 </div>
                             </Box>
                         </Row>
@@ -351,15 +356,18 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ inputPerls: e.target.value });
     }
-    private handleButtonClick = () => {
-        if (this.state.doubleChecked) {
-            if (this.successfulSend()) {
-                this.setState({ toggleComponent: "showSendConfirmation" });
-            } else {
-                this.setState({ toggleComponent: "showDetectedAccount" }); // if fail, toggle fail component
-            }
+    private handleSendButton = () => {
+        const successfulSend = this.successfulSend();
+        if (successfulSend === "Success") {
+            this.setState({
+                toggleComponent: "showSendConfirmation",
+                errorMessage: "Success"
+            });
         } else {
-            console.log("Please double-check your PERLs before sending");
+            this.setState({
+                toggleComponent: "showDetectedAccount",
+                errorMessage: successfulSend
+            }); // if fail, toggle error component
         }
     };
     private handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -368,19 +376,36 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     }
     private successfulSend = () => {
         if (
-            this.state.inputPerls !== "" &&
-            !isNaN(Number(this.state.inputPerls))
+            this.state.inputPerls === "" ||
+            isNaN(Number(this.state.inputPerls))
         ) {
+            return "Invalid input";
+        } else if (this.state.doubleChecked === false) {
+            return "No double-check";
+        } else {
             perlin.transfer(
                 this.state.recipient,
                 Number(this.state.inputPerls)
             );
-            console.log("This is the balance", perlin.account.balance);
             // further validation required for successful send
-            return true;
+            return "Success";
+        }
+    };
+    private ErrorMessage = () => {
+        if (this.state.errorMessage === "Invalid input") {
+            return (
+                <div style={{ color: "red" }}>
+                    Please enter a valid number of PERLs.
+                </div>
+            );
+        } else if (this.state.errorMessage === "No double-check") {
+            return (
+                <div style={{ color: "red" }}>
+                    Please double-check the recipient address.
+                </div>
+            );
         } else {
-            console.log("not a number");
-            return false;
+            return null;
         }
     };
     private cancelSend = () => {

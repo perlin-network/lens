@@ -108,7 +108,7 @@ export default class QuickSend extends React.Component<{}, IState> {
     }
     private validInputID = () => {
         const re = /[0-9A-Fa-f]{64}/g;
-        return re.test(this.state.inputID);
+        return re.test(this.state.inputID) && this.state.inputID.length === 64;
     };
     private handleRestart(restart: boolean) {
         if (restart) {
