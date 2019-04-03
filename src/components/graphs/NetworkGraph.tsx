@@ -13,7 +13,8 @@ const networkTooltip = {
     text: "",
     x: 0,
     y: 0,
-    visible: false
+    visible: false,
+    title: ""
 };
 const Wrapper = styled.div`
     position: relative;
@@ -80,11 +81,11 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 //            .distance(100)
             )
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-400))
+            .force("charge", d3.forceManyBody().strength(-100))
             .force("collide", d3.forceCollide().radius(3))
             .force("x", d3.forceX())
             .force("y", d3.forceY())
-            .alphaTarget(1);
+            .alphaTarget(0.1);
 
         const render = () => {
             this.nodes.forEach(node => {
@@ -112,13 +113,8 @@ class NGraph extends React.Component<{ size: any }, {}> {
             simulation.alpha(1).restart();
         };
 
-        const mouseHandleUpdate = (isMouseOver: boolean) => {
-            if (isMouseOver) {
-                render();
-                simulation.stop();
-            } else {
-                simulation.restart();
-            }
+        const mouseHandleUpdate = () => {
+            render();
             this.forceUpdate();
         };
 
@@ -196,7 +192,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
 function getInteractiveNode(
     self: string,
-    update: (isMouseOver: boolean) => void,
+    mouseUpdate: () => void,
     isLocal: boolean = false
 ) {
     const node = {
@@ -242,9 +238,10 @@ function getInteractiveNode(
         networkTooltip.y = transformedY - (node.gfx.height / 2) * scale;
 
         networkTooltip.text = self;
+        networkTooltip.title = isLocal ? "Local address" : "Peer address";
         networkTooltip.visible = true;
 
-        update(true);
+        mouseUpdate();
     });
 
     // on node mouseout
@@ -258,7 +255,7 @@ function getInteractiveNode(
         node.gfx.drawCircle(0, 0, nodeSize);
 
         networkTooltip.visible = false;
-        update(false);
+        mouseUpdate();
     });
     return node;
 }

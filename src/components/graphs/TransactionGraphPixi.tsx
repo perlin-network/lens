@@ -59,6 +59,25 @@ class TGraph extends React.Component<{ size: any }, {}> {
         const width = this.props.size.width;
         const height = this.props.size.height || 300;
 
+        const isNodeInViewport = (node: any, offset = 30) => {
+            const scale = stage.scale.x;
+
+            if (simulation.alpha() > 3) {
+                return false;
+            }
+
+            const leftBound = (0 - stage.x - offset) / scale;
+            const topBound = (0 - stage.y - offset) / scale;
+            const rightBound = (width - stage.x + offset) / scale;
+            const bottomBound = (height - stage.y + offset) / scale;
+
+            return (
+                node.x >= leftBound &&
+                node.y >= topBound &&
+                node.x <= rightBound &&
+                node.y <= bottomBound
+            );
+        };
         const stage = new PIXI.Container();
         this.renderer = PIXI.autoDetectRenderer({
             width,
@@ -76,6 +95,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
             d3.zoom().on("zoom", () => {
                 stage.scale.set(d3.event.transform.k);
                 stage.position.set(d3.event.transform.x, d3.event.transform.y);
+                render();
             })
         );
 
@@ -83,48 +103,68 @@ class TGraph extends React.Component<{ size: any }, {}> {
             .forceSimulation(this.nodes)
             .force("link", d3.forceLink(this.links).id((d: any) => d.id))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-50))
-            .force("collision", d3.forceCollide().radius(3))
-            .force("x", d3.forceX())
-            .force("y", d3.forceY())
-            .alphaTarget(1);
+            .force(
+                "charge",
+                d3
+                    .forceManyBody()
+                    .distanceMax(100)
+                    .strength(-2000)
+            )
+            // .force("collision", d3.forceCollide().radius(0.1))
+            // .force("x", d3.forceX())
+            // .force("y", d3.forceY())
+            .alphaDecay(0.07)
+            .alphaTarget(0);
 
         const render = () => {
             this.nodes.forEach(node => {
                 const { x, y, gfx } = node;
                 gfx.position = new PIXI.Point(x, y);
+
+                const offset = 22 * (stage.scale.x * (stage.scale.x * 0.3));
+                gfx.visible = isNodeInViewport(gfx.position, offset);
             });
 
             links.clear();
 
-            this.links.forEach(link => {
-                const { source, target } = link;
-                links.lineStyle(1, 0x4038bd);
-                links.moveTo(source.x, source.y);
+            this.links
+                .filter(({ source, target }) => {
+                    const offset = -50 + 200 * (stage.scale.x * stage.scale.x);
+                    return (
+                        isNodeInViewport(source, offset) ||
+                        isNodeInViewport(target, offset)
+                    );
+                })
+                .forEach(link => {
+                    const { source, target } = link;
+                    links.lineStyle(1, 0x4038bd);
+                    links.moveTo(source.x, source.y);
 
-                links.lineTo(target.x, target.y);
-            });
+                    const { offsetX, offsetY } = getLineOffset(source, target);
+                    links.quadraticCurveTo(
+                        offsetX,
+                        offsetY,
+                        target.x,
+                        target.y
+                    );
+                });
 
             links.endFill();
             this.renderer.render(stage);
         };
 
-        const update = () => {
+        const update = (alpha = 4) => {
             simulation.nodes(this.nodes).on("tick", render);
 
             // @ts-ignore
             simulation.force("link").links(this.links);
 
-            simulation.alpha(1).restart();
+            simulation.alpha(alpha).restart();
+            console.log("Transaction Graph nodes #", this.nodes.length);
         };
 
-        const mouseHandleUpdate = (isMouseOver: boolean) => {
-            if (isMouseOver) {
-                render();
-                simulation.stop();
-            } else {
-                simulation.restart();
-            }
+        const mouseHandleUpdate = () => {
+            render();
             this.forceUpdate();
         };
 
@@ -156,33 +196,45 @@ class TGraph extends React.Component<{ size: any }, {}> {
                 update();
             }
         );
+        perlin.onTransactionsRemoved = (numTx: number, noUpdate = false) => {
+            const popped: any = this.nodes.splice(0, numTx);
+            popped.forEach((node: any) => {
+                node.gfx.destroy();
+                this.store.delete(node.id);
+            });
 
-        perlin.onTransactionCreated = (tx: ITransaction) => {
-            if (this.nodes.length === 50) {
-                const popped: any = this.nodes.shift();
-                popped.gfx.destroy();
+            this.links = this.links.filter(
+                l =>
+                    !popped.find(
+                        (node: any) =>
+                            node.id === l.source.id || node.id === l.target.id
+                    )
+            );
 
-                this.links = this.links.filter(
-                    l => l.source.id !== popped.id && l.target.id !== popped.id
-                );
+            if (!noUpdate) {
+                update(3);
             }
-            const node = getInteractiveNode(tx, mouseHandleUpdate);
-            stage.addChild(node.gfx);
-            this.nodes.push(node);
-            this.store.set(tx.id, 1);
+        };
+        perlin.onTransactionsCreated = (txs: ITransaction[]) => {
+            txs.forEach((tx: ITransaction) => {
+                const node = getInteractiveNode(tx, mouseHandleUpdate);
+                stage.addChild(node.gfx);
+                this.nodes.push(node);
+                this.store.set(tx.id, 1);
 
-            if (tx.parents != null) {
-                tx.parents.forEach(parent => {
-                    if (this.store.get(parent) !== undefined) {
-                        this.links.push({
-                            source: parent,
-                            target: tx.id
-                        });
-                    }
-                });
-            }
+                if (tx.parents != null) {
+                    tx.parents.forEach(parent => {
+                        if (this.store.get(parent) !== undefined) {
+                            this.links.push({
+                                source: parent,
+                                target: tx.id
+                            });
+                        }
+                    });
+                }
+            });
 
-            update();
+            update(3);
         };
     }
 
@@ -196,10 +248,23 @@ class TGraph extends React.Component<{ size: any }, {}> {
     }
 }
 
-function getInteractiveNode(
-    tx: ITransaction,
-    update: (isMouseOver: boolean) => void
-) {
+function getLineOffset(source: any, target: any) {
+    const midpointX = (source.x + target.x) / 2;
+    const midpointY = (source.y + target.y) / 2;
+
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+
+    const normalise = Math.sqrt(dx * dx + dy * dy);
+
+    const offset = normalise * 0.2;
+    const offsetX = midpointX + offset * (dy / normalise);
+    const offsetY = midpointY - offset * (dx / normalise);
+
+    return { offsetX, offsetY };
+}
+
+function getInteractiveNode(tx: ITransaction, mouseUpdate: () => void) {
     const node = {
         id: tx.id,
         payload: tx.payload ? tx.payload.amount : undefined,
@@ -207,7 +272,6 @@ function getInteractiveNode(
     };
 
     const nodeSize = node.payload === undefined ? 6 : getNodeSize(node.payload);
-
     node.gfx.beginFill(0x4a41d1);
     node.gfx.lineStyle(1, 0x0c122b);
     node.gfx.drawCircle(0, 0, nodeSize);
@@ -247,7 +311,11 @@ function getInteractiveNode(
             transTooltip.visible = true;
             transTooltip.status = tx.status;
 
-            update(true);
+            mouseUpdate();
+        });
+
+        node.gfx.on("click", () => {
+            console.log("TODO: go to transaction page");
         });
 
         // on node mouseout
@@ -260,7 +328,7 @@ function getInteractiveNode(
             node.gfx.drawCircle(0, 0, nodeSize);
 
             transTooltip.visible = false;
-            update(false);
+            mouseUpdate();
         });
     }
 
