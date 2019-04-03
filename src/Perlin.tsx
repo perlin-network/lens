@@ -352,14 +352,15 @@ class Perlin {
             () => {
                 const nextLength =
                     this.transactions.recent.length + txBuffer.length;
+
                 if (nextLength > this.transactionLimit) {
                     const pruneLength = nextLength - this.transactionLimit;
-                    this.transactions.recent.splice(0, pruneLength);
 
                     if (this.onTransactionsRemoved !== undefined) {
                         this.onTransactionsRemoved(pruneLength, true);
                     }
                 }
+
                 this.transactions.recent.push(
                     ...txBuffer.map((tx: ITransaction, index) => {
                         return Perlin.parseWiredTransaction(
