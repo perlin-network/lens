@@ -9,7 +9,6 @@ import { StakeActions } from "./ValidatorView";
 
 interface IStakeProps {
     stake: number | null;
-    balance: number | null;
     action: StakeActions;
     setAction: (action: StakeActions) => void;
     onSubmit: (amount: number) => void;
