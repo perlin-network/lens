@@ -6,14 +6,12 @@ import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
-import ContractInstantiate from "./ContractInstantiate";
 
 // @ts-ignore
 const wabt = Wabt();
 
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
-const contractInstantiate = ContractInstantiate.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
@@ -123,28 +121,42 @@ const createSmartContract = async (file: File) => {
         reader.readAsArrayBuffer(file);
     });
 
+    contractStore.contract.errorMessage = "";
+    contractStore.contract.transactionId = "";
+
     const resp = await perlin.createSmartContract(bytes);
 
-    const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
-        readDebugNames: false
-    });
-    wasmModule.applyNames();
+    if (resp.error) {
+        contractStore.contract.errorMessage = `${resp.status} : ${resp.error}`;
+    } else {
+        const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
+            readDebugNames: false
+        });
+        wasmModule.applyNames();
 
-    contractStore.contract.name = file.name;
-    contractStore.contract.transactionId = resp.tx_id;
-    contractStore.contract.textContent = wasmModule.toText({
-        foldExprs: true,
-        inlineExport: false
-    });
+        contractStore.contract.name = file.name;
+        contractStore.contract.transactionId = resp.tx_id;
+        contractStore.contract.textContent = wasmModule.toText({
+            foldExprs: true,
+            inlineExport: false
+        });
+        contractStore.contract.errorMessage = "";
+    }
 };
 
 const loadContract = async (contractId: string) => {
     const account = await perlin.getAccount(contractId);
 
+    /*
     if (!account.is_contract) {
-        console.log("Account is not a contract."); // TODO(kenta): show prompt that account is not a contract
+        contractStore.contract.errorMessage = "Account is not a contract.";
+        console.log("Account is not a contract.");
         return;
-    }
+    } 
+    */
+
+    contractStore.contract.errorMessage = "";
+    contractStore.contract.transactionId = "";
 
     const pages = [];
 
@@ -157,6 +169,8 @@ const loadContract = async (contractId: string) => {
     }
 
     console.log(pages);
+
+    // todo: import memory page to local wasm instance
 
     const hexContent = await perlin.getContractCode(contractId);
 
@@ -174,6 +188,7 @@ const loadContract = async (contractId: string) => {
         foldExprs: true,
         inlineExport: false
     });
+    contractStore.contract.errorMessage = "";
 };
 
 const ContractUploader: React.SFC<{}> = () => {
@@ -185,18 +200,22 @@ const ContractUploader: React.SFC<{}> = () => {
     const handleLoadClick = useCallback(async () => {
         try {
             await loadContract(contractAddress);
+
+            if (contractStore.contract.transactionId) {
+                await contractStore.onLoadContract();
+            }
         } catch (err) {
             console.error(err);
         }
     }, [contractAddress]);
+
     const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         setLoading(true);
-
         try {
             await createSmartContract(file);
             if (contractStore.contract.transactionId) {
-                contractInstantiate.localDeploy();
+                await contractStore.onLoadContract();
             }
         } catch (err) {
             console.log("Error while uploading file: ");
@@ -210,7 +229,6 @@ const ContractUploader: React.SFC<{}> = () => {
         onDropAccepted,
         multiple: false
     });
-
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <Button fontSize="14px" width="100%" {...getRootProps()}>
@@ -233,6 +251,24 @@ const ContractUploader: React.SFC<{}> = () => {
                 </StyledButton>
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
+            {contractStore.contract.errorMessage !== "" && (
+                <div style={{ marginTop: "25px", color: "red" }}>
+                    {contractStore.contract.errorMessage}
+                </div>
+            )}
+            {contractStore.contract.transactionId !== "" && (
+                <div
+                    style={{
+                        textAlign: "center",
+                        marginTop: "25px",
+                        color: "#4A41D1"
+                    }}
+                >
+                    {`Success! Your smart contracts ID is: ${
+                        contractStore.contract.transactionId
+                    }`}
+                </div>
+            )}
         </Wrapper>
     );
 };

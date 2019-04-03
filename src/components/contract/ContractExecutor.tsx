@@ -12,7 +12,6 @@ import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
 import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
-import ContractInstantiate from "./ContractInstantiate";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
 
@@ -24,7 +23,6 @@ interface IParamItem {
 
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
-const contractInstantiate = ContractInstantiate.getInstance();
 const watFunctionRegex = /\(export "_contract_([a-zA-Z0-9_]+)" \(func \d+\)\)/g;
 
 const useContractFunctions = () => {
@@ -190,6 +188,7 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
         clearParams
     } = useParams();
     const [currFunc, setFunc] = useState("");
+    const [wasmResult, setWasmResult] = useState("");
     useEffect(() => {
         setFunc(funcList[0]);
     }, [funcList]);
@@ -299,6 +298,8 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
             item => item.value === "" || item.type === undefined
         );
 
+        setWasmResult("");
+
         if (!emptyItem) {
             const funcParams = writeToBuffer(paramsList);
             const list = await paramsList.map(item => {
@@ -316,13 +317,23 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 writer.writeBytes(value);
             });
 
-            const result: any = await contractInstantiate.localInvoke(
-                "balance",
-                writer.toBuffer()
-            );
+            try {
+                const result: any = await contractStore.localInvoke(
+                    currFunc,
+                    writer.toBuffer()
+                );
+                const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
 
-            console.log(`result :${result}`);
-            alert(`Result ${bytesToInt64(result)}`);
+                setWasmResult(
+                    `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+                );
+                console.log(
+                    `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+                );
+            } catch (e) {
+                console.error("Invoke local wasm error!");
+                console.error(e);
+            }
 
             const response = await perlin.invokeContractFunction(
                 contractStore.contract.transactionId,
@@ -331,7 +342,7 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                 funcParams
             );
 
-            console.log("response-->", response);
+            console.log(`response : ${response}`);
         } else {
             console.log("Item can't be empty");
             alert("Error : Item can't be empty.");
@@ -382,6 +393,17 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
                     <Button fontSize="14px" onClick={callFunction}>
                         Call Function
                     </Button>
+                    {wasmResult !== "" && (
+                        <div
+                            style={{
+                                textAlign: "center",
+                                marginTop: "25px",
+                                color: "#4A41D1"
+                            }}
+                        >
+                            {wasmResult}
+                        </div>
+                    )}
                 </ParamsBody>
             </Card>
         </>
