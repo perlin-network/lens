@@ -16,19 +16,19 @@ const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
-const CardHeadings = styled.h2`
+export const CardHeadings = styled.h2`
     font-family: HKGrotesk;
     font-size: 20px;
     padding-left: 20px;
     font-weight: normal;
 `;
 
-const GraphBox = styled(Box)`
+export const GraphBox = styled(Box)`
     background-color: #151b35;
     border-radius: 4px;
 `;
 
-const Divider = styled.hr`
+export const Divider = styled.hr`
     border: none;
     height: 1px;
     background: #686c7c;

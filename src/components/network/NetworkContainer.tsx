@@ -5,6 +5,11 @@ import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
+import {
+    GraphBox,
+    CardHeadings,
+    Divider
+} from "../dashboard/DashboardContainer";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -15,14 +20,16 @@ export default class NetworkContainer extends React.Component<{}, {}> {
         return (
             <>
                 <Row>
-                    <Box width={1 / 2}>
-                        <SectionTitle>Transaction Graph</SectionTitle>
-                        <TransactionGraphPixi />
-                    </Box>
-                    <Box width={1 / 2} style={{ marginLeft: "40px" }}>
-                        <SectionTitle>Network Graph</SectionTitle>
+                    <GraphBox width={1 / 2}>
+                        <CardHeadings>Network Graph</CardHeadings>
+                        <Divider />
                         <NetworkGraph />
-                    </Box>
+                    </GraphBox>
+                    <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
+                        <CardHeadings>Transaction Graph</CardHeadings>
+                        <Divider />
+                        <TransactionGraphPixi />
+                    </GraphBox>
                 </Row>
                 <Box width={1}>
                     <SectionTitle>Transactions</SectionTitle>
