@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
 import { Box, Flex } from "@rebass/grid";
 
@@ -13,36 +14,6 @@ interface IStakeProps {
     setAction: (action: StakeActions) => void;
     onSubmit: (amount: number) => void;
 }
-
-const Card = styled.div`
-    border: 1px solid #ffffff22;
-    word-wrap: break-word;
-    margin: 0px;
-    border-radius: 5px;
-    margin-right: 20px;
-    font-family: HKGrotesk;
-`;
-
-const CardHeader = styled.div`
-    border-bottom: 1px solid #ffffff22;
-    padding: 20px;
-    font-size: 20px;
-    font-weight: 600;
-`;
-
-const CardBody = styled.div`
-    padding: 20px;
-    padding-top: 0px;
-    font-size: 14px;
-    color: #717985;
-`;
-
-const Title = styled.h2`
-    font-size: 36px;
-    font-weight: 400;
-    color: #fff;
-    margin-bottom: 0px;
-`;
 
 const Row = styled(Flex)`
     padding-top: 10px;
@@ -102,16 +73,21 @@ const RoundButton = styled.button`
     }
 `;
 
+const StakeAmount = styled.h2`
+    font-size: 36px;
+    font-weight: 400;
+    color: #fff;
+    margin-top: 0px;
+    margin-bottom: 0px;
+`;
+
 const StakeCard: React.SFC<IStakeProps> = ({
     stake,
-    balance,
     action,
     setAction,
     onSubmit
 }) => {
     const [amount, setAmount] = useState("");
-
-    // const [action, setAction] = useState("");
 
     const handleWithdrawStakeClick = () => {
         if (action !== StakeActions.Withdraw) {
@@ -145,10 +121,12 @@ const StakeCard: React.SFC<IStakeProps> = ({
     };
 
     return (
-        <Card>
-            <CardHeader>Your Stake</CardHeader>
+        <Card style={{ marginRight: "20px" }}>
+            <CardHeader>
+                <CardTitle>Your Stake</CardTitle>
+            </CardHeader>
             <CardBody>
-                <Title> {stake ? stake : "N/A"} </Title>
+                <StakeAmount> {stake ? stake : "N/A"} </StakeAmount>
                 <Row>
                     <Col width={1 / 2}>PERLs</Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>

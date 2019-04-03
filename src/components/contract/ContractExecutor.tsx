@@ -1,18 +1,20 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { Card } from "../common/core";
+import { Card as OriginalCard } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin } from "../../Perlin";
-import { Button } from "../common/core";
+import { Button as RawButton } from "../common/core";
 import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
 import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
 import ContractInstantiate from "./ContractInstantiate";
+import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
+import { Flex, Box } from "@rebass/grid";
 
 interface IParamItem {
     id: string;
@@ -41,7 +43,7 @@ const useContractFunctions = () => {
 const useParams = () => {
     const getEmptyParam = () => ({
         id: nanoid(),
-        type: undefined,
+        type: ParamType.String,
         value: ""
     });
     const [paramsList, setParamsList] = useState<IParamItem[]>([
@@ -134,6 +136,19 @@ const isBase64String = (text: string): boolean => {
     );
 };
 
+const Button = styled(RawButton)`
+    background-color: #fff;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #151b35;
+    margin-top: 20px;
+    border-radius: 5px;
+    &:active {
+        background-color: #d4d5da;
+    }
+`;
+
 const Title = styled.h2`
     margin: 0;
     font-size: 16px;
@@ -142,20 +157,26 @@ const Title = styled.h2`
     color: #fff;
     margin-bottom: 15px;
 `;
-const Wrapper = styled(Card).attrs({ showBoxShadow: false })`
+const Wrapper = styled(OriginalCard).attrs({ showBoxShadow: false })`
     display: flex;
     flex-direction: column;
 `;
 const AddMoreText = styled.div`
     cursor: pointer;
-    text-align: right;
-    margin: 0;
+    margin: 0px 0px 10px 0px;
     font-family: HKGrotesk;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 400;
     color: #fff;
-    text-decoration: underline;
-    text-decoration-color: #fff;
+    opacity: 0.6;
+`;
+
+const FunctionBody = styled(CardBody)`
+    padding: 0px;
+`;
+
+const ParamsBody = styled(CardBody)`
+    padding: 25px 25px 25px 25px;
 `;
 
 const ContractExecutor: React.SFC<{}> = observer(() => {
@@ -318,30 +339,52 @@ const ContractExecutor: React.SFC<{}> = observer(() => {
     };
 
     return (
-        <Wrapper>
-            <Title>Select a function</Title>
-            <FunctionSelect
-                values={funcList}
-                onChange={handleFuncChange}
-                value={currFunc}
-            />
-            <Title style={{ marginTop: "25px" }}>Specify Parameters</Title>
-            {paramsList.map(paramItem => (
-                <ParameterInput
-                    key={paramItem.id}
-                    value={paramItem.value}
-                    type={paramItem.type}
-                    onChange={handleParamChange(paramItem.id)}
-                    onTypeChange={handleTypeChange(paramItem.id)}
-                    onDelete={deleteParam(paramItem.id)}
-                    onKeypress={handleKeypress(paramItem.id)}
-                />
-            ))}
-            <AddMoreText onClick={addParam}>Add more parameters</AddMoreText>
-            <Button fontSize="14px" onClick={callFunction}>
-                Call Function
-            </Button>
-        </Wrapper>
+        <>
+            <Card style={{ marginBottom: "20px" }}>
+                <CardHeader>
+                    <CardTitle>&nbsp;Execute Function</CardTitle>
+                </CardHeader>
+                <FunctionBody>
+                    <FunctionSelect
+                        values={funcList}
+                        onChange={handleFuncChange}
+                        value={currFunc}
+                    />
+                </FunctionBody>
+            </Card>
+
+            <Card style={{ marginBottom: "20px" }}>
+                <CardHeader>
+                    <CardTitle>
+                        &nbsp;Add Parameter to Selected Function
+                    </CardTitle>
+                </CardHeader>
+                <ParamsBody>
+                    {paramsList.map(paramItem => (
+                        <ParameterInput
+                            key={paramItem.id}
+                            value={paramItem.value}
+                            type={paramItem.type}
+                            onChange={handleParamChange(paramItem.id)}
+                            onTypeChange={handleTypeChange(paramItem.id)}
+                            onDelete={deleteParam(paramItem.id)}
+                            onKeypress={handleKeypress(paramItem.id)}
+                        />
+                    ))}
+                    <Flex>
+                        <Box width={1 / 2}>
+                            <AddMoreText onClick={addParam}>
+                                Add more parameters +
+                            </AddMoreText>
+                        </Box>
+                    </Flex>
+
+                    <Button fontSize="14px" onClick={callFunction}>
+                        Call Function
+                    </Button>
+                </ParamsBody>
+            </Card>
+        </>
     );
 });
 

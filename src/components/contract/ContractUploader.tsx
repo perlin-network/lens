@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { Button, Card, Input } from "../common/core";
+import { Button as RawButton, Card, Input } from "../common/core";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
@@ -17,7 +17,8 @@ const contractInstantiate = ContractInstantiate.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
-    padding: 25px 25px;
+    padding: 10px 0px;
+    background-color: transparent;
 `;
 const DividerWrapper = styled.div`
     display: flex;
@@ -41,19 +42,55 @@ const DividerText = styled.h2`
 const InputWrapper = styled.div`
     display: flex;
 `;
-const StyledInput = styled(Input).attrs({ fontSize: "12px" })`
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+const StyledInput = styled(Input)`
+    border-radius: 5px 0px 0px 5px;
     flex-grow: 1;
+    height: 48px;
+    font-size: 16px;
+    background-color: #171d39;
+    font-weight: 400;
+    border: 1px solid #2e345100;
+    font-family: HKGrotesk;
+    color: white;
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        cursor: text;
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
 `;
-const StyledButton = styled(Button).attrs({ hideOverflow: true })`
+
+const Button = styled(RawButton)`
+    height: 48px;
+
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #fff;
+    color: #151b35;
+    border-radius: 5px;
+    &:active {
+        background-color: #d4d5da;
+    }
+`;
+
+const StyledButton = styled(RawButton).attrs({ hideOverflow: true })`
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    height: 35px;
+    height: 48px;
     line-height: 35px;
-    font-size: 14px;
+    border-radius: 0px 5px 5px 0px;
+    background-color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    color: #151b35;
     width: auto;
     padding: 0 18px;
+    &:active {
+        background-color: #d4d5da;
+    }
 `;
 const Loader = styled.div`
     position: absolute;
@@ -158,7 +195,9 @@ const ContractUploader: React.SFC<{}> = () => {
 
         try {
             await createSmartContract(file);
-            contractInstantiate.localDeploy();
+            if (contractStore.contract.transactionId) {
+                contractInstantiate.localDeploy();
+            }
         } catch (err) {
             console.log("Error while uploading file: ");
             console.error(err);

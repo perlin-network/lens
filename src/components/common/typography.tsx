@@ -12,6 +12,7 @@ import QuickSendThumbsUp from "../../assets/svg/quicksend-thumbsup.svg";
 import QuickSendArrow from "../../assets/svg/quicksend-arrow.svg";
 import CancelCard from "../../assets/svg/cancel-card.svg";
 import DataCopyIcon from "../../assets/svg/copy-icon.svg";
+import DataCheckIcon from "../../assets/svg/check-icon.svg";
 
 const SectionTitle = styled.h2`
     font-family: HKGrotesk;
@@ -98,6 +99,11 @@ const CancelCardIcon = styled.img.attrs({ src: CancelCard })`
     }
 `;
 
+const CheckedIcon = styled.img.attrs({ src: DataCheckIcon })`
+    max-height: 16px;
+    max-width: 16px;
+`;
+
 interface InfoTextProps {
     breakWord?: boolean;
 }
@@ -137,5 +143,6 @@ export {
     QuickSendSuccessIcon,
     QuickSendThumbsUpIcon,
     QuickSendArrowIcon,
-    CancelCardIcon
+    CancelCardIcon,
+    CheckedIcon
 };

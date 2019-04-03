@@ -1,5 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Flex, Box } from "@rebass/grid";
+import { CheckedIcon } from "../common/typography";
 
 interface IFunctionSelectProps {
     value: string;
@@ -10,21 +12,28 @@ interface IItemProps {
     active: boolean;
 }
 
+const Icon = styled(CheckedIcon)`
+    width: 16px;
+    height: 16px;
+    float: right;
+`;
+
 const Wrapper = styled.div`
     height: 150px;
     width: 100%;
-    background-color: #0a0e28;
-    border-radius: 2px;
-    border: solid 0.5px #ffffff;
+    background-color: transaparent;
+    margin: 0px;
     overflow: scroll;
 `;
 const Item = styled.div`
     font-size: 14px;
+    font-weight: 400;
     font-family: HKGrotesk;
     color: #fff;
     width: 100%;
-    padding: 5px 15px;
+    height: 50px;
     cursor: pointer;
+    padding: 15px 15px 0px 15px;
     ${(props: IItemProps) =>
         props.active &&
         `
@@ -33,7 +42,18 @@ const Item = styled.div`
 `;
 const ItemPrefix = styled.span`
     margin: 0;
-    color: #f5a623;
+    color: #4a41d1;
+    font-weight: 400;
+    font-size: 14px;
+    margin-right: 15px;
+`;
+
+const Checked = styled.div`
+    font-size: 14px;
+    font-weight: 400;
+    font-family: HKGrotesk;
+    ccolor: #4a41d1;
+    text-align: right;
 `;
 
 const FunctionSelect: React.SFC<IFunctionSelectProps> = ({
@@ -54,7 +74,8 @@ const FunctionSelect: React.SFC<IFunctionSelectProps> = ({
                     onClick={handleFuncClick(funcName)}
                 >
                     <ItemPrefix>fn</ItemPrefix>
-                    {` ${funcName} (..) {..}`}
+                    {` ${funcName} [..] [..]`}
+                    {funcName === value && <Icon />}
                 </Item>
             ))}
         </Wrapper>
