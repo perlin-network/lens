@@ -313,7 +313,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             className="vertical-center-align"
                             style={{ textAlign: "center" }}
                         >
-                            <QuickSendArrowIcon />
+                            <QuickSendArrowIcon style={{ paddingTop: 15 }} />
                         </Box>
                         <Box
                             width={1 / 8}
