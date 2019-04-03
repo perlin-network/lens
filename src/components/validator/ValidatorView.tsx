@@ -44,8 +44,6 @@ const ChartSubtitle = styled.span`
 `;
 
 const ValidatorView: React.SFC<{}> = observer(() => {
-    const balance = useWalletBalance();
-
     const stake = useWalletStake();
 
     const [action, setAction] = useState(StakeActions.None);
@@ -87,7 +85,6 @@ const ValidatorView: React.SFC<{}> = observer(() => {
             <Box width={5 / 12}>
                 <StakeCard
                     stake={stake}
-                    balance={balance}
                     setAction={setAction}
                     action={action}
                     onSubmit={
