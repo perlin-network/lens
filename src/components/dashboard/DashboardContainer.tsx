@@ -16,16 +16,24 @@ const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
-const CardHeadings = styled.h2`
+export const CardHeadings = styled.h2`
     font-family: HKGrotesk;
-    font-size: 16px;
+    font-size: 20px;
     padding-left: 20px;
-    font-weight: 500;
+    font-weight: normal;
 `;
 
-const GraphBox = styled(Box)`
-    background-color: #151c35;
-    border-radius: 5px;
+export const GraphBox = styled(Box)`
+    background-color: #151b35;
+    border-radius: 4px;
+`;
+
+export const Divider = styled.hr`
+    border: none;
+    height: 1px;
+    background: #686c7c;
+    opacity: 0.2;
+    margin: 0;
 `;
 
 @observer
@@ -50,14 +58,18 @@ export default class DashboardContainer extends React.Component {
                         <div className="card-cell">
                             <DataCard
                                 heading="Your Stake"
-                                value={perlin.account.stake.toString()}
+                                value={
+                                    perlin.account.stake === undefined
+                                        ? "0"
+                                        : perlin.account.stake.toString()
+                                }
                                 unit="PERLs"
                             />
                         </div>
                         <div className="card-cell">
                             <DataCard
                                 heading="Network Load"
-                                value="34234"
+                                value="TBA"
                                 unit="Avg TPS"
                             />
                         </div>
@@ -66,12 +78,12 @@ export default class DashboardContainer extends React.Component {
                 <Row>
                     <GraphBox width={1 / 2}>
                         <CardHeadings>Network</CardHeadings>
-                        <hr />
+                        <Divider />
                         <NetworkGraph />
                     </GraphBox>
                     <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
                         <CardHeadings>Transactions</CardHeadings>
-                        <hr />
+                        <Divider />
                         <TransactionGraphPixi />
                     </GraphBox>
                 </Row>

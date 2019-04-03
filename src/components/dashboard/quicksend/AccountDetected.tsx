@@ -10,7 +10,7 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { QRCode } from "react-qr-svg";
+import { QRCodeModal, QRCodeWidget } from "../../common/qr";
 
 interface IProps {
     recipientID: string;
@@ -24,6 +24,7 @@ interface IState {
     doubleChecked: boolean;
     recipient: string;
     recipientBalance: number;
+    errorMessage: string;
 }
 
 const Row = styled(Flex)`
@@ -85,7 +86,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             inputPerls: "",
             doubleChecked: false,
             recipient: this.props.recipientID,
-            recipientBalance: 0
+            recipientBalance: 0,
+            errorMessage: ""
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -103,13 +105,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             // ignore error
         }
     }
-    /*getRecipientBalance = async (recipientID: string) => {
-        try {
-            return await perlin.getAccount(recipientID);
-        } catch (err) {
-            console.log(err);
-        }
-    };*/
     public render() {
         return (
             <>
@@ -172,20 +167,36 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         >
                             <Box width={1 / 2} className="break-word">
                                 <Row>
-                                    <Box width={1 / 5}>
-                                        <QRCode
-                                            value={perlin.publicKeyHex}
-                                            style={{
-                                                width: "40px",
-                                                height: "40px"
-                                            }}
+                                    <Box width={2 / 9}>
+                                        <QRCodeWidget
+                                            publicKeyHex={this.state.recipient}
+                                            width={90}
+                                            height={90}
                                         />
                                     </Box>
-                                    <Box width={3 / 5}>
-                                        {this.state.recipient}
-                                        <br />
-                                        Recipient balance:
-                                        {this.state.recipientBalance}
+                                    <Box
+                                        width={5 / 9}
+                                        style={{
+                                            paddingTop: "15px",
+                                            fontSize: "16px",
+                                            fontWeight: 500,
+                                            paddingLeft: "20px"
+                                        }}
+                                    >
+                                        <div>
+                                            {this.state.recipient}
+                                            <br />
+                                            <span
+                                                style={{
+                                                    fontWeight: 400,
+                                                    fontSize: "12px",
+                                                    opacity: 0.6
+                                                }}
+                                            >
+                                                Recipient balance:{" "}
+                                                {this.state.recipientBalance}
+                                            </span>
+                                        </div>
                                     </Box>
                                 </Row>
                             </Box>
@@ -218,10 +229,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </div>
                                 <div>
                                     <SendPerlsButton
-                                        onClick={this.handleButtonClick}
+                                        onClick={this.handleSendButton}
                                     >
                                         Send {this.state.inputPerls} PERLs
                                     </SendPerlsButton>
+                                </div>
+                                <div>
+                                    <this.ErrorMessage />
                                 </div>
                             </Box>
                         </Row>
@@ -253,13 +267,17 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             style={{ height: "100px" }}
                             className="table-outer"
                         >
-                            <div className="perlsSent table-inner">
+                            <div className="perlsSent table-inner break-word-normal">
                                 <span style={{ fontWeight: 500 }}>
                                     Your {this.state.inputPerls} PERLs are on
                                     their way!
                                 </span>
                                 <br />
-                                Lorem ipsum
+                                <span style={{ opacity: 0.6 }}>
+                                    Your PERL tokens are being processed by our
+                                    lighting fast consensus mechanism and will
+                                    be transferred in a few seconds.
+                                </span>
                             </div>
                         </Box>
                     </Row>
@@ -270,31 +288,64 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         }}
                     >
                         <Box
-                            width={2 / 5}
+                            width={1 / 8}
                             className="break-word vertical-center-align"
                         >
-                            <span style={{ fontWeight: 500 }}>
-                                From {perlin.publicKeyHex}
-                            </span>
-                            <br />
-                            My balance: {perlin.account.balance}
+                            <QRCodeWidget
+                                publicKeyHex={perlin.publicKeyHex}
+                                width={40}
+                                height={40}
+                            />
+                        </Box>
+                        <Box width={3 / 8} className="break-word">
+                            <div
+                                style={{
+                                    fontWeight: 400,
+                                    fontSize: "12px",
+                                    paddingLeft: "10px",
+                                    paddingTop: "7px"
+                                }}
+                            >
+                                {perlin.publicKeyHex}
+                                <br />
+                                <span style={{ opacity: 0.6 }}>
+                                    My Balance: {perlin.account.balance}
+                                </span>
+                            </div>
                         </Box>
                         <Box
-                            width={1 / 5}
+                            width={2 / 8}
                             className="vertical-center-align"
                             style={{ textAlign: "center" }}
                         >
-                            <QuickSendArrowIcon />
+                            <QuickSendArrowIcon style={{ paddingTop: 15 }} />
                         </Box>
                         <Box
-                            width={2 / 5}
+                            width={1 / 8}
                             className="break-word vertical-center-align"
                         >
-                            <span style={{ fontWeight: 500 }}>
-                                From {this.state.recipient}
-                            </span>
-                            <br />
-                            Recipient balance: {this.state.recipientBalance}
+                            <QRCodeWidget
+                                publicKeyHex={this.state.recipient}
+                                width={40}
+                                height={40}
+                            />
+                        </Box>
+                        <Box width={3 / 8} className="break-word">
+                            <div
+                                style={{
+                                    fontWeight: 400,
+                                    fontSize: "12px",
+                                    paddingLeft: "10px",
+                                    paddingTop: "7px"
+                                }}
+                            >
+                                {this.state.recipient}
+                                <br />
+                                <span style={{ opacity: 0.6 }}>
+                                    Recipient Balance:{" "}
+                                    {this.state.recipientBalance}
+                                </span>
+                            </div>
                         </Box>
                     </Row>
                 </div>
@@ -305,15 +356,18 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ inputPerls: e.target.value });
     }
-    private handleButtonClick = () => {
-        if (this.state.doubleChecked) {
-            if (this.successfulSend()) {
-                this.setState({ toggleComponent: "showSendConfirmation" });
-            } else {
-                this.setState({ toggleComponent: "showDetectedAccount" }); // if fail, toggle fail component
-            }
+    private handleSendButton = () => {
+        const successfulSend = this.successfulSend();
+        if (successfulSend === "Success") {
+            this.setState({
+                toggleComponent: "showSendConfirmation",
+                errorMessage: "Success"
+            });
         } else {
-            console.log("Please double-check your PERLs before sending");
+            this.setState({
+                toggleComponent: "showDetectedAccount",
+                errorMessage: successfulSend
+            }); // if fail, toggle error component
         }
     };
     private handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -322,19 +376,36 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     }
     private successfulSend = () => {
         if (
-            this.state.inputPerls !== "" &&
-            !isNaN(Number(this.state.inputPerls))
+            this.state.inputPerls === "" ||
+            isNaN(Number(this.state.inputPerls))
         ) {
+            return "Invalid input";
+        } else if (this.state.doubleChecked === false) {
+            return "No double-check";
+        } else {
             perlin.transfer(
                 this.state.recipient,
                 Number(this.state.inputPerls)
             );
-            console.log("This is the balance", perlin.account.balance);
             // further validation required for successful send
-            return true;
+            return "Success";
+        }
+    };
+    private ErrorMessage = () => {
+        if (this.state.errorMessage === "Invalid input") {
+            return (
+                <div style={{ color: "red" }}>
+                    Please enter a valid number of PERLs.
+                </div>
+            );
+        } else if (this.state.errorMessage === "No double-check") {
+            return (
+                <div style={{ color: "red" }}>
+                    Please double-check the recipient address.
+                </div>
+            );
         } else {
-            console.log("not a number");
-            return false;
+            return null;
         }
     };
     private cancelSend = () => {

@@ -9,7 +9,7 @@ import DataCardWallet from "../../assets/svg/datacard-wallet.svg";
 import QuickSendFail from "../../assets/svg/quicksend-error.svg";
 import QuickSendSuccess from "../../assets/svg/quicksend-success.svg";
 import QuickSendThumbsUp from "../../assets/svg/quicksend-thumbsup.svg";
-import QuickSendArrow from "../../assets/svg/quicksend-arrow.svg";
+import QuickSendArrow from "../../assets/svg/quicksend-arrow.png";
 import CancelCard from "../../assets/svg/cancel-card.svg";
 import DataCopyIcon from "../../assets/svg/copy-icon.svg";
 import DataCheckIcon from "../../assets/svg/check-icon.svg";
@@ -87,7 +87,6 @@ const QuickSendThumbsUpIcon = styled.img.attrs({ src: QuickSendThumbsUp })`
 const QuickSendArrowIcon = styled.img.attrs({ src: QuickSendArrow })`
     max-height: 100px;
     max-width: 100px;
-    margin-right: 10px;
 `;
 const CancelCardIcon = styled.img.attrs({ src: CancelCard })`
     max-height: 16px;

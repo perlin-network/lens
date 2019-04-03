@@ -13,13 +13,16 @@ input::placeholder {
     word-wrap: break-word;
 }
 
+.break-word-normal {
+    word-wrap: normal;
+}
+
 .vertical-center-align {
     vertical-align: middle;
 }
 
 .table-outer {
     display: table;
-    height: 100px;
 }
 
 .table-inner {

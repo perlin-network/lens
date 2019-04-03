@@ -54,7 +54,10 @@ export default class QuickSend extends React.Component<{}, IState> {
         return (
             <>
                 <QuickSendHeading>Quick Send</QuickSendHeading>
-                <p style={{ color: "#D8D8D8" }}>Lorem ipsum </p>
+                <p style={{ opacity: 0.6 }} className="break-word-normal">
+                    Input a contract/transaction ID or address to view
+                    interaction options.
+                </p>
                 <QuickSendInput
                     placeholder="Enter an account ID, Contract ID or Transaction ID"
                     value={this.state.inputID}
@@ -105,7 +108,7 @@ export default class QuickSend extends React.Component<{}, IState> {
     }
     private validInputID = () => {
         const re = /[0-9A-Fa-f]{64}/g;
-        return re.test(this.state.inputID);
+        return re.test(this.state.inputID) && this.state.inputID.length === 64;
     };
     private handleRestart(restart: boolean) {
         if (restart) {

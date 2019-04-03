@@ -82,10 +82,14 @@ class Perlin {
         recent: [] as ITransaction[]
     };
 
-    public onTransactionCreated: (tx: ITransaction) => void;
+    public onTransactionsCreated: (txs: ITransaction[]) => void;
+    public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
 
     private keys: nacl.SignKeyPair;
+
+    private transactionLimit: number = 10000;
+    private transactionDebounceIntv: number = 2000;
 
     private constructor() {
         this.keys = nacl.sign.keyPair.fromSecretKey(
@@ -222,6 +226,7 @@ class Perlin {
             await this.initLedger();
 
             this.pollTransactionUpdates();
+            this.pollConsensusUpdates(this.publicKeyHex);
 
             storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
@@ -341,6 +346,40 @@ class Perlin {
 
         const ws = new WebSocket(url.toString());
 
+        let txBuffer: ITransaction[] = [];
+
+        const pushTransactions = _.debounce(
+            () => {
+                const nextLength =
+                    this.transactions.recent.length + txBuffer.length;
+
+                if (nextLength > this.transactionLimit) {
+                    const pruneLength = nextLength - this.transactionLimit;
+
+                    if (this.onTransactionsRemoved !== undefined) {
+                        this.onTransactionsRemoved(pruneLength, true);
+                    }
+                }
+
+                this.transactions.recent.push(
+                    ...txBuffer.map((tx: ITransaction, index) => {
+                        return Perlin.parseWiredTransaction(
+                            tx,
+                            this.transactions.recent.length + index
+                        );
+                    })
+                );
+                if (this.onTransactionsCreated !== undefined) {
+                    this.onTransactionsCreated(txBuffer);
+                }
+                txBuffer = [];
+            },
+            this.transactionDebounceIntv,
+            {
+                maxWait: 2 * this.transactionDebounceIntv
+            }
+        );
+
         ws.onmessage = async ({ data }) => {
             data = JSON.parse(data);
 
@@ -357,20 +396,8 @@ class Perlin {
 
             switch (data.event) {
                 case "new":
-                    this.transactions.recent.push(
-                        Perlin.parseWiredTransaction(
-                            tx,
-                            this.transactions.recent.length
-                        )
-                    );
-
-                    if (this.onTransactionCreated !== undefined) {
-                        this.onTransactionCreated(tx);
-                    }
-
-                    if (this.transactions.recent.length > 50) {
-                        this.transactions.recent.shift();
-                    }
+                    txBuffer.push(tx);
+                    pushTransactions();
                     break;
                 case "applied":
                     if (this.onTransactionApplied !== undefined) {
@@ -379,6 +406,26 @@ class Perlin {
                     break;
                 case "failed":
                     console.log(data.error);
+            }
+        };
+    }
+
+    private pollConsensusUpdates(id: string) {
+        const url = new URL(`ws://${this.api.host}/consensus/poll`);
+        url.searchParams.append("token", this.api.token);
+
+        const ws = new WebSocket(url.toString());
+
+        ws.onmessage = ({ data }) => {
+            data = JSON.parse(data);
+            switch (data.event) {
+                case "prune":
+                    this.transactions.recent.splice(0, data.num_tx);
+
+                    if (this.onTransactionsRemoved !== undefined) {
+                        this.onTransactionsRemoved(data.num_tx);
+                    }
+                    break;
             }
         };
     }
@@ -396,8 +443,10 @@ class Perlin {
             switch (data.event) {
                 case "balance_updated":
                     this.account.balance = data.balance;
+                    break;
                 case "stake_updated":
                     this.account.stake = data.stake;
+                    break;
                 case "num_pages_updated":
                     this.account.num_mem_pages = data.num_pages;
             }
@@ -407,7 +456,7 @@ class Perlin {
     // @ts-ignore
     private async listTransactions(
         offset: number = 0,
-        limit: number = 0
+        limit: number = this.transactionLimit
     ): Promise<[]> {
         const output = await this.getJSON("/tx", { offset, limit });
         return output;
