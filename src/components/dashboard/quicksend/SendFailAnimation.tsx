@@ -6,6 +6,7 @@ import styled from "styled-components";
 const duration = 400;
 
 const Wrapper = styled.div`
+    /* firefox - needs this on any element to apply perspective */
     transform-style: preserve-3d;
 `;
 

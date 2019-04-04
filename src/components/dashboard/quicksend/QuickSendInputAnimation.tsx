@@ -7,6 +7,7 @@ const duration = 400;
 const easing = "cubicBezier(0.0, 0.0, 0.0, 2.2)";
 
 const Wrapper = styled.div`
+    /* firefox - needs this on any element to apply perspective */
     transform-style: preserve-3d;
 `;
 

@@ -11,6 +11,7 @@ const duration = 400;
 const easing = "cubicBezier(0.0, 0.0, 0.2, 1)";
 
 const Wrapper = styled.div`
+    /* firefox - needs this on any element to apply perspective */
     transform-style: preserve-3d;
 
     /* safari - some elements still appear even when container is closed */
