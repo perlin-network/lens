@@ -6,6 +6,8 @@ import { Box, Flex } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import { ValidatorChart } from "./ValidatorChart";
+import { SectionTitle } from "../common/typography";
+import TransactionsTable from "../TransactionsTable";
 
 import { StakeCard } from "./StakeCard";
 
@@ -72,6 +74,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
 
     return (
         <Flex>
+            {/*
             <Box width={7 / 12}>
                 <ChartWrapper>
                     <ChartHeader>
@@ -81,6 +84,19 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                     <ValidatorChart csv={getSampleData()} />
                 </ChartWrapper>
             </Box>
+            <Box width={5 / 12}>
+                <StakeCard
+                    stake={stake}
+                    setAction={setAction}
+                    action={action}
+                    onSubmit={
+                        action === StakeActions.Place
+                            ? handlePlaceStake
+                            : handleWithdrawStake
+                    }
+                />
+            </Box>
+            */}
             <Box width={5 / 12}>
                 <StakeCard
                     stake={stake}
