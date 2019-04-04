@@ -3,6 +3,8 @@ import styled from "styled-components";
 import SendFail from "./SendFail";
 import AccountDetected from "./AccountDetected";
 import "./quicksend.scss";
+import QuickSendInputAnimation from "./QuickSendInputAnimation";
+import SendFailAnimation from "./SendFailAnimation";
 
 const QuickSendHeading = styled.p`
     font-family: Montserrat;
@@ -33,9 +35,16 @@ const QuickSendInput = styled.input`
     }
 `;
 
+const Wrapper = styled.div`
+    perspective: 60vw;
+    perspective-origin: 30% calc(100% - 60px);
+    transform-style: preserve-3d;
+`;
+
 interface IState {
     toggleComponent: string;
     inputID: string;
+    sendInputFocused: boolean;
 }
 
 export default class QuickSend extends React.Component<{}, IState> {
@@ -43,61 +52,71 @@ export default class QuickSend extends React.Component<{}, IState> {
         super(props);
         this.state = {
             toggleComponent: "",
-            inputID: ""
+            inputID: "",
+            sendInputFocused: false
         };
         this.updateinputID = this.updateinputID.bind(this);
-        this.onEnter = this.onEnter.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
         this.handleRestart = this.handleRestart.bind(this);
     }
-
     public render() {
         return (
-            <>
+            <Wrapper>
                 <QuickSendHeading>Quick Send</QuickSendHeading>
                 <p style={{ opacity: 0.6 }} className="break-word-normal">
                     Input a contract/transaction ID or address to view
                     interaction options.
                 </p>
-                <QuickSendInput
-                    placeholder="Enter an account ID, Contract ID or Transaction ID"
-                    value={this.state.inputID}
-                    onChange={this.updateinputID}
-                    onKeyDown={this.onEnter}
-                />
-                <div
-                    className={
-                        this.state.toggleComponent === "showDetectedAccount"
-                            ? "displayComp"
-                            : "hideComp"
-                    }
-                >
-                    <AccountDetected
-                        recipientID={this.state.inputID}
-                        restartComponents={this.handleRestart}
-                        fixRecipient={
-                            this.state.toggleComponent === "showDetectedAccount"
-                                ? true
-                                : false
-                        }
+
+                <QuickSendInputAnimation in={this.state.sendInputFocused}>
+                    <QuickSendInput
+                        placeholder="Enter an account ID, Contract ID or Transaction ID"
+                        value={this.state.inputID}
+                        onChange={this.updateinputID}
+                        onKeyDown={this.onKeyDown}
+                        onFocus={this.onSendInputFocus}
+                        onBlur={this.onSendInputBlur}
                     />
-                </div>
-                <div
-                    className={
-                        this.state.toggleComponent === "showSendFail"
-                            ? "displayComp"
-                            : "hideComp"
+                </QuickSendInputAnimation>
+
+                <AccountDetected
+                    recipientID={this.state.inputID}
+                    changeComponent={this.handleRestart}
+                    toggleComponent={this.state.toggleComponent}
+                    fixRecipient={
+                        this.state.toggleComponent === "showDetectedAccount"
+                            ? true
+                            : false
                     }
+                />
+
+                <SendFailAnimation
+                    in={this.state.toggleComponent === "showSendFail"}
                 >
                     <SendFail restartComponents={this.handleRestart} />
-                </div>
-            </>
+                </SendFailAnimation>
+            </Wrapper>
         );
     }
+
+    private onSendInputFocus = () => {
+        this.setState({
+            sendInputFocused: true
+        });
+    };
+
+    private onSendInputBlur = () => {
+        if (this.state.toggleComponent === "") {
+            this.setState({
+                sendInputFocused: false
+            });
+        }
+    };
     private updateinputID(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.target.value;
         this.setState({ inputID: value });
     }
-    private onEnter(e: any) {
+    private onKeyDown(e: any) {
         if (e.keyCode === 13) {
             if (this.validInputID()) {
                 this.setState({ toggleComponent: "showDetectedAccount" });
@@ -105,14 +124,19 @@ export default class QuickSend extends React.Component<{}, IState> {
                 this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
             }
         }
+        if (e.keyCode === 27) {
+            this.setState({ toggleComponent: "" });
+        }
     }
     private validInputID = () => {
         const re = /[0-9A-Fa-f]{64}/g;
         return re.test(this.state.inputID) && this.state.inputID.length === 64;
     };
-    private handleRestart(restart: boolean) {
-        if (restart) {
-            this.setState({ toggleComponent: "" });
-        }
+    private handleRestart(component: string) {
+        this.setState({ toggleComponent: component });
+        // we want to wait the AccountDetected component before
+        setTimeout(() => {
+            this.onSendInputBlur();
+        }, 400);
     }
 }

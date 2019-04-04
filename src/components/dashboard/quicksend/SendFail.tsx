@@ -29,13 +29,13 @@ export default class SendFail extends React.Component<IProps, {}> {
                 />
                 Sorry, nothing matched that address
                 <CancelCardIcon
-                    style={{ position: "absolute" }}
+                    style={{ position: "absolute", top: "15px" }}
                     onClick={this.cancelSend}
                 />
             </FailPrompt>
         );
     }
     private cancelSend = () => {
-        this.props.restartComponents(true);
+        this.props.restartComponents("");
     };
 }
