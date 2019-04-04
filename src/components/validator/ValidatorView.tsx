@@ -6,7 +6,6 @@ import { Box, Flex } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import { ValidatorChart } from "./ValidatorChart";
-import { useWalletBalance } from "../wallet/WalletView";
 
 import { StakeCard } from "./StakeCard";
 

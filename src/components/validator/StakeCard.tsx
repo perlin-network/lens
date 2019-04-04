@@ -34,6 +34,16 @@ const Input = styled.input`
     padding: 20px;
     font-size: 16px;
     font-family: HKGrotesk;
+
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        cursor: text;
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
 `;
 
 const Button = styled.button`
