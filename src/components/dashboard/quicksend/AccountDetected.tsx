@@ -15,7 +15,7 @@ import AccountDetectedAnimation from "./AccountDetectedAnimation";
 
 interface IProps {
     recipientID: string;
-    fixRecipient: boolean;
+    recipientBalance: number;
     changeComponent: (component: string) => void;
     toggleComponent: string;
 }
@@ -23,8 +23,6 @@ interface IProps {
 interface IState {
     inputPerls: string;
     doubleChecked: boolean;
-    recipient: string;
-    recipientBalance: number;
     errorMessage: string;
 }
 
@@ -134,26 +132,12 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         this.state = {
             inputPerls: "",
             doubleChecked: false,
-            recipient: this.props.recipientID,
-            recipientBalance: 0,
             errorMessage: ""
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
     }
-    public componentWillReceiveProps(nextProps: IProps) {
-        if (nextProps.fixRecipient === false) {
-            this.setState({ recipient: nextProps.recipientID });
-        }
-    }
-    public async componentDidMount() {
-        try {
-            const balance = await this.getAccountBalance(this.state.recipient);
-            this.setState({ recipientBalance: balance });
-        } catch (error) {
-            // ignore error
-        }
-    }
+
     public render() {
         return (
             <>
@@ -214,7 +198,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 <Row>
                                     <Box width={2 / 9}>
                                         <QRCodeWidget
-                                            publicKeyHex={this.state.recipient}
+                                            publicKeyHex={
+                                                this.props.recipientID
+                                            }
                                             width={90}
                                             height={90}
                                             clickable={true}
@@ -230,7 +216,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         }}
                                     >
                                         <div>
-                                            {this.state.recipient}
+                                            {this.props.recipientID}
                                             <br />
                                             <span
                                                 style={{
@@ -240,7 +226,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                 }}
                                             >
                                                 Recipient balance:{" "}
-                                                {this.state.recipientBalance}
+                                                {this.props.recipientBalance}
                                             </span>
                                         </div>
                                     </Box>
@@ -373,7 +359,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             className="break-word vertical-center-align"
                         >
                             <QRCodeWidget
-                                publicKeyHex={this.state.recipient}
+                                publicKeyHex={this.props.recipientID}
                                 width={40}
                                 height={40}
                                 clickable={true}
@@ -388,11 +374,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     paddingTop: "7px"
                                 }}
                             >
-                                {this.state.recipient}
+                                {this.props.recipientID}
                                 <br />
                                 <span style={{ opacity: 0.6 }}>
                                     Recipient Balance:{" "}
-                                    {this.state.recipientBalance}
+                                    {this.props.recipientBalance}
                                 </span>
                             </div>
                         </Box>
@@ -433,7 +419,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             return "No double-check";
         } else {
             perlin.transfer(
-                this.state.recipient,
+                this.props.recipientID,
                 Number(this.state.inputPerls)
             );
             // further validation required for successful send
@@ -464,8 +450,4 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             doubleChecked: false
         });
     };
-    private async getAccountBalance(recipientID: string) {
-        const account = await perlin.getAccount(recipientID);
-        return account ? account.balance : 0;
-    }
 }
