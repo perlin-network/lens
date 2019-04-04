@@ -1,19 +1,9 @@
-
-<svg width="16px" height="12px" viewBox="0 0 16 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <g id="🖥-Desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Dashboard----Morph-Dropdown" transform="translate(-311.000000, -334.000000)">
-            <rect fill="#0C112B" x="0" y="0" width="1500" height="1415"></rect>
-            <g id="Recipient-Dropdown" transform="translate(290.000000, 310.000000)" fill="#37D66B">
-                <g id="Status" transform="translate(21.000000, 20.000000)">
-                    <g id="Icon/16px-" transform="translate(0.000000, 2.000000)">
-                        <g id="⚙️/Tick/Green">
-                            <g id="o-check" transform="translate(0.000000, 2.000000)">
-                                <polygon id="Path" fill-rule="nonzero" points="5.6 6.4 1.6 4 0 5.6 5.6 12 16 1.6 14.4 0"></polygon>
-                            </g>
-                        </g>
-                    </g>
-                </g>
-            </g>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="12" viewBox="0 0 16 12">
+  <g id="Icon_16px_" data-name="Icon/16px " transform="translate(0 -2)">
+    <g id="Icon">
+      <g id="o-check" transform="translate(0 2)">
+        <path id="Path" d="M5.6,6.4,1.6,4,0,5.6,5.6,12,16,1.6,14.4,0Z" fill="#37d66b"/>
+      </g>
     </g>
+  </g>
 </svg>

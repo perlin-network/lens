@@ -10,7 +10,7 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { QRCodeModal, QRCodeWidget } from "../../common/qr";
+import { QRCodeWidget } from "../../common/qr";
 
 interface IProps {
     recipientID: string;
@@ -31,22 +31,71 @@ const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
+const InputWrapper = styled.div`
+    display: flex;
+`;
+
 const SendPerlsInput = styled.input`
     font-family: HKGrotesk;
+    font-size: 16px;
+    font-weight: 400;
     background-color: #121834;
-    border-radius: 5px;
+    border-radius: 5px 0px 0px 5px;
     border: 1px solid #2e345100;
     color: white;
     width: 100%;
     padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
+    height: 48px;
     &:hover {
         cursor: text;
         border: 1px solid #4a41d1;
     }
     &:focus {
         border: 1px solid #4a41d1;
+        outline: 0;
+    }
+    &::placeholder {
+        font-size: 16px;
+    }
+`;
+
+const Fees = styled.button.attrs({ hideOverflow: true })`
+    height: 48px;
+    border-radius: 0px 5px 5px 0px;
+    background-color: #121834;
+    font-size: 16px;
+    font-weight: 400;
+    color: white;
+    width: auto;
+    display: inline;
+    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 0px;
+
+    &:focus {
+        border: 0px;
+        outline: 0;
+    }
+`;
+
+const Divider = styled.button`
+    height: 48px;
+    background-color: #121834;
+    font-size: 24px;
+    font-weight: 400;
+    color: #3a3f5b;
+    width: auto;
+    display: inline;
+    padding: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 0px;
+
+    &:focus {
+        border: 0px;
         outline: 0;
     }
 `;
@@ -147,13 +196,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         >
                             <Box
                                 width={1 / 2}
-                                style={{ fontWeight: 500, fontSize: "16px" }}
+                                style={{ fontWeight: 500, fontSize: "20px" }}
                             >
                                 Recipient
                             </Box>
                             <Box
                                 width={1 / 2}
-                                style={{ fontWeight: 500, fontSize: "16px" }}
+                                style={{ fontWeight: 500, fontSize: "20px" }}
                             >
                                 Send Funds
                             </Box>
@@ -172,6 +221,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             publicKeyHex={this.state.recipient}
                                             width={90}
                                             height={90}
+                                            clickable={true}
                                         />
                                     </Box>
                                     <Box
@@ -202,12 +252,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </Box>
                             <Box width={1 / 2} className="break-word">
                                 <div>Amount</div>
-                                <SendPerlsInput
-                                    placeholder="Enter Amount"
-                                    value={this.state.inputPerls}
-                                    onChange={this.updateInputPerls}
-                                />
-                                Fee: 0.00001 PERLs
+                                <InputWrapper>
+                                    <SendPerlsInput
+                                        placeholder="Enter Amount"
+                                        value={this.state.inputPerls}
+                                        onChange={this.updateInputPerls}
+                                    />
+                                    <Divider>|</Divider>
+                                    <Fees>Fee:&nbsp;0.00001&nbsp;PERLs</Fees>
+                                </InputWrapper>
+
                                 <div
                                     style={{
                                         marginTop: "20px",
@@ -283,8 +337,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     </Row>
                     <Row
                         style={{
-                            paddingLeft: "40px",
-                            paddingRight: "40px"
+                            padding: "40px",
+                            border: "1px solid #686C7C",
+                            borderRadius: "4px",
+                            marginLeft: "20px",
+                            marginRight: "20px"
                         }}
                     >
                         <Box
@@ -295,6 +352,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 publicKeyHex={perlin.publicKeyHex}
                                 width={40}
                                 height={40}
+                                clickable={true}
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
@@ -328,6 +386,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 publicKeyHex={this.state.recipient}
                                 width={40}
                                 height={40}
+                                clickable={true}
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
