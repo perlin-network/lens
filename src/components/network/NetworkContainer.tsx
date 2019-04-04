@@ -10,6 +10,7 @@ import {
     CardHeadings,
     Divider
 } from "../dashboard/DashboardContainer";
+import QuickSend from "../dashboard/quicksend/QuickSend";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -19,6 +20,11 @@ export default class NetworkContainer extends React.Component<{}, {}> {
     public render() {
         return (
             <>
+                <Row>
+                    <Box width={1}>
+                        <QuickSend />
+                    </Box>
+                </Row>
                 <Row>
                     <GraphBox width={1 / 2}>
                         <CardHeadings>Network Graph</CardHeadings>

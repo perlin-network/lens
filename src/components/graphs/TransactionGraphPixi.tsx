@@ -62,7 +62,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
         const isNodeInViewport = (node: any, offset = 30) => {
             const scale = stage.scale.x;
 
-            if (simulation.alpha() > 3) {
+            if (simulation.alpha() > 2) {
                 return false;
             }
 
@@ -113,7 +113,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
             // .force("collision", d3.forceCollide().radius(0.1))
             // .force("x", d3.forceX())
             // .force("y", d3.forceY())
-            .alphaDecay(0.07)
+            .alphaDecay(0.1)
             .alphaTarget(0);
 
         const render = () => {
@@ -153,7 +153,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
             this.renderer.render(stage);
         };
 
-        const update = (alpha = 4) => {
+        const update = (alpha = 2.5) => {
             simulation.nodes(this.nodes).on("tick", render);
 
             // @ts-ignore

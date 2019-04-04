@@ -10,16 +10,17 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { QRCodeWidget } from "../../common/qr";
+import { QRCodeModal, QRCodeWidget } from "../../common/qr";
+import AccountDetectedAnimation from "./AccountDetectedAnimation";
 
 interface IProps {
     recipientID: string;
-    restartComponents: any;
     fixRecipient: boolean;
+    changeComponent: (component: string) => void;
+    toggleComponent: string;
 }
 
 interface IState {
-    toggleComponent: string;
     inputPerls: string;
     doubleChecked: boolean;
     recipient: string;
@@ -131,7 +132,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
-            toggleComponent: "showDetectedAccount",
             inputPerls: "",
             doubleChecked: false,
             recipient: this.props.recipientID,
@@ -157,12 +157,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     public render() {
         return (
             <>
-                <div
-                    className={
-                        this.state.toggleComponent === "showDetectedAccount"
-                            ? "displayComp"
-                            : "hideComp"
-                    }
+                <AccountDetectedAnimation
+                    in={this.props.toggleComponent === "showDetectedAccount"}
                 >
                     <div
                         style={{
@@ -270,6 +266,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 >
                                     <input
                                         type="checkbox"
+                                        id="confirmSendPerls"
                                         name="confirmSendPerls"
                                         checked={this.state.doubleChecked}
                                         onChange={this.handleCheckboxChange}
@@ -279,7 +276,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             marginRight: "5px"
                                         }}
                                     />
-                                    I have double checked the address
+                                    <label htmlFor="confirmSendPerls">
+                                        I have double checked the address
+                                    </label>
                                 </div>
                                 <div>
                                     <SendPerlsButton
@@ -294,19 +293,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </Box>
                         </Row>
                     </div>
-                </div>
+                </AccountDetectedAnimation>
 
-                <div
-                    className={
-                        this.state.toggleComponent === "showSendConfirmation"
-                            ? "displayComp"
-                            : "hideComp"
-                    }
-                    style={{
-                        backgroundColor: "#1b213d",
-                        paddingBottom: "15px",
-                        position: "relative"
-                    }}
+                <AccountDetectedAnimation
+                    in={this.props.toggleComponent === "showSendConfirmation"}
                 >
                     <CancelCardIcon
                         style={{ position: "absolute" }}
@@ -407,7 +397,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </div>
                         </Box>
                     </Row>
-                </div>
+                </AccountDetectedAnimation>
             </>
         );
     }
@@ -419,14 +409,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         const successfulSend = this.successfulSend();
         if (successfulSend === "Success") {
             this.setState({
-                toggleComponent: "showSendConfirmation",
                 errorMessage: "Success"
             });
+            this.props.changeComponent("showSendConfirmation");
         } else {
             this.setState({
-                toggleComponent: "showDetectedAccount",
                 errorMessage: successfulSend
             }); // if fail, toggle error component
+            this.props.changeComponent("showDetectedAccount");
         }
     };
     private handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -468,9 +458,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         }
     };
     private cancelSend = () => {
-        this.props.restartComponents(true);
+        this.props.changeComponent("");
         this.setState({
-            toggleComponent: "showDetectedAccount",
             inputPerls: "",
             doubleChecked: false
         });
