@@ -38,6 +38,7 @@
 
 .input-row1 {
     grid-area: input-row1;
+    
 }
 
 .input-row2 {
@@ -51,8 +52,9 @@
         "input-row1"
         "input-row2";
     grid-gap: 30px;
-    padding: 10px;
+    padding-top: 10px;
     grid-column-gap: 10px;
+    
 }
 
 input:disabled {

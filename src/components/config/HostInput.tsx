@@ -6,17 +6,27 @@ import "./config.scss";
 const Input = styled.input`
     outline: none;
     border: none;
-    border-radius: 2px;
+    border-radius: 5px;
     width: 80%;
-    height: 40px;
-    background-color: #fff;
-    padding: 5px 10px;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 400;
     font-family: HKGrotesk;
-    font-size: 14px;
-    font-weight: normal;
+    color: #fff;
+    background-color: #171d39;
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        cursor: text;
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
     &::placeholder {
         color: #717985;
         opacity: 0.8;
+        font-size: 18px;
     }
 `;
 
@@ -60,7 +70,7 @@ export default class HostInput extends React.Component<IProps, IState> {
             <Input
                 id="host-input"
                 type="text"
-                placeholder="ex: localhost:9000"
+                placeholder=" Ex: localhost:9000"
                 onChange={this.handleAddressChange}
                 value={this.props.disabled ? "" : this.state.newHost}
                 disabled={this.props.disabled}

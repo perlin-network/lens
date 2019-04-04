@@ -14,49 +14,60 @@ const SaveButton = styled.button`
     width: 160px;
     height: 40px;
     border: 0;
-    outline: 2px solid #23228e;
+    border-radius: 5px;
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
     font-family: HKGrotesk;
     font-size: 16px;
-    font-weight: normal;
-    color: #fff;
-    background-color: #23228e;
+    font-weight: 600;
+    color: #151b35;
+    background-color: #fff;
     cursor: pointer;
+    &:active {
+        background-color: #d4d5da;
+    }
 `;
 
 const EditButton = styled.button`
     max-width: 50px;
-    height: 40px;
+    height: 48px;
     margin-left: 10px;
     border: 0;
-    outline: 2px solid #23228e;
+    border-radius: 5px;
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
     font-family: HKGrotesk;
     font-size: 16px;
-    font-weight: normal;
-    color: #fff;
-    background-color: #23228e;
+    font-weight: 400;
+    background-color: #fff;
+    color: #151b35;
     cursor: pointer;
+
+    &:active {
+        background-color: #d4d5da;
+    }
 `;
 
 const DiscardButton = styled.button`
     width: 160px;
     height: 40px;
     border: 0;
-    outline: 2px solid #ffffff;
+    border-radius: 5px;
+
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
     font-family: HKGrotesk;
     font-size: 16px;
-    font-weight: normal;
-    background-color: #0e1a49;
-    color: #ffffff;
+    font-weight: 400;
+    background-color: #fff;
+    color: #151b35;
     cursor: pointer;
+    &:active {
+        background-color: #d4d5da;
+    }
 `;
 
 export default class APIHostConfig extends React.Component {

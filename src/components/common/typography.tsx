@@ -35,9 +35,9 @@ InfoIcon.defaultProps = {
 };
 
 const EditIcon = styled.img.attrs({ src: PencilEdit })`
-    height: 80%;
-    max-width: 30px;
-    vertical-align: centre;
+    height: 60%;
+    width: 60%;
+    vertical-align: middle;
 `;
 
 const QuestionIcon = styled.img.attrs({ src: QuestionAlert })`
