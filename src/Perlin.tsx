@@ -88,7 +88,7 @@ class Perlin {
 
     private keys: nacl.SignKeyPair;
 
-    private transactionLimit: number = 10000;
+    private transactionLimit: number = 5000;
     private transactionDebounceIntv: number = 2000;
 
     private constructor() {
