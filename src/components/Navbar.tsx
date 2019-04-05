@@ -7,7 +7,6 @@ import { Perlin } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon, QrCodeIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
-import { useWalletBalance } from "./wallet/WalletView";
 
 const Header = styled(Flex)`
     padding: 10px 0px 10px 0px;
@@ -55,7 +54,7 @@ const Item = styled.div`
 const perlin = Perlin.getInstance();
 
 const Navbar: React.SFC<{}> = observer(() => {
-    const balance = useWalletBalance();
+    const balance = perlin.account.balance;
     const pubKey = perlin.publicKeyHex;
     const stake = perlin.account.stake;
 
