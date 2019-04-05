@@ -173,6 +173,9 @@ class Perlin {
             }
         );
     }
+    public isAuthenticated() {
+        return false;
+    }
 
     public async getContractPage(
         contractId: string,

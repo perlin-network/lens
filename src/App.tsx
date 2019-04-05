@@ -17,8 +17,10 @@ import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
+import Login from "./components/login/Login";
 import MainBackgroundSVG from "./assets/svg/main-background.svg";
 import TransactionDetail from "./components/transactions/TransactionDetail";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 const ContentWrapper = styled(Flex)`
     margin: 0px;
@@ -72,13 +74,19 @@ class App extends React.Component<RouteComponentProps, {}> {
                         <Navbar />
                         <Switch>
                             {routes.map(route => (
-                                <Route
+                                <ProtectedRoute
                                     key={route.path}
                                     exact={true}
                                     path={route.path}
                                     component={route.component}
                                 />
                             ))}
+                            <Route
+                                key="/login"
+                                exact={true}
+                                path="/login"
+                                component={Login}
+                            />
                             <Redirect to={{ pathname: "/" }} />
                         </Switch>
                     </Content>
