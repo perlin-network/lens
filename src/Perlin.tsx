@@ -220,6 +220,11 @@ class Perlin {
         return account;
     }
 
+    // @ts-ignore
+    public async getTransaction(id: string): Promise<any> {
+        return await this.getJSON(`/tx/${id}`, {});
+    }
+
     private async init() {
         try {
             await this.startSession();
@@ -467,11 +472,6 @@ class Perlin {
             await this.listTransactions(),
             Perlin.parseWiredTransaction
         );
-    }
-
-    // @ts-ignore
-    private async getTransaction(id: string): Promise<any> {
-        return await this.getJSON(`/tx/${id}`, {});
     }
 }
 

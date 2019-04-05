@@ -18,6 +18,7 @@ import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
 import MainBackgroundSVG from "./assets/svg/main-background.svg";
+import TransactionDetail from "./components/transactions/TransactionDetail";
 
 const ContentWrapper = styled(Flex)`
     margin: 0px;
@@ -54,7 +55,8 @@ const routes = [
     { path: "/network", component: Network },
     { path: "/validator", component: Validator },
     { path: "/contracts", component: Contract },
-    { path: "/settings", component: Settings }
+    { path: "/settings", component: Settings },
+    { path: "/transactions/:id", component: TransactionDetail }
 ];
 
 @observer
