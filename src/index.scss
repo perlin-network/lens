@@ -66,7 +66,7 @@ canvas,
 svg {
     border-radius: 3px;
     box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4);
-    background: #151B35;
+    background: #151b35;
     color: #f5f8fa;
 }
 
@@ -158,17 +158,6 @@ svg {
 
 .status-container > div {
     background-color: #060b24 !important;
-}
-
-/* Table styles*/
-.tableStyle {
-    width: 95%;
-    font-family: HKGrotesk;
-}
-
-td {
-    word-wrap: break-word;
-    text-align: center;
 }
 
 .CodeMirror {

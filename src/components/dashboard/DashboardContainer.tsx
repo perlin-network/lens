@@ -6,11 +6,10 @@ import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
-import DataCard from "./DataCard";
 import "./dashboard.scss";
 import { observer } from "mobx-react";
-import { NetworkIcon } from "../common/typography";
 import NetworkLoad from "./NetworkLoad";
+import { Card, CardHeader, CardTitle } from "../common/card";
 
 const perlin = Perlin.getInstance();
 
@@ -68,8 +67,14 @@ export default class DashboardContainer extends React.Component {
                 </Row>
                 <Row>
                     <Box width={1 / 1}>
-                        <CardHeadings>Transactions</CardHeadings>
-                        <TransactionsTable />
+                        <Card>
+                            <CardHeader>
+                                <CardTitle fontWeight="500">
+                                    Transactions
+                                </CardTitle>
+                            </CardHeader>
+                            <TransactionsTable />
+                        </Card>
                     </Box>
                 </Row>
             </>

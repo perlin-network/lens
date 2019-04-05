@@ -3,63 +3,42 @@ import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
 import { formatDistance } from "date-fns";
-import "../index.scss";
+import styled from "styled-components";
 
-const columns = [
-    "Time",
-    "Transaction ID",
-    "Status",
-    "Creator",
-    "Tag"
-    /*{
-        Header: "",
-
-        id: "time",
-        accessor: (tx: ITransaction): string => {
-            const date = new Date(tx.timestamp);
-            return formatDistance(date, new Date(), { addSuffix: true });
-        },
-        maxWidth: 180
-    },
-    {
-        Header: "Transaction ID",
-
-        accessor: "id",
-        maxWidth: 250
-    },
-    {
-        Header: "Status",
-
-        accessor: "status",
-        maxWidth: 60
-    },
-    {
-        Header: "Creator",
-
-        accessor: "creator",
-        maxWidth: 250
-    },
-    {
-        Header: "Tag",
-
-        id: "tag",
-        accessor: (tx: ITransaction): string => {
-            switch (tx.tag) {
-                case Tag.NOP:
-                    return "nop";
-                case Tag.TRANSFER:
-                    return "transfer";
-                case Tag.CONTRACT:
-                    return "contract";
-                case Tag.STAKE:
-                    return "stake";
-            }
-        },
-        maxWidth: 80
-    }*/
-];
+const columns = ["Time", "Transaction ID", "Status", "Creator", "Tag"];
 
 const perlin = Perlin.getInstance();
+
+const Table = styled.table`
+    width: 100%;
+    border-collapse: collapse;
+`;
+const TableHead = styled.thead`
+    th {
+        color: #fff;
+        font-weight: normal;
+        font-size: 14px;
+        text-align: left;
+        height: 40px;
+        padding: 0px 15px;
+    }
+`;
+const TableBody = styled.tbody`
+    td {
+        color: #fff;
+        opacity: 0.6;
+        text-align: left;
+        height: 40px;
+        padding: 0px 15px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        overflow-wrap: normal;
+    }
+
+    tr:nth-child(odd) {
+        background-color: #151b35;
+    }
+`;
 
 @observer
 export default class TransactionsTable extends React.Component<{}, {}> {
@@ -85,13 +64,13 @@ export default class TransactionsTable extends React.Component<{}, {}> {
         const dataColumns = columns;
         const data = perlin.transactions.recent;
         const tableHeaders = (
-            <thead>
+            <TableHead>
                 <tr>
                     {dataColumns.map(column => {
                         return <th key={column}>{column}</th>;
                     })}
                 </tr>
-            </thead>
+            </TableHead>
         );
 
         const tableBody = data.map(tx => {
@@ -109,12 +88,11 @@ export default class TransactionsTable extends React.Component<{}, {}> {
             );
         });
 
-        // Decorate with Bootstrap CSS
         return (
-            <table className="tableStyle">
+            <Table>
                 {tableHeaders}
-                <tbody>{tableBody}</tbody>
-            </table>
+                <TableBody>{tableBody}</TableBody>
+            </Table>
         );
     }
 }
