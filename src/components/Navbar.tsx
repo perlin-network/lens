@@ -82,6 +82,7 @@ const perlin = Perlin.getInstance();
 const Navbar: React.SFC<{}> = observer(() => {
     const balance = useWalletBalance();
     const pubKey = perlin.publicKeyHex;
+    const stake = perlin.account.stake;
 
     const copyPubkeyToClipboard = () => {
         const el = document.createElement("textarea");
@@ -110,6 +111,10 @@ const Navbar: React.SFC<{}> = observer(() => {
                 <Item>
                     My Balance
                     <span>{balance ? balance : "N/A"}&nbsp;PERLs</span>
+                </Item>
+                <Item>
+                    My Stake
+                    <span>{stake ? stake : "N/A"}&nbsp;PERLs</span>
                 </Item>
                 <QRCodeWidget
                     publicKeyHex={pubKey}
