@@ -14,6 +14,10 @@ class Perlin {
         return this.transactions.recent.slice();
     }
 
+    public get publicKeyHex(): string {
+        return Buffer.from(this.keys.publicKey).toString("hex");
+    }
+
     public static getInstance(): Perlin {
         if (Perlin.singleton === undefined) {
             Perlin.singleton = new Perlin();
@@ -86,9 +90,9 @@ class Perlin {
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
 
-    private keys: nacl.SignKeyPair;
+    public transactionLimit: number = 5000;
 
-    private transactionLimit: number = 5000;
+    private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
 
     private constructor() {
@@ -99,10 +103,6 @@ class Perlin {
             )
         );
         this.init().catch(err => console.error(err));
-    }
-
-    public get publicKeyHex(): string {
-        return Buffer.from(this.keys.publicKey).toString("hex");
     }
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {
@@ -350,17 +350,6 @@ class Perlin {
 
         const pushTransactions = _.debounce(
             () => {
-                const nextLength =
-                    this.transactions.recent.length + txBuffer.length;
-
-                if (nextLength > this.transactionLimit) {
-                    const pruneLength = nextLength - this.transactionLimit;
-
-                    if (this.onTransactionsRemoved !== undefined) {
-                        this.onTransactionsRemoved(pruneLength, true);
-                    }
-                }
-
                 this.transactions.recent.push(
                     ...txBuffer.map((tx: ITransaction, index) => {
                         return Perlin.parseWiredTransaction(
