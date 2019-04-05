@@ -6,6 +6,8 @@ import "./quicksend.scss";
 import QuickSendInputAnimation from "./QuickSendInputAnimation";
 import SendFailAnimation from "./SendFailAnimation";
 import { Perlin } from "../../../Perlin";
+import TxDetectedAnimation from "./TxDetectedAnimation";
+import TxDetected from "./TxDetected";
 
 const QuickSendHeading = styled.p`
     font-family: Montserrat;
@@ -56,6 +58,7 @@ export default class QuickSend extends React.Component<{}, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
+            // todo : better to use enum
             toggleComponent: "",
             recipientID: "",
             inputID: "",
@@ -98,6 +101,15 @@ export default class QuickSend extends React.Component<{}, IState> {
                 >
                     <SendFail restartComponents={this.handleRestart} />
                 </SendFailAnimation>
+
+                <TxDetectedAnimation
+                    in={this.state.toggleComponent === "showDetectedTx"}
+                >
+                    <TxDetected
+                        txId={this.state.inputID}
+                        restartComponents={this.handleRestart}
+                    />
+                </TxDetectedAnimation>
             </Wrapper>
         );
     }
@@ -121,7 +133,11 @@ export default class QuickSend extends React.Component<{}, IState> {
     }
     private async onKeyDown(e: any) {
         if (e.keyCode === 13) {
-            if (this.validInputID()) {
+            if (await this.validtxId()) {
+                this.setState({
+                    toggleComponent: "showDetectedTx"
+                });
+            } else if (this.validInputID()) {
                 const balance: number = await this.getAccountBalance(
                     this.state.inputID
                 );
@@ -141,6 +157,16 @@ export default class QuickSend extends React.Component<{}, IState> {
     private validInputID = () => {
         const re = /[0-9A-Fa-f]{64}/g;
         return re.test(this.state.inputID) && this.state.inputID.length === 64;
+    };
+    private validtxId = async (): Promise<boolean> => {
+        const txId = this.state.inputID;
+        try {
+            const payload = await perlin.getTransaction(txId);
+            return Promise.resolve(true);
+        } catch (e) {
+            console.error(e);
+            return Promise.resolve(false);
+        }
     };
     private handleRestart(component: string) {
         this.setState({ toggleComponent: component });
