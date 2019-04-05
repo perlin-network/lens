@@ -5,7 +5,7 @@ import "../index.scss";
 import { Flex, Box } from "@rebass/grid";
 import { Perlin } from "../Perlin";
 import { observer } from "mobx-react-lite";
-import { CopyIcon } from "./common/typography";
+import { CopyIcon, QrCodeIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
 import { useWalletBalance } from "./wallet/WalletView";
 
@@ -49,31 +49,6 @@ const Item = styled.div`
         &:hover {
             opacity: 0.8;
         }
-    }
-`;
-
-const QRWrapper = styled.button`
-    border: none;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    height: 50px;
-    width: 50px;
-    margin: 8px 0px 8px 0px;
-    background-color: white;
-    border-radius: 50%;
-
-    & > * {
-        margin-top: 6px;
-        width: 65%;
-        height: 65%;
-    }
-
-    &:focus {
-        outline: none;
-    }
-    &:hover {
-        opacity: 0.8;
     }
 `;
 

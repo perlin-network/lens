@@ -196,14 +196,18 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         >
                             <Box width={1 / 2} className="break-word">
                                 <Row>
-                                    <Box width={2 / 9}>
+                                    <Box
+                                        width={2 / 9}
+                                        style={{ padding: "0px" }}
+                                    >
                                         <QRCodeWidget
                                             publicKeyHex={
                                                 this.props.recipientID
                                             }
-                                            width={90}
-                                            height={90}
+                                            width={100}
+                                            height={100}
                                             clickable={true}
+                                            top={20}
                                         />
                                     </Box>
                                     <Box
@@ -326,9 +330,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         >
                             <QRCodeWidget
                                 publicKeyHex={perlin.publicKeyHex}
-                                width={40}
-                                height={40}
+                                width={48}
+                                height={48}
                                 clickable={true}
+                                top={20}
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
@@ -360,9 +365,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         >
                             <QRCodeWidget
                                 publicKeyHex={this.props.recipientID}
-                                width={40}
-                                height={40}
+                                width={48}
+                                height={48}
                                 clickable={true}
+                                top={20}
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">

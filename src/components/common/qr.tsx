@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
 import CloseIcon from "../../assets/svg/close-icon.svg";
+import QrIcon from "../../assets/svg/qr-icon.svg";
 import { QRCode } from "react-qr-svg";
 import { useState } from "react";
 
@@ -9,6 +10,7 @@ interface IQRCodeModalProps {
     publicKeyHex: string;
     onClose: () => void;
     open: boolean;
+    top?: number;
 }
 
 const ModalBackdrop = styled.div`
@@ -21,9 +23,9 @@ const ModalBackdrop = styled.div`
     background: rgba(0, 0, 0, 0.8);
 `;
 
-const Modal = styled.div`
+const Modal = styled.div<{ top: number }>`
     position: fixed;
-    top: 200px;
+    top: ${props => props.top}px;
     left: 50%;
     width: 565px;
 
@@ -64,6 +66,11 @@ const QRModalWrapper = styled.div`
     }
 `;
 
+const QrCodeIcon = styled.img.attrs({ src: QrIcon })`
+    height: 64px;
+    width: 64px;
+`;
+
 const ModalCloseButton = styled.img.attrs({ src: CloseIcon })`
     height: 20px;
     width: 20px;
@@ -74,7 +81,8 @@ const ModalCloseButton = styled.img.attrs({ src: CloseIcon })`
 const QRCodeModal: React.FunctionComponent<IQRCodeModalProps> = ({
     publicKeyHex,
     onClose,
-    open
+    open,
+    top = 200
 }) => {
     const preventEventBubbling = (e: React.SyntheticEvent) => {
         e.stopPropagation();
@@ -84,7 +92,7 @@ const QRCodeModal: React.FunctionComponent<IQRCodeModalProps> = ({
         <>
             {open && (
                 <ModalBackdrop>
-                    <Modal onClick={preventEventBubbling}>
+                    <Modal top={top} onClick={preventEventBubbling}>
                         <ModalHeader justifyContent="space-between">
                             <ModalCloseButton onClick={onClose} />
                         </ModalHeader>
@@ -105,6 +113,7 @@ interface IQRCodeWidgetProps {
     width?: number;
     height?: number;
     clickable?: boolean;
+    top?: number;
 }
 
 const QRWidgetWrapper = styled.button<{
@@ -124,8 +133,9 @@ const QRWidgetWrapper = styled.button<{
     border-radius: 50%;
 
     & > * {
-        width: 65%;
-        height: 65%;
+        width: 80%;
+        width: ${props => (props.width <= 51 ? "80%" : "65%")};
+        height: ${props => (props.height <= 51 ? "80%" : "65%")};
         vertical-align: middle;
     }
 
@@ -146,7 +156,8 @@ const QRCodeWidget: React.FunctionComponent<IQRCodeWidgetProps> = ({
     publicKeyHex,
     width,
     height,
-    clickable = false
+    clickable = false,
+    top = 200
 }) => {
     const [qrmodalOpen, setQrmodalOpen] = useState(false);
     const handleClose = () => {
@@ -157,21 +168,31 @@ const QRCodeWidget: React.FunctionComponent<IQRCodeWidgetProps> = ({
         setQrmodalOpen(true);
     };
 
+    const size = {
+        width: width === undefined ? 50 : width,
+        height: height === undefined ? 50 : height
+    };
     return (
         <>
             <QRWidgetWrapper
                 onClick={showQrModal}
-                width={width === undefined ? 50 : width}
-                height={height === undefined ? 50 : height}
+                width={size.width}
+                height={size.height}
                 clickable={clickable}
             >
-                <QRCode value={publicKeyHex} />
+                {size.height <= 51 && size.width <= 51 ? (
+                    <QrCodeIcon />
+                ) : (
+                    <QRCode value={publicKeyHex} />
+                )}
             </QRWidgetWrapper>
+
             {clickable && (
                 <QRCodeModal
                     open={qrmodalOpen}
                     onClose={handleClose}
                     publicKeyHex={publicKeyHex}
+                    top={top}
                 />
             )}
         </>
