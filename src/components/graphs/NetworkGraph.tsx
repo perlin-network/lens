@@ -203,7 +203,6 @@ function getInteractiveNode(
     const nodeSize = isLocal ? 12 : 6;
 
     node.gfx.interactive = true;
-    node.gfx.buttonMode = true;
     node.gfx.hitArea = new PIXI.Circle(0, 0, nodeSize + 2);
 
     node.gfx.beginFill(0x4a41d1);

@@ -9,6 +9,7 @@ import { when } from "mobx";
 import { ITransaction } from "../../types/Transaction";
 import styled from "styled-components";
 import Tooltip from "./Tooltip";
+import { withRouter, RouteComponentProps } from "react-router-dom";
 
 const perlin = Perlin.getInstance();
 
@@ -32,8 +33,10 @@ const Wrapper = styled.div`
         margin-bottom: 0;
     }
 `;
-
-class TGraph extends React.Component<{ size: any }, {}> {
+interface ITGraphProps extends RouteComponentProps {
+    size: any;
+}
+class TGraph extends React.Component<ITGraphProps, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
 
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
@@ -176,7 +179,11 @@ class TGraph extends React.Component<{ size: any }, {}> {
                 const recent = perlin.transactions.recent;
 
                 recent.forEach((tx: ITransaction, index: number) => {
-                    const node = getInteractiveNode(tx, mouseHandleUpdate);
+                    const node = getInteractiveNode(
+                        tx,
+                        mouseHandleUpdate,
+                        this.props
+                    );
                     stage.addChild(node.gfx);
                     this.nodes.push(node);
                     this.store.set(tx.id, index);
@@ -231,7 +238,11 @@ class TGraph extends React.Component<{ size: any }, {}> {
             }
 
             txs.forEach((tx: ITransaction) => {
-                const node = getInteractiveNode(tx, mouseHandleUpdate);
+                const node = getInteractiveNode(
+                    tx,
+                    mouseHandleUpdate,
+                    this.props
+                );
                 stage.addChild(node.gfx);
                 this.nodes.push(node);
                 this.store.set(tx.id, 1);
@@ -278,7 +289,11 @@ function getLineOffset(source: any, target: any) {
     return { offsetX, offsetY };
 }
 
-function getInteractiveNode(tx: ITransaction, mouseUpdate: () => void) {
+function getInteractiveNode(
+    tx: ITransaction,
+    mouseUpdate: () => void,
+    props: ITGraphProps
+) {
     const node = {
         id: tx.id,
         payload: tx.payload ? tx.payload.amount : undefined,
@@ -330,6 +345,7 @@ function getInteractiveNode(tx: ITransaction, mouseUpdate: () => void) {
 
         node.gfx.on("click", () => {
             console.log("TODO: go to transaction page");
+            props.history.push("/transactions/" + node.id);
         });
 
         // on node mouseout
@@ -354,6 +370,6 @@ function getNodeSize(payload: number): number {
     return Math.log(payload) + 6;
 }
 
-const TransactionGraphPixi = withSize()(TGraph);
+const TransactionGraphPixi = withSize()(withRouter<ITGraphProps>(TGraph));
 
 export { TransactionGraphPixi };
