@@ -21,6 +21,8 @@ const transTooltip = {
     status: ""
 };
 
+const nodeLimit: number = 5000;
+
 const Wrapper = styled.div`
     position: relative;
 
@@ -220,11 +222,11 @@ class TGraph extends React.Component<{ size: any }, {}> {
         perlin.onTransactionsRemoved = pruneNodes;
 
         perlin.onTransactionsCreated = (txs: ITransaction[]) => {
-            // graph node should be capped to transactionLimit;
+            // graph node should be capped to nodeLimit;
             const nextLength = this.nodes.length + txs.length;
 
-            if (nextLength > perlin.transactionLimit) {
-                const pruneLength = nextLength - perlin.transactionLimit;
+            if (nextLength > nodeLimit) {
+                const pruneLength = nextLength - nodeLimit;
                 pruneNodes(pruneLength, true);
             }
 

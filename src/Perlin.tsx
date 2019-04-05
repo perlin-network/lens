@@ -90,8 +90,6 @@ class Perlin {
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
 
-    public transactionLimit: number = 5000;
-
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
 
@@ -445,15 +443,16 @@ class Perlin {
     // @ts-ignore
     private async listTransactions(
         offset: number = 0,
-        limit: number = this.transactionLimit
+        limit: number = 0
     ): Promise<[]> {
         const output = await this.getJSON("/tx", { offset, limit });
         return output;
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
+        // TODO: remove 5000 when Transaction table pagination is implemented
         return _.map(
-            await this.listTransactions(),
+            await this.listTransactions(0, 5000),
             Perlin.parseWiredTransaction
         );
     }
