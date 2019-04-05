@@ -9,6 +9,8 @@ import QuickSend from "./quicksend/QuickSend";
 import DataCard from "./DataCard";
 import "./dashboard.scss";
 import { observer } from "mobx-react";
+import { NetworkIcon } from "../common/typography";
+import NetworkLoad from "./NetworkLoad";
 
 const perlin = Perlin.getInstance();
 
@@ -21,6 +23,9 @@ export const CardHeadings = styled.h2`
     font-size: 20px;
     padding-left: 20px;
     font-weight: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 `;
 
 export const GraphBox = styled(Box)`
@@ -47,42 +52,16 @@ export default class DashboardContainer extends React.Component {
                     </Box>
                 </Row>
                 <Row>
-                    <div className="cards-row">
-                        <div className="card-cell">
-                            <DataCard
-                                heading="Wallet Balance"
-                                value={perlin.account.balance.toString()}
-                                unit="PERLs"
-                            />
-                        </div>
-                        <div className="card-cell">
-                            <DataCard
-                                heading="Your Stake"
-                                value={
-                                    perlin.account.stake === undefined
-                                        ? "0"
-                                        : perlin.account.stake.toString()
-                                }
-                                unit="PERLs"
-                            />
-                        </div>
-                        <div className="card-cell">
-                            <DataCard
-                                heading="Network Load"
-                                value="TBA"
-                                unit="Avg TPS"
-                            />
-                        </div>
-                    </div>
-                </Row>
-                <Row>
                     <GraphBox width={1 / 2}>
                         <CardHeadings>Network</CardHeadings>
                         <Divider />
                         <NetworkGraph />
                     </GraphBox>
                     <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
-                        <CardHeadings>Transactions</CardHeadings>
+                        <CardHeadings>
+                            Transactions
+                            <NetworkLoad />
+                        </CardHeadings>
                         <Divider />
                         <TransactionGraphPixi />
                     </GraphBox>

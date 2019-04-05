@@ -14,6 +14,10 @@ class Perlin {
         return this.transactions.recent.slice();
     }
 
+    public get publicKeyHex(): string {
+        return Buffer.from(this.keys.publicKey).toString("hex");
+    }
+
     public static getInstance(): Perlin {
         if (Perlin.singleton === undefined) {
             Perlin.singleton = new Perlin();
@@ -87,8 +91,6 @@ class Perlin {
     public onTransactionApplied: (tx: ITransaction) => void;
 
     private keys: nacl.SignKeyPair;
-
-    private transactionLimit: number = 5000;
     private transactionDebounceIntv: number = 2000;
 
     private constructor() {
@@ -99,10 +101,6 @@ class Perlin {
             )
         );
         this.init().catch(err => console.error(err));
-    }
-
-    public get publicKeyHex(): string {
-        return Buffer.from(this.keys.publicKey).toString("hex");
     }
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {
@@ -355,17 +353,6 @@ class Perlin {
 
         const pushTransactions = _.debounce(
             () => {
-                const nextLength =
-                    this.transactions.recent.length + txBuffer.length;
-
-                if (nextLength > this.transactionLimit) {
-                    const pruneLength = nextLength - this.transactionLimit;
-
-                    if (this.onTransactionsRemoved !== undefined) {
-                        this.onTransactionsRemoved(pruneLength, true);
-                    }
-                }
-
                 this.transactions.recent.push(
                     ...txBuffer.map((tx: ITransaction, index) => {
                         return Perlin.parseWiredTransaction(
@@ -461,15 +448,16 @@ class Perlin {
     // @ts-ignore
     private async listTransactions(
         offset: number = 0,
-        limit: number = this.transactionLimit
+        limit: number = 0
     ): Promise<[]> {
         const output = await this.getJSON("/tx", { offset, limit });
         return output;
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
+        // TODO: remove 5000 when Transaction table pagination is implemented
         return _.map(
-            await this.listTransactions(),
+            await this.listTransactions(0, 5000),
             Perlin.parseWiredTransaction
         );
     }

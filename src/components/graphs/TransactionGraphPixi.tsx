@@ -21,6 +21,8 @@ const transTooltip = {
     status: ""
 };
 
+const nodeLimit: number = 5000;
+
 const Wrapper = styled.div`
     position: relative;
 
@@ -196,7 +198,7 @@ class TGraph extends React.Component<{ size: any }, {}> {
                 update();
             }
         );
-        perlin.onTransactionsRemoved = (numTx: number, noUpdate = false) => {
+        const pruneNodes = (numTx: number, noUpdate = false) => {
             const popped: any = this.nodes.splice(0, numTx);
             popped.forEach((node: any) => {
                 node.gfx.destroy();
@@ -215,7 +217,19 @@ class TGraph extends React.Component<{ size: any }, {}> {
                 update(3);
             }
         };
+
+        // perlin.onTransactionsRemoved will be used when prunning from server
+        perlin.onTransactionsRemoved = pruneNodes;
+
         perlin.onTransactionsCreated = (txs: ITransaction[]) => {
+            // graph node should be capped to nodeLimit;
+            const nextLength = this.nodes.length + txs.length;
+
+            if (nextLength > nodeLimit) {
+                const pruneLength = nextLength - nodeLimit;
+                pruneNodes(pruneLength, true);
+            }
+
             txs.forEach((tx: ITransaction) => {
                 const node = getInteractiveNode(tx, mouseHandleUpdate);
                 stage.addChild(node.gfx);
