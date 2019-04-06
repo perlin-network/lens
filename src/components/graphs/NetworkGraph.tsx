@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import { withSize } from "react-sizeme";
 import * as React from "react";
 import { createRef } from "react";
-import { when } from "mobx";
+import { when, intercept, Lambda } from "mobx";
 import Tooltip from "./Tooltip";
 import styled from "styled-components";
 
@@ -32,7 +32,10 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
     private peerMap: Map<string, any[]> = new Map([]);
     private nodes: any[] = [];
+    private localNode: any;
     private edges: any[] = [];
+    private stage: PIXI.Container;
+    private disposer: Lambda;
 
     public updateDimensions() {
         if (this.renderer != null) {
@@ -45,6 +48,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
     public componentWillUnmount() {
         window.removeEventListener("resize", this.updateDimensions.bind(this));
+        this.disposer();
     }
 
     public componentDidMount() {
@@ -53,7 +57,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
         const width = this.props.size.width;
         const height = this.props.size.height || 300;
 
-        const stage = new PIXI.Container();
+        this.stage = new PIXI.Container();
         this.renderer = PIXI.autoDetectRenderer({
             width,
             height,
@@ -62,14 +66,17 @@ class NGraph extends React.Component<{ size: any }, {}> {
         });
 
         const links = new PIXI.Graphics();
-        stage.addChild(links);
+        this.stage.addChild(links);
 
         this.networkGraphRef.current.appendChild(this.renderer.view);
 
         d3.select(this.renderer.view).call(
             d3.zoom().on("zoom", () => {
-                stage.scale.set(d3.event.transform.k);
-                stage.position.set(d3.event.transform.x, d3.event.transform.y);
+                this.stage.scale.set(d3.event.transform.k);
+                this.stage.position.set(
+                    d3.event.transform.x,
+                    d3.event.transform.y
+                );
             })
         );
 
@@ -81,11 +88,12 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 //            .distance(100)
             )
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-100))
-            .force("collide", d3.forceCollide().radius(3))
-            .force("x", d3.forceX())
-            .force("y", d3.forceY())
-            .alphaTarget(0.1);
+            .force("charge", d3.forceManyBody().strength(-500))
+            // .force("collide", d3.forceCollide().radius(3))
+            // .force("x", d3.forceX())
+            // .force("y", d3.forceY())
+            .alphaDecay(0.1)
+            .alphaTarget(0);
 
         const render = () => {
             this.nodes.forEach(node => {
@@ -103,7 +111,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
             });
 
             links.endFill();
-            this.renderer.render(stage);
+            this.renderer.render(this.stage);
         };
 
         const update = () => {
@@ -117,6 +125,16 @@ class NGraph extends React.Component<{ size: any }, {}> {
             render();
             this.forceUpdate();
         };
+        this.disposer = intercept(perlin, "peers", changes => {
+            const peers = changes.newValue || [];
+            const isDirty = this.checkPeers(peers, mouseHandleUpdate);
+
+            if (isDirty) {
+                update();
+            }
+
+            return changes;
+        });
 
         when(
             () => perlin.ledger.address.length > 0,
@@ -126,54 +144,13 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 if (self.length === 0) {
                     return;
                 }
-                const node = getInteractiveNode(
+                this.localNode = getInteractiveNode(
                     perlin.ledger.address,
                     mouseHandleUpdate,
                     true
                 );
-                this.nodes.push(node);
-                stage.addChild(node.gfx);
-
-                // Check peers
-                let peers = perlin.ledger.peers;
-                if (peers == null || peers.length === 0) {
-                    return;
-                }
-                peers = peers.slice();
-                peers.forEach(peer => {
-                    if (node.id !== peer) {
-                        this.edges.push({ source: node.id, target: peer });
-                    }
-                });
-                this.peerMap.set(
-                    node.id,
-                    peers.map(peer => {
-                        return { id: peer, label: peer };
-                    })
-                );
-
-                // If peer node doesn't already exist, make a new node and link it
-                peers.forEach(peer => {
-                    if (this.peerMap.get(peer) === undefined) {
-                        const peerNode = getInteractiveNode(
-                            peer,
-                            mouseHandleUpdate
-                        );
-                        this.nodes.push(peerNode);
-                        stage.addChild(peerNode.gfx);
-
-                        // Add the temporary peer node to the map
-                        this.peerMap.set(peer, [
-                            {
-                                id: node.id,
-                                label: node.id
-                            }
-                        ]);
-
-                        // Add edges
-                        this.edges.push({ source: peer, target: node.id });
-                    }
-                });
+                this.nodes.push(this.localNode);
+                this.stage.addChild(this.localNode.gfx);
 
                 update();
             }
@@ -187,6 +164,56 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 <Tooltip {...networkTooltip} />
             </Wrapper>
         );
+    }
+
+    private checkPeers(peers: string[], mouseHandleUpdate: () => void) {
+        let isDirty = false;
+        peers.forEach((peer: string) => {
+            if (peer !== this.localNode.id && !this.peerMap.get(peer)) {
+                isDirty = true;
+                this.addPeer(peer, mouseHandleUpdate);
+            }
+        });
+
+        this.nodes = this.nodes.filter((node: any) => {
+            if (node.id === this.localNode.id) {
+                return true;
+            }
+            const foundIndex = peers.findIndex(
+                (peer: string) => node.id === peer
+            );
+            // if new peers array doesn't contain a node then remove it
+            if (foundIndex === -1) {
+                isDirty = true;
+                this.edges = this.edges.filter(
+                    (edge: any) =>
+                        edge.source.id !== node.id && edge.target.id !== node.id
+                );
+                node.gfx.destroy();
+                this.peerMap.delete(node.id);
+                return false;
+            }
+            return true;
+        });
+
+        return isDirty;
+    }
+
+    private addPeer(peer: string, mouseHandleUpdate: () => void) {
+        const peerNode = getInteractiveNode(peer, mouseHandleUpdate);
+        this.nodes.push(peerNode);
+        this.stage.addChild(peerNode.gfx);
+
+        // Add the temporary peer node to the map
+        this.peerMap.set(peer, [
+            {
+                id: this.localNode.id,
+                label: this.localNode.id
+            }
+        ]);
+
+        // Add edges
+        this.edges.push({ source: peerNode.id, target: this.localNode.id });
     }
 }
 

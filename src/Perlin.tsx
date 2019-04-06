@@ -86,12 +86,15 @@ class Perlin {
         recent: [] as ITransaction[]
     };
 
+    @observable public peers: string[] = [];
+
     public onTransactionsCreated: (txs: ITransaction[]) => void;
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
 
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
+    private peerPollIntv: number = 5000;
 
     private constructor() {
         this.keys = nacl.sign.keyPair.fromSecretKey(
@@ -227,9 +230,10 @@ class Perlin {
         try {
             await this.startSession();
             await this.initLedger();
+            await this.initPeers();
 
             this.pollTransactionUpdates();
-            this.pollConsensusUpdates(this.publicKeyHex);
+            this.pollConsensusUpdates();
 
             storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
@@ -312,12 +316,21 @@ class Perlin {
     }
 
     private async initLedger() {
-        this.ledger = await this.getJSON("/ledger", {});
+        this.ledger = await this.getLedger();
+        this.peers = this.ledger.peers;
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
 
         this.transactions.recent = await this.requestRecentTransactions();
+    }
+
+    private async initPeers() {
+        setInterval(async () => {
+            // only update peers
+            const ledger = await this.getLedger();
+            this.peers = ledger.peers;
+        }, this.peerPollIntv);
     }
 
     private async startSession() {
@@ -402,7 +415,7 @@ class Perlin {
         };
     }
 
-    private pollConsensusUpdates(id: string) {
+    private pollConsensusUpdates() {
         const url = new URL(`ws://${this.api.host}/consensus/poll`);
         url.searchParams.append("token", this.api.token);
 
@@ -420,6 +433,10 @@ class Perlin {
                     break;
             }
         };
+    }
+
+    private async getLedger() {
+        return await this.getJSON("/ledger", {});
     }
 
     private pollAccountUpdates(id: string) {
