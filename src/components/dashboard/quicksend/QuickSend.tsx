@@ -49,7 +49,7 @@ interface IState {
     recipientID: string;
     inputID: string;
     sendInputFocused: boolean;
-    recipientBalance: number;
+    recipientBalance: string;
 }
 
 const perlin = Perlin.getInstance();
@@ -63,7 +63,7 @@ export default class QuickSend extends React.Component<{}, IState> {
             recipientID: "",
             inputID: "",
             sendInputFocused: false,
-            recipientBalance: 0
+            recipientBalance: "0"
         };
         this.updateinputID = this.updateinputID.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -138,7 +138,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                     toggleComponent: "showDetectedTx"
                 });
             } else if (this.validInputID()) {
-                const balance: number = await this.getAccountBalance(
+                const balance: string = await this.getAccountBalance(
                     this.state.inputID
                 );
 
@@ -177,10 +177,10 @@ export default class QuickSend extends React.Component<{}, IState> {
     }
 
     private async getAccountBalance(recipientID: string) {
-        let balance = 0;
+        let balance = "0";
         try {
             const account = await perlin.getAccount(recipientID);
-            balance = account ? account.balance : 0;
+            balance = account ? account.balance : "0";
         } catch (error) {
             console.error(error);
         }

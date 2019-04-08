@@ -84,11 +84,11 @@ const Navbar: React.SFC<{}> = observer(() => {
                 </Item>
                 <Item>
                     My Balance
-                    <span>{balance ? balance : "N/A"}&nbsp;PERLs</span>
+                    <span>{balance ? balance : "0"}&nbsp;PERLs</span>
                 </Item>
                 <Item>
                     My Stake
-                    <span>{stake ? stake : "N/A"}&nbsp;PERLs</span>
+                    <span>{stake ? stake : "0"}&nbsp;PERLs</span>
                 </Item>
                 <QRCodeWidget
                     publicKeyHex={pubKey}

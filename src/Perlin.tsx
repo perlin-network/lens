@@ -8,6 +8,8 @@ import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
+// @ts-ignore
+import * as JSONbig from "json-bigint";
 
 class Perlin {
     @computed get recentTransactions() {
@@ -76,7 +78,7 @@ class Perlin {
 
     @observable public account: IAccount = {
         public_key: "",
-        balance: 0,
+        balance: "0",
         stake: 0,
         is_contract: false,
         num_mem_pages: 0
@@ -450,11 +452,10 @@ class Perlin {
         const ws = new WebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
-            data = JSON.parse(data);
-
+            data = JSONbig.parse(data);
             switch (data.event) {
                 case "balance_updated":
-                    this.account.balance = data.balance;
+                    this.account.balance = data.balance.toString();
                     break;
                 case "stake_updated":
                     this.account.stake = data.stake;
