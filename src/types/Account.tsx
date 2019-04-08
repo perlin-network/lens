@@ -1,7 +1,7 @@
 interface IAccount {
     public_key: string;
 
-    balance: number;
+    balance: string;
     stake: number;
 
     is_contract: boolean;

@@ -15,7 +15,7 @@ import AccountDetectedAnimation from "./AccountDetectedAnimation";
 
 interface IProps {
     recipientID: string;
-    recipientBalance: number;
+    recipientBalance: string;
     changeComponent: (component: string) => void;
     toggleComponent: string;
 }
