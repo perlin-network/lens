@@ -60,14 +60,18 @@ const Wrapper = styled.div`
                 .rt-resizable-header-content:after {
                     content: "";
                     display: inline-block;
+                    vertical-align: middle;
                     border: solid 4px transparent;
                     border-bottom-color: #fff;
                     margin-left: 6px;
-                    transition: all 0.3s ease;
+                    transition: all 0.2s ease;
                 }
             }
+            .rt-th.-sort-asc .rt-resizable-header-content:after {
+                transform: translateY(-2px);
+            }
             .rt-th.-sort-desc .rt-resizable-header-content:after {
-                transform: rotateZ(-180deg);
+                transform: translateY(2px) rotateZ(-180deg);
             }
         }
         .rt-tbody {
