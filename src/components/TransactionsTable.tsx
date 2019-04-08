@@ -102,10 +102,10 @@ const StyledTag = styled.span`
 
 const columns = [
     {
-        id: "time",
         Header: "Time",
-        accessor: (tx: ITransaction) => {
-            const date = new Date(tx.timestamp);
+        accessor: "timestamp",
+        Cell: (row: any) => {
+            const date = new Date(row.value);
             return formatDistance(date, new Date(), { addSuffix: true });
         },
         maxWidth: 200,
