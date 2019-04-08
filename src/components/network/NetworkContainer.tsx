@@ -5,6 +5,7 @@ import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../common/typography";
 import TransactionsTable from "../TransactionsTable";
+import { Card, CardHeader, CardTitle } from "../common/card";
 import {
     GraphBox,
     CardHeadings,
@@ -37,10 +38,18 @@ export default class NetworkContainer extends React.Component<{}, {}> {
                         <TransactionGraphPixi />
                     </GraphBox>
                 </Row>
-                <Box width={1}>
-                    <SectionTitle>Transactions</SectionTitle>
-                    <TransactionsTable />
-                </Box>
+                <Row>
+                    <Box width={1 / 1}>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle fontWeight="500">
+                                    Transactions
+                                </CardTitle>
+                            </CardHeader>
+                            <TransactionsTable />
+                        </Card>
+                    </Box>
+                </Row>
                 <Row />
             </>
         );

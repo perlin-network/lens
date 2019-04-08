@@ -113,7 +113,7 @@ const columns = [
         Header: "Status",
         accessor: "status",
         maxWidth: 100,
-        minWidth: 20
+        minWidth: 30
     },
     {
         Header: "Creator",
@@ -124,11 +124,11 @@ const columns = [
         id: "tag",
         accessor: (tx: ITransaction) => <StyledTag>{getTag(tx)}</StyledTag>,
         Cell: (row: any) => (
-            <div style={{ textAlign: "right" }}>{row.value}</div>
+            <span style={{ textAlign: "right" }}>{row.value}</span>
         ),
-        Header: (row: any) => <div style={{ textAlign: "right" }}>Tag</div>,
+        Header: (row: any) => <span style={{ textAlign: "right" }}>Tag</span>,
         maxWidth: 100,
-        minWidth: 20
+        minWidth: 30
     }
 ];
 
@@ -261,7 +261,7 @@ export default class TransactionsTable extends React.Component<{}, {}> {
                     data={data}
                     columns={columns}
                     loading={loading}
-                    defaultPageSize={5}
+                    defaultPageSize={10}
                     pageSizeOptions={pageSizeOptions}
                     defaultSorted={[
                         {

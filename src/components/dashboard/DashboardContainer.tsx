@@ -77,6 +77,7 @@ export default class DashboardContainer extends React.Component {
                         </Card>
                     </Box>
                 </Row>
+                <Row />
             </>
         );
     }
