@@ -228,8 +228,10 @@ class TGraph extends React.Component<ITGraphProps, {}> {
         // perlin.onTransactionsRemoved will be used when prunning from server
         perlin.onTransactionsRemoved = (numTx: number) => {
             // there's no need to prune the graph node if they've already capped to nodeLimit
-            if (this.nodes.length < nodeLimit) {
-                pruneNodes(numTx);
+            if (perlin.transactions.recent.length < nodeLimit) {
+                pruneNodes(
+                    this.nodes.length - perlin.transactions.recent.length
+                );
             }
         };
 
