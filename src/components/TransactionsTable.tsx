@@ -29,6 +29,7 @@ const Wrapper = styled.div`
                 transform: translateY(-50%);
             }
         }
+
         .rt-noData {
             position: relative;
             background: none;
@@ -49,6 +50,9 @@ const Wrapper = styled.div`
                 font-size: 14px;
                 text-align: left;
                 padding: 10px 15px;
+            }
+            .rt-th.-align-right {
+                text-align: right;
             }
             .rt-th.-sort-desc,
             .rt-th.-sort-asc {
@@ -75,6 +79,9 @@ const Wrapper = styled.div`
                 text-overflow: ellipsis;
                 overflow: hidden;
                 overflow-wrap: normal;
+            }
+            .rt-td.-align-right {
+                text-align: right;
             }
 
             .ty-tr:nth-child(odd) {
@@ -122,11 +129,11 @@ const columns = [
     },
     {
         id: "tag",
-        accessor: (tx: ITransaction) => <StyledTag>{getTag(tx)}</StyledTag>,
-        Cell: (row: any) => (
-            <span style={{ textAlign: "right" }}>{row.value}</span>
-        ),
-        Header: (row: any) => <span style={{ textAlign: "right" }}>Tag</span>,
+        accessor: (tx: ITransaction) => getTag(tx),
+        Cell: (row: any) => <StyledTag>{row.value}</StyledTag>,
+        className: "-align-right",
+        headerClassName: "-align-right",
+        Header: "Tag",
         maxWidth: 100,
         minWidth: 30
     }
@@ -276,6 +283,7 @@ export default class TransactionsTable extends React.Component<{}, {}> {
         );
     }
 }
+
 function getTag(tx: ITransaction) {
     switch (tx.tag) {
         case Tag.NOP:
