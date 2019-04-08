@@ -83,7 +83,8 @@ class Perlin {
     };
 
     @observable public transactions = {
-        recent: [] as ITransaction[]
+        recent: [] as ITransaction[],
+        loading: true
     };
 
     @observable public peers: string[] = [];
@@ -323,6 +324,7 @@ class Perlin {
         this.pollAccountUpdates(this.publicKeyHex);
 
         this.transactions.recent = await this.requestRecentTransactions();
+        this.transactions.loading = false;
     }
 
     private async initPeers() {
@@ -366,14 +368,15 @@ class Perlin {
 
         const pushTransactions = _.debounce(
             () => {
-                this.transactions.recent.push(
+                this.transactions.recent = [
+                    ...this.transactions.recent,
                     ...txBuffer.map((tx: ITransaction, index) => {
                         return Perlin.parseWiredTransaction(
                             tx,
                             this.transactions.recent.length + index
                         );
                     })
-                );
+                ];
                 if (this.onTransactionsCreated !== undefined) {
                     this.onTransactionsCreated(txBuffer);
                 }
@@ -425,8 +428,8 @@ class Perlin {
             data = JSON.parse(data);
             switch (data.event) {
                 case "prune":
+                    console.log("Prunning #", data.num_tx);
                     this.transactions.recent.splice(0, data.num_tx);
-
                     if (this.onTransactionsRemoved !== undefined) {
                         this.onTransactionsRemoved(data.num_tx);
                     }
@@ -472,9 +475,8 @@ class Perlin {
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
-        // TODO: remove 5000 when Transaction table pagination is implemented
         return _.map(
-            await this.listTransactions(0, 5000),
+            await this.listTransactions(0, 0),
             Perlin.parseWiredTransaction
         );
     }

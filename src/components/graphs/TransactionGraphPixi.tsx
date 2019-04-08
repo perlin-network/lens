@@ -176,7 +176,7 @@ class TGraph extends React.Component<ITGraphProps, {}> {
         when(
             () => perlin.transactions.recent.length > 0,
             () => {
-                const recent = perlin.transactions.recent;
+                const recent = perlin.transactions.recent.slice(0, nodeLimit);
 
                 recent.forEach((tx: ITransaction, index: number) => {
                     const node = getInteractiveNode(
