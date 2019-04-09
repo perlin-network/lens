@@ -32,8 +32,6 @@ export default class ContractStore {
     @observable public payload: any;
     @observable public wasmInstance: any;
 
-    private state: Uint8Array;
-
     private wasmResolve: any;
     private wasmReject: any;
 
@@ -89,6 +87,9 @@ export default class ContractStore {
 
         this.wasmInstance = instance;
         console.log("Deployed");
+        if (localStorage.getItem("state")) {
+            localStorage.removeItem("state");
+        }
     }
 
     public async localInvoke(method: string, params: Buffer) {
@@ -126,7 +127,7 @@ export default class ContractStore {
 
     private async writeState() {
         const state = Buffer.from(this.wasmInstance.exports.memory.buffer);
-        this.state = state;
+        localStorage.setItem("state", state.toString());
     }
 
     private fetchEnvironment() {

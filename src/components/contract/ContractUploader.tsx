@@ -124,23 +124,29 @@ const createSmartContract = async (file: File) => {
     contractStore.contract.errorMessage = "";
     contractStore.contract.transactionId = "";
 
-    const resp = await perlin.createSmartContract(bytes);
+    try {
+        const resp = await perlin.createSmartContract(bytes);
 
-    if (resp.error) {
-        contractStore.contract.errorMessage = `${resp.status} : ${resp.error}`;
-    } else {
-        const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
-            readDebugNames: false
-        });
-        wasmModule.applyNames();
+        if (resp.error) {
+            contractStore.contract.errorMessage = `${resp.status} : ${
+                resp.error
+            }`;
+        } else {
+            const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
+                readDebugNames: false
+            });
+            wasmModule.applyNames();
 
-        contractStore.contract.name = file.name;
-        contractStore.contract.transactionId = resp.tx_id;
-        contractStore.contract.textContent = wasmModule.toText({
-            foldExprs: true,
-            inlineExport: false
-        });
-        contractStore.contract.errorMessage = "";
+            contractStore.contract.name = file.name;
+            contractStore.contract.transactionId = resp.tx_id;
+            contractStore.contract.textContent = wasmModule.toText({
+                foldExprs: true,
+                inlineExport: false
+            });
+            contractStore.contract.errorMessage = "";
+        }
+    } catch (error) {
+        contractStore.contract.errorMessage = `${"Error"} : ${`Connection Failed`}`;
     }
 };
 
@@ -203,6 +209,7 @@ const ContractUploader: React.SFC<{}> = () => {
 
             if (contractStore.contract.transactionId) {
                 await contractStore.onLoadContract();
+                // load state here
             }
         } catch (err) {
             console.error(err);

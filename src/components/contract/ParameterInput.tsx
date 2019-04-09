@@ -15,20 +15,20 @@ interface IParameterInputProps {
 }
 
 export enum ParamType {
+    Bytes = "Bytes",
+    Uint64 = "Uint64",
     String = "String",
     Uint16 = "Uint16",
     Uint32 = "Uint32",
-    Uint64 = "Uint64",
-    Bytes = "Bytes",
     Byte = "Byte"
 }
 
 const typeOptions = [
-    ParamType.String,
-    ParamType.Uint16,
-    ParamType.Uint32,
-    ParamType.Uint64,
     ParamType.Bytes,
+    ParamType.Uint64,
+    ParamType.Uint32,
+    ParamType.Uint16,
+    ParamType.String,
     ParamType.Byte
 ];
 
