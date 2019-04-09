@@ -48,25 +48,24 @@ const ValidatorView: React.SFC<{}> = observer(() => {
     const stake = useWalletStake();
 
     const [action, setAction] = useState(StakeActions.None);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handlePlaceStake = async (amount: number) => {
+        setErrorMessage("");
         if (!isNaN(amount)) {
-            try {
-                await perlin.placeStake(amount);
-                // setModalOpen(false);
-            } catch (err) {
-                console.log(err);
+            const results = await perlin.placeStake(amount);
+            if (results.error) {
+                setErrorMessage(`${results.error}`);
             }
         }
         // display error message
     };
     const handleWithdrawStake = async (amount: number) => {
+        setErrorMessage("");
         if (!isNaN(amount)) {
-            try {
-                await perlin.withdrawStake(amount);
-                // setModalOpen(false);
-            } catch (err) {
-                console.log(err);
+            const results = await perlin.withdrawStake(amount);
+            if (results.error) {
+                setErrorMessage(`${results.error}`);
             }
         }
         // display error message
@@ -107,7 +106,17 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                             ? handlePlaceStake
                             : handleWithdrawStake
                     }
-                />
+                >
+                    <div
+                        style={{
+                            marginTop: "10px",
+                            marginBottom: "10px",
+                            color: "red"
+                        }}
+                    >
+                        {errorMessage}
+                    </div>
+                </StakeCard>
             </Box>
         </Flex>
     );

@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import { Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
+import { observer } from "mobx-react-lite";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -151,50 +152,54 @@ const createSmartContract = async (file: File) => {
 };
 
 const loadContract = async (contractId: string) => {
-    const account = await perlin.getAccount(contractId);
+    try {
+        const account = await perlin.getAccount(contractId);
 
-    /*
-    if (!account.is_contract) {
-        contractStore.contract.errorMessage = "Account is not a contract.";
-        console.log("Account is not a contract.");
-        return;
-    } 
-    */
+        /*
+        if (!account.is_contract) {
+            contractStore.contract.errorMessage = "Account is not a contract.";
+            console.log("Account is not a contract.");
+            return;
+        } 
+        */
 
-    contractStore.contract.errorMessage = "";
-    contractStore.contract.transactionId = "";
+        contractStore.contract.errorMessage = "";
+        contractStore.contract.transactionId = "";
 
-    const pages = [];
+        const pages = [];
 
-    for (let i = 0; i < account.num_mem_pages; i++) {
-        try {
-            pages.push(await perlin.getContractPage(contractId, i));
-        } catch (err) {
-            pages.push([]);
+        for (let i = 0; i < account.num_mem_pages; i++) {
+            try {
+                pages.push(await perlin.getContractPage(contractId, i));
+            } catch (err) {
+                pages.push([]);
+            }
         }
+
+        console.log(pages);
+
+        // todo: import memory page to local wasm instance
+
+        const hexContent = await perlin.getContractCode(contractId);
+
+        const bytes = new Uint8Array(Math.ceil(hexContent.length / 2));
+        for (let i = 0; i < bytes.length; i++) {
+            bytes[i] = parseInt(hexContent.substr(i * 2, 2), 16);
+        }
+
+        const module = wabt.readWasm(bytes, { readDebugNames: false });
+        module.applyNames();
+
+        contractStore.contract.name = contractId;
+        contractStore.contract.transactionId = contractId;
+        contractStore.contract.textContent = module.toText({
+            foldExprs: true,
+            inlineExport: false
+        });
+        contractStore.contract.errorMessage = "";
+    } catch (err) {
+        contractStore.contract.errorMessage = err.message;
     }
-
-    console.log(pages);
-
-    // todo: import memory page to local wasm instance
-
-    const hexContent = await perlin.getContractCode(contractId);
-
-    const bytes = new Uint8Array(Math.ceil(hexContent.length / 2));
-    for (let i = 0; i < bytes.length; i++) {
-        bytes[i] = parseInt(hexContent.substr(i * 2, 2), 16);
-    }
-
-    const module = wabt.readWasm(bytes, { readDebugNames: false });
-    module.applyNames();
-
-    contractStore.contract.name = contractId;
-    contractStore.contract.transactionId = contractId;
-    contractStore.contract.textContent = module.toText({
-        foldExprs: true,
-        inlineExport: false
-    });
-    contractStore.contract.errorMessage = "";
 };
 
 const ContractUploader: React.SFC<{}> = () => {
@@ -280,4 +285,4 @@ const ContractUploader: React.SFC<{}> = () => {
     );
 };
 
-export default ContractUploader;
+export default observer(ContractUploader);

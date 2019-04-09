@@ -57,7 +57,7 @@ const Wrapper = styled.div`
             .rt-th.-sort-desc,
             .rt-th.-sort-asc {
                 box-shadow: none;
-                .rt-resizable-header-content:after {
+                div:after {
                     content: "";
                     display: inline-block;
                     vertical-align: middle;
@@ -67,10 +67,10 @@ const Wrapper = styled.div`
                     transition: all 0.2s ease;
                 }
             }
-            .rt-th.-sort-asc .rt-resizable-header-content:after {
+            .rt-th.-sort-asc div:after {
                 transform: translateY(-2px);
             }
-            .rt-th.-sort-desc .rt-resizable-header-content:after {
+            .rt-th.-sort-desc div:after {
                 transform: translateY(2px) rotateZ(-180deg);
             }
         }
@@ -271,6 +271,7 @@ export default class TransactionsTable extends React.Component<{}, {}> {
                     minRows={0}
                     data={data}
                     columns={columns}
+                    resizable={false}
                     loading={loading}
                     defaultPageSize={10}
                     pageSizeOptions={pageSizeOptions}

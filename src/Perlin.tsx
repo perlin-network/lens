@@ -209,12 +209,13 @@ class Perlin {
     }
 
     public async getAccount(id: string): Promise<IAccount> {
-        const data = await this.getJSON(`/accounts/${id}`, {});
+        const dataStr = await this.getText(`/accounts/${id}`, {});
 
+        const data = JSONbig.parse(dataStr);
         const account: IAccount = {
             public_key: data.public_key,
 
-            balance: data.balance,
+            balance: data.balance.toString(),
             stake: data.stake,
 
             is_contract: data.is_contract,
