@@ -94,7 +94,8 @@ const StakeCard: React.SFC<IStakeProps> = ({
     stake,
     action,
     setAction,
-    onSubmit
+    onSubmit,
+    children
 }) => {
     const [amount, setAmount] = useState("");
 
@@ -135,7 +136,7 @@ const StakeCard: React.SFC<IStakeProps> = ({
                 <CardTitle>Your Stake</CardTitle>
             </CardHeader>
             <CardBody>
-                <StakeAmount> {stake ? stake : "N/A"} </StakeAmount>
+                <StakeAmount> {stake ? stake : "0"} </StakeAmount>
                 <Row>
                     <Col width={1 / 2}>PERLs</Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
@@ -171,6 +172,7 @@ const StakeCard: React.SFC<IStakeProps> = ({
                         </Row>
                     </div>
                 )}
+                {children}
             </CardBody>
         </Card>
     );
