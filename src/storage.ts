@@ -1,4 +1,9 @@
-import { DEFAULT_API_HOST, STORAGE_KEYS } from "./constants";
+import {
+    DEFAULT_TRANSACTION_GRAPH_NODES_LIMIT,
+    DEFAULT_NETWORK_GRAPH_NODES_LIMIT,
+    DEFAULT_API_HOST,
+    STORAGE_KEYS
+} from "./constants";
 import * as eventsPlugin from "store/plugins/events";
 import * as store from "store";
 
@@ -62,6 +67,36 @@ const watchStoredHosts = (cb: (storedHosts: string[]) => void) => {
     };
 };
 
+const getTransactionGraphNodeLimit = (): number => {
+    const transactionGraphNodeLimit = store.get(
+        STORAGE_KEYS.TRANSACTION_GRAPH_NODES_LIMIT
+    );
+    if (!transactionGraphNodeLimit) {
+        setTransactionGraphNodeLimit(DEFAULT_TRANSACTION_GRAPH_NODES_LIMIT);
+        return DEFAULT_TRANSACTION_GRAPH_NODES_LIMIT;
+    }
+    return transactionGraphNodeLimit;
+};
+
+const setTransactionGraphNodeLimit = (limit: number) => {
+    store.set(STORAGE_KEYS.TRANSACTION_GRAPH_NODES_LIMIT, limit);
+};
+
+const getNetworkGraphNodeLimit = (): number => {
+    const networkGraphNodeLimit = store.get(
+        STORAGE_KEYS.NETWORK_GRAPH_NODES_LIMIT
+    );
+    if (!networkGraphNodeLimit) {
+        setNetworkGraphNodeLimit(DEFAULT_NETWORK_GRAPH_NODES_LIMIT);
+        return DEFAULT_NETWORK_GRAPH_NODES_LIMIT;
+    }
+    return networkGraphNodeLimit;
+};
+
+const setNetworkGraphNodeLimit = (limit: number) => {
+    store.set(STORAGE_KEYS.NETWORK_GRAPH_NODES_LIMIT, limit);
+};
+
 export {
     setStoredHosts,
     getStoredHosts,
@@ -69,5 +104,9 @@ export {
     setCurrentHost,
     getCurrentHost,
     watchCurrentHost,
-    watchStoredHosts
+    watchStoredHosts,
+    getTransactionGraphNodeLimit,
+    setTransactionGraphNodeLimit,
+    getNetworkGraphNodeLimit,
+    setNetworkGraphNodeLimit
 };

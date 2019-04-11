@@ -10,6 +10,7 @@ import { ITransaction } from "../../types/Transaction";
 import styled from "styled-components";
 import Tooltip from "./Tooltip";
 import { withRouter, RouteComponentProps } from "react-router-dom";
+import { getTransactionGraphNodeLimit } from "../../storage";
 
 const perlin = Perlin.getInstance();
 
@@ -22,7 +23,7 @@ const transTooltip = {
     status: ""
 };
 
-const nodeLimit: number = 5000;
+const nodeLimit: number = getTransactionGraphNodeLimit();
 
 const Wrapper = styled.div`
     position: relative;
@@ -134,7 +135,8 @@ class TGraph extends React.Component<ITGraphProps, {}> {
 
             this.links
                 .filter(({ source, target }) => {
-                    const offset = -50 + 200 * (stage.scale.x * stage.scale.x);
+                    // increase the in view offset at closer zooms to avoid link clipping which have both end outside the view
+                    const offset = 100 * (stage.scale.x * stage.scale.x);
                     return (
                         isNodeInViewport(source, offset) ||
                         isNodeInViewport(target, offset)
@@ -244,7 +246,7 @@ class TGraph extends React.Component<ITGraphProps, {}> {
                 pruneNodes(pruneLength, true);
             }
 
-            txs.forEach((tx: ITransaction) => {
+            txs.slice(-nodeLimit).forEach((tx: ITransaction) => {
                 const node = getInteractiveNode(
                     tx,
                     mouseHandleUpdate,

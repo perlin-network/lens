@@ -7,8 +7,10 @@ import { createRef } from "react";
 import { when, intercept, Lambda } from "mobx";
 import Tooltip from "./Tooltip";
 import styled from "styled-components";
+import { getNetworkGraphNodeLimit } from "../../storage";
 
 const perlin = Perlin.getInstance();
+const nodeLimit = getNetworkGraphNodeLimit();
 const networkTooltip = {
     text: "",
     x: 0,
@@ -77,6 +79,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
                     d3.event.transform.x,
                     d3.event.transform.y
                 );
+                render();
             })
         );
 
@@ -119,6 +122,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
             // @ts-ignore
             simulation.force("link").links(this.edges);
             simulation.alpha(1).restart();
+            console.log("Network Graph nodes #", this.nodes.length);
         };
 
         const mouseHandleUpdate = () => {
@@ -126,7 +130,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
             this.forceUpdate();
         };
         this.disposer = intercept(perlin, "peers", changes => {
-            const peers = changes.newValue || [];
+            const peers = (changes.newValue || []).slice(0, nodeLimit - 1);
             const isDirty = this.checkPeers(peers, mouseHandleUpdate);
 
             if (isDirty) {
