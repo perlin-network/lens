@@ -208,7 +208,7 @@ export default class Config extends React.Component<IConfigProps> {
     };
 
     private get wereChangesMade(): boolean {
-        return this.props.value !== this.newValue;
+        return this.newValue !== "";
     }
 
     private onToggleSave = () => {
