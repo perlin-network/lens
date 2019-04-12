@@ -30,12 +30,10 @@ class Perlin {
     public static parseTransferTransaction(b: Buffer) {
         const reader = new PayloadReader(Array.from(b));
 
-        const tx = {
-            recipient: Buffer.from(reader.readBytes()).toString("hex"),
+        return {
+            recipient: reader.buffer.readBuffer(32).toString("hex"),
             amount: reader.readUint64().toNumber()
         };
-
-        return tx;
     }
 
     public static parseWiredTransaction(
@@ -119,19 +117,21 @@ class Perlin {
             this.keys.secretKey
         );
 
-        const tx = {
+        return {
             sender: this.publicKeyHex,
             tag,
             payload: payload.toString("hex"),
             signature: Buffer.from(signature).toString("hex")
         };
-
-        return tx;
     }
 
     public async transfer(recipient: string, amount: number): Promise<any> {
+        if (recipient.length !== 64) {
+            throw new Error("Recipient must be a length-64 hex-encoded.");
+        }
+
         const payload = new PayloadWriter();
-        payload.writeBuffer(Buffer.from(recipient, "hex"));
+        payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
 
         return await this.post(
@@ -142,6 +142,7 @@ class Perlin {
 
     public async placeStake(amount: number): Promise<any> {
         const payload = new PayloadWriter();
+        payload.writeByte(1);
         payload.writeUint64(Long.fromNumber(amount, true));
 
         return await this.post(
@@ -152,7 +153,8 @@ class Perlin {
 
     public async withdrawStake(amount: number): Promise<any> {
         const payload = new PayloadWriter();
-        payload.writeUint64(Long.fromNumber(-amount, true));
+        payload.writeByte(0);
+        payload.writeUint64(Long.fromNumber(amount, true));
 
         return await this.post(
             "/tx/send",
@@ -212,7 +214,8 @@ class Perlin {
         const dataStr = await this.getText(`/accounts/${id}`, {});
 
         const data = JSONbig.parse(dataStr);
-        const account: IAccount = {
+
+        return {
             public_key: data.public_key,
 
             balance: data.balance.toString(),
@@ -221,8 +224,6 @@ class Perlin {
             is_contract: data.is_contract,
             num_mem_pages: data.num_mem_pages
         };
-
-        return account;
     }
 
     // @ts-ignore
@@ -472,8 +473,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<[]> {
-        const output = await this.getJSON("/tx", { offset, limit });
-        return output;
+        return await this.getJSON("/tx", { offset, limit });
     }
 
     private async requestRecentTransactions(): Promise<ITransaction[]> {
