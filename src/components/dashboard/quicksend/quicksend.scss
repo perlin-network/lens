@@ -5,7 +5,7 @@
 
 input::placeholder {
     color: #5a6074;
-    font-size: 12px;
+    font-size: 14px;
     opacity: 30%;
 }
 
@@ -35,4 +35,12 @@ input::placeholder {
     height: 100px;
     word-wrap: break-word;
     font-size: 20px;
+}
+
+#input_img {
+    position:absolute;
+    bottom:2px;
+    right:5px;
+    width:24px;
+    height:24px;
 }

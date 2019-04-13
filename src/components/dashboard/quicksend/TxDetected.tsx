@@ -7,12 +7,14 @@ import { Link } from "react-router-dom";
 interface IProps {
     restartComponents: any;
     txId: string;
+    validContract?: boolean;
+    validTx?: boolean;
 }
 
 const TxPrompt = styled.div`
     background-color: transaparent;
     color: white;
-    width: 75%;
+    width: 100%;
     padding: 15px;
     border: 1px solid #ffffff22;
     font-family: HKGrotesk;
@@ -29,13 +31,14 @@ export default class TxDetected extends React.Component<IProps, {}> {
     public render() {
         return (
             <TxPrompt style={{ verticalAlign: "middle", position: "relative" }}>
-                Valid contract/transaction ID has been detected.{" "}
+                Valid {this.props.validContract && "Contract"}
+                {this.props.validTx && "Transaction"} ID has been detected.{" "}
                 <Link
                     style={{ color: "white" }}
                     to={`/transactions/${this.props.txId}`}
                 >
                     <b>
-                        <u>Navigate to the detail.</u>
+                        <u>Go to the detail.</u>
                     </b>
                 </Link>
                 <CancelCardIcon
