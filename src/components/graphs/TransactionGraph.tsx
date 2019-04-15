@@ -41,7 +41,6 @@ class MainScene {
     public renderer: any;
     public raycaster: any;
     public simulation: any;
-    public hoverDot: any;
     public visIndices: any = [];
     public linkIndices: any = [];
     public controls: any;
@@ -68,7 +67,7 @@ class MainScene {
         this.initScene();
 
         this.initDots();
-        this.initHoverDot();
+        // this.initHoverDot();
         this.initLines();
 
         this.initRenderer();
@@ -91,7 +90,7 @@ class MainScene {
     public destroy() {
         this.lines.geometry.dispose();
         this.dots.geometry.dispose();
-        this.hoverDot.geometry.dispose();
+
         this.scene.dispose();
         this.renderer.dispose();
         window.cancelAnimationFrame(this.animationId);
@@ -104,14 +103,24 @@ class MainScene {
         let hoveredDotIndex = -1;
         let mouseDown: boolean = false;
 
-        this.el.addEventListener(
-            "mousedown",
-            (event: any) => {
+        const disableHover = () => {
+            if (hoveredDotIndex !== -1) {
+                this.dots.geometry.attributes.texIndex.array[
+                    hoveredDotIndex
+                ] = 0.0;
+                this.dots.geometry.attributes.texIndex.needsUpdate = true;
                 hoveredDotIndex = -1;
-                mouseDown = true;
+
                 this.setTooltipHander({
                     visible: false
                 });
+            }
+        };
+        this.el.addEventListener(
+            "mousedown",
+            (event: any) => {
+                disableHover();
+                mouseDown = true;
             },
             true
         );
@@ -119,9 +128,7 @@ class MainScene {
             "mouseout",
             (event: any) => {
                 mouseDown = false;
-                this.setTooltipHander({
-                    visible: false
-                });
+                disableHover();
             },
             true
         );
@@ -140,7 +147,8 @@ class MainScene {
 
         this.el.addEventListener(
             "mousemove",
-            _.throttle((event: any) => {
+            _.debounce((event: any) => {
+                disableHover();
                 if (!this.dots || mouseDown) {
                     return;
                 }
@@ -166,23 +174,14 @@ class MainScene {
                     );
                     const index = intersect.index;
                     const node = this.nodes[index];
-                    const size = this.dots.geometry.attributes.size.array[
-                        index
-                    ];
 
                     if (intersect.distanceToRay < 0.5) {
                         const pos = this.simulation.getPosition(index, []);
-                        const newPosition = new THREE.BufferAttribute(
-                            new Float32Array(pos),
-                            3
-                        );
 
-                        this.hoverDot.geometry.addAttribute(
-                            "position",
-                            newPosition
-                        );
-                        this.hoverDot.geometry.attributes.size.array[0] = size;
-                        this.hoverDot.visible = true;
+                        this.dots.geometry.attributes.texIndex.array[
+                            index
+                        ] = 1.0;
+                        this.dots.geometry.attributes.texIndex.needsUpdate = true;
 
                         const vec = new THREE.Vector3(...pos);
                         const out = vec.project(this.camera);
@@ -212,11 +211,9 @@ class MainScene {
                         return;
                     }
                 }
-                this.hoverDot.visible = false;
                 this.setTooltipHander({
                     visible: false
                 });
-                hoveredDotIndex = -1;
             }, 50),
             true
         );
@@ -254,27 +251,17 @@ class MainScene {
         this.updateLines();
 
         const index = nodes.length - 1;
-        // for (let i = index; i >= 0; i--) {
-        //     if (this.nodes[i].payload) {
-        //         index = i;
-        //         break;
-        //     }
-        // }
+
         const lastPosition = this.simulation.getPosition(index, []);
         const [x, y, z] = lastPosition;
 
         this.camera.position.set(x, y, z + 10);
         this.controls.target.set(x, y, z);
-        this.update();
+        // this.update();
 
         this.dots.geometry.attributes.position.needsUpdate = true;
         this.dots.geometry.attributes.size.needsUpdate = true;
         this.lines.geometry.attributes.position.needsUpdate = true;
-
-        if (this.hoverDot) {
-            this.hoverDot.geometry.attributes.position.needsUpdate = true;
-            this.hoverDot.geometry.attributes.size.needsUpdate = true;
-        }
     }
     public initScene() {
         this.scene = new THREE.Scene();
@@ -382,10 +369,10 @@ class MainScene {
 
         return texture;
     }
-    public getDotMaterial(texture: any) {
+    public getDotMaterial() {
         const fog = this.scene.fog || {};
         const uniforms = {
-            textures: { type: "t", value: texture },
+            textures: { type: "tv", value: [this.circle, this.circleHover] },
             color: { type: "c", value: new THREE.Color(0xffffff) },
             fogColor: { type: "c", value: fog.color },
             fogNear: { type: "f", value: fog.near },
@@ -408,48 +395,29 @@ class MainScene {
 
         return material;
     }
-
-    public initHoverDot() {
-        const dotGeometry = new THREE.BufferGeometry();
-        const material = this.getDotMaterial(this.circleHover);
-
-        const position = new THREE.BufferAttribute(
-            new Float32Array([0, 0, 0]),
-            3
-        );
-
-        const sizes = new THREE.BufferAttribute(new Float32Array(1), 1);
-        // sizes.dynamic = true;
-        // position.dynamic = true;
-        dotGeometry.addAttribute("position", position);
-        dotGeometry.addAttribute("size", sizes);
-
-        this.hoverDot = new THREE.Points(dotGeometry, material);
-        this.hoverDot.renderOrder = 2;
-        this.hoverDot.visible = false;
-
-        this.scene.add(this.hoverDot);
-    }
-
     public initDots() {
         const dotsGeometry = new THREE.BufferGeometry();
 
-        const material = this.getDotMaterial(this.circle);
-        // const material = new THREE.PointsMaterial({size: 2});
+        const material = this.getDotMaterial();
 
         const verticles = new THREE.BufferAttribute(
             new Float32Array(MAX_POINTS * 3),
             3
         );
-        // verticles.setDynamic(true);
+
         const sizes = new THREE.BufferAttribute(
             new Float32Array(MAX_POINTS),
             1
         );
-        // sizes.setDynamic(true);
+
+        const texIndices = new THREE.BufferAttribute(
+            new Float32Array(MAX_POINTS),
+            1
+        );
 
         dotsGeometry.addAttribute("position", verticles);
         dotsGeometry.addAttribute("size", sizes);
+        dotsGeometry.addAttribute("texIndex", texIndices);
 
         this.dots = new THREE.Points(dotsGeometry, material);
         this.dots.renderOrder = 1;
@@ -523,8 +491,9 @@ class MainScene {
     }
 
     public update() {
-        this.scene.fog.far = this.camera.position.length() * 1.75;
-        this.raycaster.far = this.scene.fog.far;
+        const length = this.camera.position.length();
+        this.scene.fog.far = length * 1.75;
+        this.raycaster.far = length * 0.75;
 
         this.controls.update();
     }
@@ -553,12 +522,16 @@ let transTooltip = {
 const useTooltip = (defaultTooltip: any) => {
     const [tooltip, setTooltip] = useState(defaultTooltip);
 
-    const updateTooltip = (newTooltip: any) => {
-        transTooltip = {
+    const updateTooltip = (options: any) => {
+        const newTooltip = {
             ...transTooltip,
-            ...newTooltip
+            ...options
         };
-        setTooltip(transTooltip);
+
+        if (JSON.stringify(newTooltip) !== JSON.stringify(transTooltip)) {
+            transTooltip = newTooltip;
+            setTooltip(transTooltip);
+        }
     };
 
     return [tooltip, updateTooltip];
@@ -612,15 +585,23 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
 };
 
 const fragmentShader = `
-    uniform sampler2D textures;
+    uniform sampler2D textures[2];
     uniform vec3 color;
     uniform vec3 fogColor;
     uniform float fogNear;
     uniform float fogFar;
+    varying float vTexIndex;
 
     void main() {
         vec4 startColor = vec4(color, 1.0);
-        vec4 finalColor = texture2D(textures, gl_PointCoord);
+        vec4 finalColor;
+        
+        if (vTexIndex == 0.0) {
+            finalColor = texture2D(textures[0], gl_PointCoord);
+        } else if (vTexIndex == 1.0) {
+            finalColor = texture2D(textures[1], gl_PointCoord);
+        }
+    
         #ifdef ALPHATEST
             if ( finalColor.a < ALPHATEST ) 
                 discard;
@@ -643,10 +624,12 @@ const fragmentShader = `
 
 const vertexShader = `
     attribute float size;
+    attribute float texIndex;
+    varying float vTexIndex;
     void main() {
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
         gl_PointSize = size * ( 60.0 / length( mvPosition.xyz ) );
-
+        vTexIndex = texIndex;
         gl_Position = projectionMatrix * mvPosition;
     }
 `;

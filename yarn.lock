@@ -3629,6 +3629,11 @@ es6-symbol@3.1.1, es6-symbol@^3.1.1, es6-symbol@~3.1.1:
     d "1"
     es5-ext "~0.10.14"
 
+es6-tween@^5.4.3:
+  version "5.4.3"
+  resolved "https://registry.yarnpkg.com/es6-tween/-/es6-tween-5.4.3.tgz#525fb5e7aabfa8a8eaf379b3b0aaca1b92451a76"
+  integrity sha512-8PwaGx47WOA0FI+637gscEYQCo8LEva0IPmmwQ/sCf59Fxf6XrOr+Yav/GcrAhO/VZV2SwHuk4EBRF5CzpW9Tg==
+
 es6-weak-map@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/es6-weak-map/-/es6-weak-map-2.0.2.tgz#5e3ab32251ffd1538a1f8e5ffa1357772f92d96f"
