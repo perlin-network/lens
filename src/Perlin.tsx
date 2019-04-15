@@ -363,7 +363,7 @@ class Perlin {
     }
 
     private pollTransactionUpdates(event: string = "accepted") {
-        const url = new URL(`ws://${this.api.host}/tx/poll`);
+        const url = new URL(`ws://${this.api.host}/poll/tx`);
         url.searchParams.append("token", this.api.token);
 
         const ws = new WebSocket(url.toString());
@@ -423,7 +423,7 @@ class Perlin {
     }
 
     private pollConsensusUpdates() {
-        const url = new URL(`ws://${this.api.host}/consensus/poll`);
+        const url = new URL(`ws://${this.api.host}/poll/consensus`);
         url.searchParams.append("token", this.api.token);
 
         const ws = new WebSocket(url.toString());
@@ -447,7 +447,7 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(`ws://${this.api.host}/accounts/poll`);
+        const url = new URL(`ws://${this.api.host}/poll/accounts`);
         url.searchParams.append("token", this.api.token);
         url.searchParams.append("id", id);
 
