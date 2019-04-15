@@ -339,7 +339,7 @@ class MainScene {
         simulation.addForce(bounds);
 
         for (let i = 0; i < 5; i++) {
-            simulation.tick(0.3);
+            simulation.tick(0.2);
         }
 
         this.simulation = simulation;
@@ -484,7 +484,7 @@ class MainScene {
         this.dots.geometry.attributes.position.set(this.simulation.positions);
         this.nodes.forEach((node: any, index: number) => {
             this.dots.geometry.attributes.size.array[index] =
-                Math.log((node.payload && node.payload.amount) || 1) + 3;
+                Math.log((node.payload && node.payload.amount) || 1) + 2;
         });
 
         this.dots.geometry.setDrawRange(0, this.nodes.length);
@@ -657,7 +657,7 @@ const vertexShader = `
     varying float vTexIndex;
     void main() {
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-        gl_PointSize = size * ( 60.0 / length( mvPosition.xyz ) );
+        gl_PointSize = size * ( 90.0 / length( mvPosition.xyz ) );
         vTexIndex = texIndex;
         gl_Position = projectionMatrix * mvPosition;
     }
