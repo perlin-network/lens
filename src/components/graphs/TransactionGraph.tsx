@@ -15,7 +15,9 @@ import styled from "styled-components";
 import * as TrackballControls from "three-trackballcontrols";
 import Tooltip from "./Tooltip";
 import { withRouter, RouteComponentProps } from "react-router";
-import { timeHour } from "d3";
+import * as TWEEN from "es6-tween";
+
+TWEEN.autoPlay(true);
 
 const perlin = Perlin.getInstance();
 
@@ -168,7 +170,13 @@ class MainScene {
 
                 this.raycaster.setFromCamera(this.mouse, this.camera);
 
-                const intersects = this.raycaster.intersectObject(this.dots);
+                const intersects = this.raycaster
+                    .intersectObject(this.dots)
+                    .filter(
+                        (item: any) =>
+                            this.nodes[item.index] &&
+                            this.nodes[item.index].payload
+                    );
 
                 if (intersects.length !== 0) {
                     const intersect = intersects.reduce(
@@ -181,7 +189,7 @@ class MainScene {
                     const index = intersect.index;
                     const node = this.nodes[index];
 
-                    if (intersect.distanceToRay < 0.5 && node.payload) {
+                    if (intersect.distanceToRay < 0.2) {
                         const pos = this.simulation.getPosition(index, []);
 
                         this.dots.geometry.attributes.texIndex.array[
@@ -225,11 +233,38 @@ class MainScene {
         );
     }
     public pointCamera(index: number) {
+        const position = this.camera.position.clone();
+
+        position.z -= 10;
         this.focusedIndex = index;
+
         const [x, y, z] = this.simulation.getPosition(index, []);
 
-        this.camera.position.set(x, y, z + 10);
-        this.controls.target.set(x, y, z);
+        const positionTween = new TWEEN.Tween(position)
+            .to({ x, y, z }, 1000)
+            .delay(300)
+            .easing(TWEEN.Easing.Cubic.InOut)
+            .on("update", (newPosition: any) => {
+                this.camera.position.set(
+                    newPosition.x,
+                    newPosition.y,
+                    newPosition.z + 10
+                );
+            })
+            .start();
+
+        const targetPosition = this.controls.target.clone();
+        const targetTween = new TWEEN.Tween(targetPosition)
+            .to({ x, y, z }, 1000)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .on("update", (newPosition: any) => {
+                this.controls.target.set(
+                    newPosition.x,
+                    newPosition.y,
+                    newPosition.z
+                );
+            })
+            .start();
     }
 
     public renderNodes(nodes: any[]) {
@@ -446,7 +481,7 @@ class MainScene {
         this.dots.geometry.attributes.position.set(this.simulation.positions);
         this.nodes.forEach((node: any, index: number) => {
             this.dots.geometry.attributes.size.array[index] =
-                Math.log((node.payload && node.payload.amount) || 1) + 4;
+                Math.log((node.payload && node.payload.amount) || 1) + 3;
         });
 
         this.dots.geometry.setDrawRange(0, this.nodes.length);
@@ -483,10 +518,9 @@ class MainScene {
     }
 
     public update() {
-        const length = this.camera.position.length();
+        const length = Math.max(this.camera.position.length(), 20);
         this.scene.fog.far = length * 2;
-        this.raycaster.far = length * 1.5;
-
+        this.raycaster.far = length * 2;
         this.controls.update();
     }
 
