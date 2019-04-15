@@ -49,6 +49,7 @@ class MainScene {
     public distanceConstraint: any;
     private setTooltipHander: (newValue: any) => void;
     private clickHandler: (id: string) => void;
+    private focusedIndex: any;
     private width: number;
     private height: number;
     private animationId: number;
@@ -119,7 +120,6 @@ class MainScene {
         this.el.addEventListener(
             "mousedown",
             (event: any) => {
-                disableHover();
                 mouseDown = true;
             },
             true
@@ -139,8 +139,14 @@ class MainScene {
                 if (hoveredDotIndex < 0) {
                     return;
                 }
-                const node = this.nodes[hoveredDotIndex];
-                this.clickHandler(node.id);
+
+                if (this.focusedIndex === hoveredDotIndex) {
+                    const node = this.nodes[hoveredDotIndex];
+                    this.clickHandler(node.id);
+                } else {
+                    this.pointCamera(hoveredDotIndex);
+                    disableHover();
+                }
             },
             true
         );
@@ -175,7 +181,7 @@ class MainScene {
                     const index = intersect.index;
                     const node = this.nodes[index];
 
-                    if (intersect.distanceToRay < 0.5) {
+                    if (intersect.distanceToRay < 0.5 && node.payload) {
                         const pos = this.simulation.getPosition(index, []);
 
                         this.dots.geometry.attributes.texIndex.array[
@@ -218,46 +224,32 @@ class MainScene {
             true
         );
     }
-    public sortNodes(nodes: any) {
-        let lastNode: any = {};
-        const parentsMap = nodes.reduce((acc: any, node: any) => {
-            if (!node.parents) {
-                lastNode = node;
-            } else {
-                acc[node.parents[0]] = node;
-            }
+    public pointCamera(index: number) {
+        this.focusedIndex = index;
+        const [x, y, z] = this.simulation.getPosition(index, []);
 
-            return acc;
-        }, {});
-
-        const visited: any[] = [lastNode];
-        const visit = (node: any) => {
-            if (!node) {
-                return;
-            }
-            visited.push(node);
-            visit(parentsMap[node.id]);
-        };
-
-        visit(parentsMap[lastNode.id]);
-
-        return visited;
+        this.camera.position.set(x, y, z + 10);
+        this.controls.target.set(x, y, z);
     }
+
     public renderNodes(nodes: any[]) {
-        this.nodes = this.sortNodes(nodes);
+        this.nodes = nodes
+            .slice()
+            .sort((n1: any, n2: any) => n1.timestamp - n2.timestamp);
 
         this.initSimulation();
         this.updateDots();
         this.updateLines();
 
-        const index = nodes.length - 1;
+        let index = this.nodes.length - 1;
+        for (let i = index; i >= 0; i--) {
+            if (this.nodes[i].payload) {
+                index = i;
+                break;
+            }
+        }
 
-        const lastPosition = this.simulation.getPosition(index, []);
-        const [x, y, z] = lastPosition;
-
-        this.camera.position.set(x, y, z + 10);
-        this.controls.target.set(x, y, z);
-        // this.update();
+        this.pointCamera(index);
 
         this.dots.geometry.attributes.position.needsUpdate = true;
         this.dots.geometry.attributes.size.needsUpdate = true;
@@ -268,14 +260,14 @@ class MainScene {
         this.scene.fog = new THREE.Fog(0x151a34, 0, 130);
         this.raycaster = new THREE.Raycaster();
         this.raycaster.near = 0;
-        this.camera = new THREE.PerspectiveCamera(30, 1, 1, 5000);
+        this.camera = new THREE.PerspectiveCamera(20, 1, 1, 500);
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(this.scene.position);
     }
 
     public initSimulation() {
         const distance = 1;
-        const simulation = ParticleSystem.create(this.nodes.length, 3);
+        const simulation = ParticleSystem.create(this.nodes.length, 6);
 
         const bounds = PointForce.create([0, 0, 0], {
             type: Force.REPULSOR,
@@ -308,7 +300,7 @@ class MainScene {
         simulation.addConstraint(this.distanceConstraint);
         simulation.addForce(bounds);
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             simulation.tick(0.3);
         }
 
@@ -454,7 +446,7 @@ class MainScene {
         this.dots.geometry.attributes.position.set(this.simulation.positions);
         this.nodes.forEach((node: any, index: number) => {
             this.dots.geometry.attributes.size.array[index] =
-                Math.log((node.payload && node.payload.amount) || 1) + 6;
+                Math.log((node.payload && node.payload.amount) || 1) + 4;
         });
 
         this.dots.geometry.setDrawRange(0, this.nodes.length);
@@ -492,8 +484,8 @@ class MainScene {
 
     public update() {
         const length = this.camera.position.length();
-        this.scene.fog.far = length * 1.75;
-        this.raycaster.far = length * 0.75;
+        this.scene.fog.far = length * 2;
+        this.raycaster.far = length * 1.5;
 
         this.controls.update();
     }
