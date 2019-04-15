@@ -233,6 +233,9 @@ class MainScene {
         );
     }
     public pointCamera(index: number) {
+        if (index === -1) {
+            return;
+        }
         const position = this.camera.position.clone();
 
         position.z -= 10;
@@ -520,7 +523,7 @@ class MainScene {
     public update() {
         const length = Math.max(this.camera.position.length(), 20);
         this.scene.fog.far = length * 2;
-        this.raycaster.far = length * 2;
+        this.raycaster.far = length * 2.2;
         this.controls.update();
     }
 
