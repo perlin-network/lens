@@ -23,12 +23,12 @@ const SectionTitle = styled.h2`
     font-weight: 500;
 `;
 
-interface InfoIconProps {
+interface IInfoIconProps {
     size?: string;
 }
 const InfoIcon = styled.img.attrs({ src: PerlMini })`
-    height: ${(props: InfoIconProps) => props.size};
-    width: ${(props: InfoIconProps) => props.size};
+    height: ${(props: IInfoIconProps) => props.size};
+    width: ${(props: IInfoIconProps) => props.size};
     margin-right: 5px;
 `;
 InfoIcon.defaultProps = {
@@ -109,7 +109,7 @@ const QrCodeIcon = styled.img.attrs({ src: QrIcon })`
     max-width: 48px;
 `;
 
-interface InfoTextProps {
+interface IInfoTextProps {
     breakWord?: boolean;
 }
 const InfoText = styled.p`
@@ -118,7 +118,7 @@ const InfoText = styled.p`
     font-family: HKGrotesk;
     font-size: 18px;
     color: #fff;
-    ${(props: InfoTextProps) =>
+    ${(props: IInfoTextProps) =>
         props.breakWord ? "word-break: break-word;" : ""}
 `;
 InfoText.defaultProps = {
