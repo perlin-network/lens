@@ -47,9 +47,14 @@ class Perlin {
                 delete tx.payload;
                 break;
             case Tag.TRANSFER:
-                tx.payload = Perlin.parseTransferTransaction(
+                const payload = Perlin.parseTransferTransaction(
                     Buffer.from(tx.payload, "base64")
                 );
+                const altPayload = Perlin.parseTransferTransaction(
+                    Buffer.from(tx.payload, "hex")
+                );
+                // temporary fix becaue of inconsistent encoding from websocket
+                tx.payload = payload.amount < 0 ? altPayload : payload;
                 break;
         }
 

@@ -2,7 +2,8 @@ import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
-import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
+// import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
+import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
@@ -62,7 +63,7 @@ export default class DashboardContainer extends React.Component {
                             <NetworkLoad />
                         </CardHeadings>
                         <Divider />
-                        <TransactionGraphPixi />
+                        <TransactionGraph />
                     </GraphBox>
                 </Row>
                 <Row>
