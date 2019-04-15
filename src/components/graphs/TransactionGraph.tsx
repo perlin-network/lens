@@ -9,9 +9,11 @@ import { withRouter, RouteComponentProps } from "react-router";
 
 const perlin = Perlin.getInstance();
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{
+    isHovered: boolean;
+}>`
     position: relative;
-
+    cursor: ${({ isHovered }) => (isHovered ? "pointer" : "default")};
     .canvas-container {
         width: 100%;
         height: 301px;
@@ -84,7 +86,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
     }, []);
 
     return (
-        <Wrapper>
+        <Wrapper isHovered={tooltip.visible}>
             <div className="canvas-container" ref={containerRef} />
             <Tooltip {...tooltip} />
         </Wrapper>

@@ -160,8 +160,8 @@ export class TransactionGraphScene {
                     this.clickHandler(node.id);
                 } else {
                     this.pointCamera(hoveredDotIndex);
-                    disableHover();
                 }
+                disableHover();
             },
             true
         );
@@ -241,7 +241,7 @@ export class TransactionGraphScene {
                 this.setTooltipHander({
                     visible: false
                 });
-            }, 50),
+            }, 20),
             true
         );
     }
@@ -464,7 +464,7 @@ export class TransactionGraphScene {
             lineGeometry,
             new THREE.LineBasicMaterial({
                 color: 0x4a41d1,
-                opacity: 0.5,
+                opacity: 0.7,
                 transparent: true,
                 depthTest: false
             })
