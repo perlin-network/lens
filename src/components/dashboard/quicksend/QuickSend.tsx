@@ -8,6 +8,7 @@ import SendFailAnimation from "./SendFailAnimation";
 import { Perlin } from "../../../Perlin";
 import TxDetectedAnimation from "./TxDetectedAnimation";
 import TxDetected from "./TxDetected";
+import InputIconSVG from "../../../assets/svg/text-icon.svg";
 
 const QuickSendHeading = styled.p`
     font-family: Montserrat;
@@ -23,10 +24,11 @@ const QuickSendInput = styled.input`
     border-radius: 5px;
     border: 1px solid #2e345100;
     color: white;
-    width: 75%;
+    width: 100%;
     padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
+    padding-left: 36px;
     &:hover {
         cursor: text;
         border: 1px solid #4a41d1;
@@ -44,12 +46,39 @@ const Wrapper = styled.div`
     transform-style: preserve-3d;
 `;
 
+const InputIcon = styled.img.attrs({ src: InputIconSVG })`
+    position: fixed;
+    left: 16px;
+    top: 45%;
+    -webkit-transform: translateY(-45%);
+    -ms-transform: translateY(-45%);
+    transform: translateY(-45%);
+    width: 14px;
+    height: 14px;
+`;
+
+const StyledTag = styled.span`
+    position: fixed;
+    border: solid 1px #fff;
+    padding: 3px 5px;
+    border-radius: 3px;
+    right: 16px;
+    top: 45%;
+    -webkit-transform: translateY(-45%);
+    -ms-transform: translateY(-45%);
+    transform: translateY(-45%);
+    opacity: 0.4;
+`;
+
 interface IState {
     toggleComponent: string;
     recipientID: string;
     inputID: string;
     sendInputFocused: boolean;
     recipientBalance: string;
+    validAccount: boolean;
+    validContract: boolean;
+    validTx: boolean;
 }
 
 const perlin = Perlin.getInstance();
@@ -63,7 +92,10 @@ export default class QuickSend extends React.Component<{}, IState> {
             recipientID: "",
             inputID: "",
             sendInputFocused: false,
-            recipientBalance: "0"
+            recipientBalance: "0",
+            validAccount: false,
+            validContract: false,
+            validTx: false
         };
         this.updateinputID = this.updateinputID.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -79,6 +111,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                 </p>
 
                 <QuickSendInputAnimation in={this.state.sendInputFocused}>
+                    <InputIcon />
                     <QuickSendInput
                         placeholder="Enter an account ID, Contract ID or Transaction ID"
                         value={this.state.inputID}
@@ -87,6 +120,15 @@ export default class QuickSend extends React.Component<{}, IState> {
                         onFocus={this.onSendInputFocus}
                         onBlur={this.onSendInputBlur}
                     />
+                    {this.state.validTx && (
+                        <StyledTag>Transaction ID</StyledTag>
+                    )}
+                    {this.state.validContract && (
+                        <StyledTag>Contract ID</StyledTag>
+                    )}
+                    {this.state.validAccount && (
+                        <StyledTag>Account ID</StyledTag>
+                    )}
                 </QuickSendInputAnimation>
 
                 <AccountDetected
@@ -108,6 +150,8 @@ export default class QuickSend extends React.Component<{}, IState> {
                     <TxDetected
                         txId={this.state.inputID}
                         restartComponents={this.handleRestart}
+                        validContract={this.state.validContract}
+                        validTx={this.state.validTx}
                     />
                 </TxDetectedAnimation>
             </Wrapper>
@@ -132,6 +176,11 @@ export default class QuickSend extends React.Component<{}, IState> {
         this.setState({ inputID: value });
     }
     private async onKeyDown(e: any) {
+        this.setState({
+            validAccount: false,
+            validContract: false,
+            validTx: false
+        });
         if (e.keyCode === 13) {
             if (await this.validtxId()) {
                 this.setState({
@@ -145,7 +194,8 @@ export default class QuickSend extends React.Component<{}, IState> {
                 this.setState({
                     toggleComponent: "showDetectedAccount",
                     recipientBalance: balance,
-                    recipientID: this.state.inputID
+                    recipientID: this.state.inputID,
+                    validAccount: true
                 });
             } else {
                 this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
@@ -162,6 +212,15 @@ export default class QuickSend extends React.Component<{}, IState> {
         const txId = this.state.inputID;
         try {
             const payload = await perlin.getTransaction(txId);
+            if (payload.tag && payload.tag === 2) {
+                this.setState({
+                    validContract: true
+                });
+            } else {
+                this.setState({
+                    validTx: true
+                });
+            }
             return Promise.resolve(true);
         } catch (e) {
             console.error(e);
