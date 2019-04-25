@@ -2,10 +2,10 @@ import * as TrackballControls from "three-trackballcontrols";
 import * as THREE from "three";
 import * as TWEEN from "es6-tween";
 import {
-    ParticleSystem,
     DistanceConstraint,
-    PointForce,
-    Force
+    Force,
+    ParticleSystem,
+    PointForce
 } from "particulate";
 import * as _ from "lodash";
 
@@ -80,7 +80,7 @@ export class TransactionGraphScene {
          */
         this.nodes = nodes
             .slice()
-            .sort((n1: any, n2: any) => n1.timestamp - n2.timestamp);
+            .sort((n1: any, n2: any) => n1.depth - n2.depth);
 
         this.initSimulation();
         this.updateDots();

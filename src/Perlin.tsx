@@ -111,6 +111,7 @@ class Perlin {
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {
         const buffer = new SmartBuffer();
+        buffer.writeBuffer(new Buffer(8));
         buffer.writeUInt8(tag);
         buffer.writeBuffer(payload);
 
@@ -399,10 +400,12 @@ class Perlin {
 
             const tx: ITransaction = {
                 id: data.tx_id,
-                timestamp: Date.parse(data.time).valueOf(),
                 sender: data.sender_id,
                 creator: data.creator_id,
                 parents: data.parents,
+                nonce: data.nonce,
+                depth: data.depth,
+                confidence: data.confidence,
                 tag: data.tag,
                 payload: data.payload,
                 status: "new"
@@ -457,15 +460,19 @@ class Perlin {
 
         ws.onmessage = ({ data }) => {
             data = JSONbig.parse(data);
-            switch (data.event) {
-                case "balance_updated":
-                    this.account.balance = data.balance.toString();
-                    break;
-                case "stake_updated":
-                    this.account.stake = data.stake;
-                    break;
-                case "num_pages_updated":
-                    this.account.num_mem_pages = data.num_pages;
+
+            if (data.account_id === id) {
+                // TODO(kenta): temp fix
+                switch (data.event) {
+                    case "balance_updated":
+                        this.account.balance = data.balance.toString();
+                        break;
+                    case "stake_updated":
+                        this.account.stake = data.stake;
+                        break;
+                    case "num_pages_updated":
+                        this.account.num_mem_pages = data.num_pages;
+                }
             }
         };
     }

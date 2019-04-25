@@ -1,6 +1,6 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useCallback, useState, useEffect } from "react";
 import { Box, Flex } from "@rebass/grid";
 import { match as Match } from "react-router-dom";
 import { Perlin } from "../../Perlin";
@@ -93,8 +93,6 @@ const renderTagBadge = (tagId: number) => {
 };
 
 const renderTransactionDataView = (data: any) => {
-    const date: string = new Date(data.timestamp).toString();
-    console.log("date-->", date);
     return (
         <div>
             <hr color="#717985" />
@@ -105,10 +103,6 @@ const renderTransactionDataView = (data: any) => {
             <Row>
                 <HeadCol>Tag&nbsp;:</HeadCol>
                 <Col>{renderTagBadge(data.tag)}</Col>
-            </Row>
-            <Row>
-                <HeadCol>Timestamp&nbsp;:</HeadCol>
-                <Col>{date}</Col>
             </Row>
             <Row>
                 <HeadCol>Sender&nbsp;:</HeadCol>
@@ -139,8 +133,16 @@ const renderTransactionDataView = (data: any) => {
                 </Col>
             </Row>
             <Row>
+                <HeadCol>Nonce&nbsp;:</HeadCol>
+                <Col>{data.nonce}</Col>
+            </Row>
+            <Row>
                 <HeadCol>Depth&nbsp;:</HeadCol>
                 <Col>{data.depth}</Col>
+            </Row>
+            <Row>
+                <HeadCol>Confidence&nbsp;:</HeadCol>
+                <Col>{data.confidence}</Col>
             </Row>
             <Row>
                 <HeadCol>Contract Address&nbsp;:</HeadCol>

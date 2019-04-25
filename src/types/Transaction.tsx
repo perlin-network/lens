@@ -13,8 +13,9 @@ interface ITransaction {
 
     parents: string[];
 
-    timestamp: number;
-    depth?: number;
+    nonce: number;
+    depth: number;
+    confidence: number;
 
     tag: Tag;
     payload?: any;

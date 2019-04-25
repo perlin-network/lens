@@ -2,7 +2,6 @@ import * as React from "react";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import { observer } from "mobx-react";
-import { formatDistance } from "date-fns";
 import styled from "styled-components";
 import ReactTable, { FinalState } from "react-table";
 import "react-table/react-table.css";
@@ -102,14 +101,10 @@ const StyledTag = styled.span`
 
 const columns = [
     {
-        Header: "Time",
-        accessor: "timestamp",
-        Cell: (row: any) => {
-            const date = new Date(row.value);
-            return formatDistance(date, new Date(), { addSuffix: true });
-        },
-        maxWidth: 200,
-        minWidth: 100
+        Header: "Depth",
+        accessor: "depth",
+        maxWidth: 100,
+        minWidth: 70
     },
     {
         Header: "Transaction ID",
@@ -139,7 +134,7 @@ const columns = [
         headerClassName: "-align-right",
         Header: "Tag",
         maxWidth: 100,
-        minWidth: 30
+        minWidth: 50
     }
 ];
 
