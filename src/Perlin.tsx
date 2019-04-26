@@ -91,6 +91,11 @@ class Perlin {
 
     @observable public peers: string[] = [];
 
+    @observable public metrics = {
+        acceptedMean: 0,
+        receivedMean: 0
+    };
+
     public onTransactionsCreated: (txs: ITransaction[]) => void;
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
@@ -242,6 +247,7 @@ class Perlin {
 
             this.pollTransactionUpdates();
             this.pollConsensusUpdates();
+            this.pollMetricsUpdates();
 
             storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
@@ -444,6 +450,22 @@ class Perlin {
                     }
                     break;
             }
+        };
+    }
+
+    private pollMetricsUpdates() {
+        const url = new URL(`ws://${this.api.host}/poll/metrics`);
+        url.searchParams.append("token", this.api.token);
+
+        const ws = new WebSocket(url.toString());
+
+        ws.onmessage = ({ data }) => {
+            data = JSON.parse(data);
+
+            this.metrics.acceptedMean =
+                data.metrics["tx.accepted"]["mean.rate"];
+            this.metrics.receivedMean =
+                data.metrics["tx.received"]["mean.rate"];
         };
     }
 

@@ -60,7 +60,13 @@ export default class DashboardContainer extends React.Component {
                     <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
                         <CardHeadings>
                             Transactions
-                            <NetworkLoad />
+                            <NetworkLoad
+                                tps={
+                                    (perlin.metrics.acceptedMean +
+                                        perlin.metrics.receivedMean) /
+                                    2
+                                }
+                            />
                         </CardHeadings>
                         <Divider />
                         <TransactionGraph />

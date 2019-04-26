@@ -21,12 +21,13 @@ const Wrapper = styled.div`
 interface INetworkLoad {
     tps?: number;
 }
-const NetworkLoad: React.SFC<INetworkLoad> = ({ tps }) => {
+const NetworkLoad: React.SFC<INetworkLoad> = ({ tps = 0 }) => {
+    const roundedTps = Math.ceil(tps * 1000) / 1000;
     return (
         <Wrapper title="Network Load">
             <NetworkIcon style={{ marginRight: "10px" }} />
             <div className="info">
-                <span className="value">{tps || "TBA"}</span>
+                <span className="value">{roundedTps}</span>
                 <span className="unit">Avg TPS</span>
             </div>
         </Wrapper>
