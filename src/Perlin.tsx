@@ -8,6 +8,7 @@ import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
+import ReconnectingWebSocket from "reconnecting-websocket";
 // @ts-ignore
 import * as JSONbig from "json-bigint";
 
@@ -375,7 +376,7 @@ class Perlin {
         const url = new URL(`ws://${this.api.host}/poll/tx`);
         url.searchParams.append("token", this.api.token);
 
-        const ws = new WebSocket(url.toString());
+        const ws = new ReconnectingWebSocket(url.toString());
 
         let txBuffer: ITransaction[] = [];
 
@@ -437,7 +438,7 @@ class Perlin {
         const url = new URL(`ws://${this.api.host}/poll/consensus`);
         url.searchParams.append("token", this.api.token);
 
-        const ws = new WebSocket(url.toString());
+        const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
             data = JSON.parse(data);
@@ -457,7 +458,7 @@ class Perlin {
         const url = new URL(`ws://${this.api.host}/poll/metrics`);
         url.searchParams.append("token", this.api.token);
 
-        const ws = new WebSocket(url.toString());
+        const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
             data = JSON.parse(data);
@@ -478,7 +479,7 @@ class Perlin {
         url.searchParams.append("token", this.api.token);
         url.searchParams.append("id", id);
 
-        const ws = new WebSocket(url.toString());
+        const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
             data = JSONbig.parse(data);

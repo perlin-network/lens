@@ -63,6 +63,7 @@
         "react-sizeme": "^2.5.2",
         "react-table": "^6.9.2",
         "react-transition-group": "^2.8.0",
+        "reconnecting-websocket": "^4.1.10",
         "resolve": "1.6.0",
         "sass-loader": "^7.1.0",
         "smart-buffer": "^4.0.2",
