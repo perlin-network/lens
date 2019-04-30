@@ -18,7 +18,7 @@ export class TransactionGraphScene {
     private simulation: any;
     private linkIndices: any = [];
     private controls: any;
-    private lastIndex: number;
+    private lastIndex: number = 0;
     private dotTexture: any;
     private removedNodes = 0;
     private dotSecondaryTexture: any;
@@ -115,6 +115,7 @@ export class TransactionGraphScene {
         if (!this.simulation) {
             this.nodes = nodes;
             this.initSimulation();
+            this.pointCamera(this.lastIndex);
         } else {
             nodes.forEach((node: any) => {
                 const lastLinkIndex = this.linkIndices[
@@ -128,19 +129,20 @@ export class TransactionGraphScene {
                 );
             });
             this.distanceConstraint.setIndices(this.linkIndices);
+
+            for (let i = this.nodes.length - 1; i >= 0; i--) {
+                if (this.nodes[i].payload) {
+                    if (i !== this.lastIndex) {
+                        this.lastIndex = i;
+                        this.pointCamera(this.lastIndex);
+                    }
+                    break;
+                }
+            }
         }
 
         this.updateDots();
         this.updateLines();
-
-        this.lastIndex = this.nodes.length - 1;
-        for (let i = this.lastIndex; i >= 0; i--) {
-            if (this.nodes[i].payload) {
-                this.lastIndex = i;
-                break;
-            }
-        }
-        this.pointCamera(this.lastIndex);
 
         console.log("Transaction Graph Nodes #", this.nodes.length);
     }
@@ -342,7 +344,6 @@ export class TransactionGraphScene {
 
     private getPos(index: number) {
         index += this.removedNodes;
-        // const disp = 0.2 - 0.4 * Math.random();
         const n = 30;
         const r = 3;
 
