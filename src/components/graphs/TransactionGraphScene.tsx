@@ -338,21 +338,24 @@ export class TransactionGraphScene {
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(this.scene.position);
     }
-    private disp() {
+
+    private noiseDisplace() {
         return 0.2 - 0.4 * Math.random();
     }
 
     private getPos(index: number) {
+        // must add offset based on previously removed node
         index += this.removedNodes;
         const n = 30;
         const r = 3;
 
         // spring shape
         return [
-            this.disp() -
+            this.noiseDisplace() -
                 (r + -r * Math.cos((360 / n / 180) * index * Math.PI)),
-            this.disp() / 2 + index * 0.01,
-            this.disp() + (r + r * Math.sin((360 / n / 180) * index * Math.PI))
+            this.noiseDisplace() / 2 + index * 0.01,
+            this.noiseDisplace() +
+                (r + r * Math.sin((360 / n / 180) * index * Math.PI))
         ];
     }
 
