@@ -417,7 +417,7 @@ class Perlin {
                 status: data.event
             };
 
-            // console.log(data.event, tx.id);
+            console.log(data.event, tx.id);
             switch (data.event) {
                 case "new":
                 // console.log("new item",tx);

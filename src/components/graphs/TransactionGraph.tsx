@@ -62,21 +62,19 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             goToTxDetailPage
         );
 
-        perlin.onTransactionsRemoved = () => {
-            const nodes = perlin.transactions.recent;
-            scene.renderNodes(nodes);
+        perlin.onTransactionsRemoved = (numTx: number) => {
+            scene.removeNodes(numTx);
         };
 
-        perlin.onTransactionsCreated = () => {
-            const nodes = perlin.transactions.recent;
-            scene.renderNodes(nodes);
+        perlin.onTransactionsCreated = nodes => {
+            scene.addNodes(nodes);
         };
 
         when(
             () => perlin.transactions.recent.length > 0,
             () => {
                 const nodes = perlin.transactions.recent;
-                scene.renderNodes(nodes);
+                scene.addNodes(nodes);
             }
         );
 
