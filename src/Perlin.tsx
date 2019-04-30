@@ -105,7 +105,7 @@ class Perlin {
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
     private peerPollIntv: number = 5000;
-    private found: any = {};
+    private transactionMap: any = {};
 
     private constructor() {
         this.keys = nacl.sign.keyPair.fromSecretKey(
@@ -341,10 +341,13 @@ class Perlin {
 
         this.transactions.recent = await this.requestRecentTransactions();
 
-        this.found = this.transactions.recent.reduce((acc: any, tx: any) => {
-            acc[tx.id] = true;
-            return acc;
-        }, {});
+        this.transactionMap = this.transactions.recent.reduce(
+            (acc: any, tx: any) => {
+                acc[tx.id] = true;
+                return acc;
+            },
+            {}
+        );
 
         this.transactions.loading = false;
     }
@@ -433,19 +436,24 @@ class Perlin {
             console.log(data.event, tx.id);
             switch (data.event) {
                 case "new":
-                // console.log("new item",tx);
                 case "applied":
                     const parsedTx = Perlin.parseWiredTransaction(
                         tx,
                         transactions.length
                     );
 
-                    if (!this.found[parsedTx.id]) {
+                    if (!this.transactionMap[parsedTx.id]) {
                         transactions.push(parsedTx);
-                        this.found[parsedTx.id] = parsedTx;
+                        this.transactionMap[parsedTx.id] = parsedTx;
                     } else {
-                        this.found[parsedTx.id].status = parsedTx.status;
-                        updateTransactions();
+                        const currentStatus = this.transactionMap[parsedTx.id]
+                            .status;
+                        if (currentStatus !== parsedTx.status) {
+                            this.transactionMap[parsedTx.id].status =
+                                parsedTx.status;
+                            updateTransactions();
+                        }
+
                         return;
                     }
 
@@ -468,7 +476,15 @@ class Perlin {
             switch (data.event) {
                 case "prune":
                     console.log("Prunning #", data.num_tx);
-                    this.transactions.recent.splice(0, data.num_tx);
+
+                    const removedTransactions = this.transactions.recent.splice(
+                        0,
+                        data.num_tx
+                    );
+                    removedTransactions.forEach(
+                        tx => delete this.transactionMap[tx.id]
+                    );
+
                     if (this.onTransactionsRemoved !== undefined) {
                         this.onTransactionsRemoved(data.num_tx);
                     }
