@@ -104,6 +104,7 @@ class Perlin {
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
     private peerPollIntv: number = 5000;
+    private found: any = {};
 
     private constructor() {
         this.keys = nacl.sign.keyPair.fromSecretKey(
@@ -338,6 +339,12 @@ class Perlin {
         this.pollAccountUpdates(this.publicKeyHex);
 
         this.transactions.recent = await this.requestRecentTransactions();
+
+        this.found = this.transactions.recent.reduce((acc: any, tx: any) => {
+            acc[tx.id] = true;
+            return acc;
+        }, {});
+
         this.transactions.loading = false;
     }
 
@@ -378,29 +385,21 @@ class Perlin {
 
         const ws = new ReconnectingWebSocket(url.toString());
 
-        let txBuffer: ITransaction[] = [];
-
         const pushTransactions = _.debounce(
             () => {
-                this.transactions.recent = [
-                    ...this.transactions.recent,
-                    ...txBuffer.map((tx: ITransaction, index) => {
-                        return Perlin.parseWiredTransaction(
-                            tx,
-                            this.transactions.recent.length + index
-                        );
-                    })
-                ];
+                const txLength = this.transactions.recent.length;
+                this.transactions.recent = transactions;
                 if (this.onTransactionsCreated !== undefined) {
-                    this.onTransactionsCreated(txBuffer);
+                    this.onTransactionsCreated(transactions.slice(txLength));
                 }
-                txBuffer = [];
             },
             this.transactionDebounceIntv,
             {
                 maxWait: 2 * this.transactionDebounceIntv
             }
         );
+
+        const transactions = [...this.transactions.recent];
 
         ws.onmessage = async ({ data }) => {
             data = JSON.parse(data);
@@ -415,18 +414,25 @@ class Perlin {
                 confidence: data.confidence,
                 tag: data.tag,
                 payload: data.payload,
-                status: "new"
+                status: data.event
             };
 
+            // console.log(data.event, tx.id);
             switch (data.event) {
                 case "new":
-                    txBuffer.push(tx);
-                    pushTransactions();
-                    break;
+                // console.log("new item",tx);
                 case "applied":
-                    if (this.onTransactionApplied !== undefined) {
-                        this.onTransactionApplied(tx);
+                    const parsedTx = Perlin.parseWiredTransaction(
+                        tx,
+                        transactions.length
+                    );
+
+                    if (!this.found[parsedTx.id]) {
+                        transactions.push(parsedTx);
+                        this.found[parsedTx.id] = true;
                     }
+
+                    pushTransactions();
                     break;
                 case "failed":
                     console.log(data.error);
