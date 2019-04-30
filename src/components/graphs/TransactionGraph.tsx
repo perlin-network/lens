@@ -70,6 +70,10 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             scene.addNodes(nodes);
         };
 
+        perlin.onTransactionsUpdated = () => {
+            scene.updateNodes();
+        };
+
         when(
             () => perlin.transactions.recent.length > 0,
             () => {

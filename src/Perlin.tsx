@@ -100,6 +100,7 @@ class Perlin {
     public onTransactionsCreated: (txs: ITransaction[]) => void;
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
+    public onTransactionsUpdated: () => void;
 
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
@@ -399,6 +400,18 @@ class Perlin {
             }
         );
 
+        const updateTransactions = _.debounce(
+            () => {
+                if (this.onTransactionsUpdated !== undefined) {
+                    this.onTransactionsUpdated();
+                }
+            },
+            this.transactionDebounceIntv,
+            {
+                maxWait: 2 * this.transactionDebounceIntv
+            }
+        );
+
         const transactions = [...this.transactions.recent];
 
         ws.onmessage = async ({ data }) => {
@@ -429,7 +442,11 @@ class Perlin {
 
                     if (!this.found[parsedTx.id]) {
                         transactions.push(parsedTx);
-                        this.found[parsedTx.id] = true;
+                        this.found[parsedTx.id] = parsedTx;
+                    } else {
+                        this.found[parsedTx.id].status = parsedTx.status;
+                        updateTransactions();
+                        return;
                     }
 
                     pushTransactions();

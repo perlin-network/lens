@@ -21,6 +21,7 @@ export class TransactionGraphScene {
     private lastIndex: number;
     private dotTexture: any;
     private removedNodes = 0;
+    private dotSecondaryTexture: any;
     private dotHoverTexture: any;
     private distanceConstraint: any;
     private setTooltipHander: (newValue: any) => void;
@@ -43,6 +44,7 @@ export class TransactionGraphScene {
             "#FFFFFF",
             true
         );
+        this.dotSecondaryTexture = this.createDotTexture("#2c2781", "#0C122B");
         this.setTooltipHander = setTooltipHander;
         this.clickHandler = clickHandler;
         this.initScene();
@@ -96,9 +98,13 @@ export class TransactionGraphScene {
 
         console.log("Transaction Graph Nodes #", this.nodes.length);
     }
+
+    public updateNodes() {
+        this.updateDots();
+        this.dots.geometry.attributes.texIndex.needsUpdate = true;
+    }
+
     public addNodes(nodes: any[]) {
-        // @ts-ignore
-        window.removeNodes = this.removeNodes.bind(this);
         /*
          *   It's important that the nodes ar ordered based on their relationship
          *   We'll be using this.nodex[index] to refference node info
@@ -124,16 +130,8 @@ export class TransactionGraphScene {
             this.distanceConstraint.setIndices(this.linkIndices);
         }
 
-        // we go through the physics simulation to resolve the node positions
-        // let tickCount = 5;
-
         this.updateDots();
         this.updateLines();
-
-        // while (tickCount) {
-        //     this.simulation.tick(0.5);
-        //     tickCount--;
-        // }
 
         this.lastIndex = this.nodes.length - 1;
         for (let i = this.lastIndex; i >= 0; i--) {
@@ -166,9 +164,10 @@ export class TransactionGraphScene {
 
         const disableHover = () => {
             if (hoveredDotIndex !== -1) {
-                this.dots.geometry.attributes.texIndex.array[
-                    hoveredDotIndex
-                ] = 0.0;
+                this.dots.geometry.attributes.texIndex.array[hoveredDotIndex] =
+                    this.nodes[hoveredDotIndex].status === "applied"
+                        ? 0.0
+                        : 2.0;
                 this.dots.geometry.attributes.texIndex.needsUpdate = true;
                 hoveredDotIndex = -1;
 
@@ -437,7 +436,11 @@ export class TransactionGraphScene {
         const uniforms = {
             textures: {
                 type: "tv",
-                value: [this.dotTexture, this.dotHoverTexture]
+                value: [
+                    this.dotTexture,
+                    this.dotHoverTexture,
+                    this.dotSecondaryTexture
+                ]
             },
             color: { type: "c", value: new THREE.Color(0xffffff) },
             fogColor: { type: "c", value: fog.color },
@@ -518,6 +521,8 @@ export class TransactionGraphScene {
         this.nodes.forEach((node: any, index: number) => {
             this.dots.geometry.attributes.size.array[index] =
                 Math.log((node.payload && node.payload.amount) || 1) + 2;
+            this.dots.geometry.attributes.texIndex.array[index] =
+                node.status === "applied" ? 0.0 : 2.0;
         });
 
         this.dots.geometry.setDrawRange(0, this.nodes.length);
@@ -562,26 +567,7 @@ export class TransactionGraphScene {
         this.raycaster.far = length * 2.2;
         this.controls.update();
 
-        // const up = this.controls.object.up;
-        // this.gravityForce.set(up.x * GRAVITY, up.y * GRAVITY, up.z * GRAVITY);
-
         TWEEN.update();
-
-        // if (this.tickSize) {
-        //     this.simulation.tick(0.1);
-        //     this.tickSize--;
-        //     if (!this.tickSize) {
-        //         this.pointCamera(this.lastIndex);
-        //     }
-        // }
-        //     this.tickSize = Math.floor(this.tickSize * 0.9 * 1000) / 1000;
-        //     this.simulation.tick(this.tickSize);
-        // this.lines.geometry.attributes.position.set(this.simulation.positions);
-        // this.dots.geometry.attributes.position.set(this.simulation.positions);
-
-        // this.dots.geometry.attributes.position.needsUpdate = true;
-        // this.lines.geometry.attributes.position.needsUpdate = true;
-        // }
     }
 
     private render() {
@@ -598,7 +584,7 @@ export class TransactionGraphScene {
 }
 
 const fragmentShader = `
-    uniform sampler2D textures[2];
+    uniform sampler2D textures[3];
     uniform vec3 color;
     uniform vec3 fogColor;
     uniform float fogNear;
@@ -613,6 +599,8 @@ const fragmentShader = `
             finalColor = texture2D(textures[0], gl_PointCoord);
         } else if (vTexIndex == 1.0) {
             finalColor = texture2D(textures[1], gl_PointCoord);
+        } else if (vTexIndex == 2.0) {
+            finalColor = texture2D(textures[2], gl_PointCoord);
         }
     
         #ifdef ALPHATEST
