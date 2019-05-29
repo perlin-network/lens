@@ -28,9 +28,10 @@ export const CardHeadings = styled.h2`
     justify-content: space-between;
 `;
 
-export const GraphBox = styled(Box)`
+export const GraphBox = styled.div`
     background-color: #151b35;
     border-radius: 4px;
+    padding: 1px;
 `;
 
 export const Divider = styled.hr`
@@ -52,25 +53,25 @@ export default class DashboardContainer extends React.Component {
                     </Box>
                 </Row>
                 <Row>
-                    <GraphBox width={1 / 2}>
-                        <CardHeadings>Network</CardHeadings>
-                        <Divider />
-                        <NetworkGraph />
-                    </GraphBox>
-                    <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
-                        <CardHeadings>
-                            Transactions
-                            <NetworkLoad
-                                tps={
-                                    (perlin.metrics.acceptedMean +
-                                        perlin.metrics.receivedMean) /
-                                    2
-                                }
-                            />
-                        </CardHeadings>
-                        <Divider />
-                        <TransactionGraph />
-                    </GraphBox>
+                    <Box width={1 / 2} pr={3}>
+                        <GraphBox>
+                            <CardHeadings>Network</CardHeadings>
+                            <Divider />
+                            <NetworkGraph />
+                        </GraphBox>
+                    </Box>
+                    <Box width={1 / 2} pl={3}>
+                        <GraphBox>
+                            <CardHeadings>
+                                Transactions
+                                <NetworkLoad
+                                    tps={perlin.metrics.receivedMean}
+                                />
+                            </CardHeadings>
+                            <Divider />
+                            <TransactionGraph />
+                        </GraphBox>
+                    </Box>
                 </Row>
                 <Row>
                     <Box width={1 / 1}>

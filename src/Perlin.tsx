@@ -502,10 +502,8 @@ class Perlin {
         ws.onmessage = ({ data }) => {
             data = JSON.parse(data);
 
-            this.metrics.acceptedMean =
-                data.metrics["tx.accepted"]["mean.rate"];
-            this.metrics.receivedMean =
-                data.metrics["tx.received"]["mean.rate"];
+            this.metrics.acceptedMean = data["tps.accepted"];
+            this.metrics.receivedMean = data["tps.received"];
         };
     }
 
