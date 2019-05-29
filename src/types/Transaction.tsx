@@ -1,8 +1,9 @@
 export const enum Tag {
-    NOP = 0,
-    TRANSFER = 1,
-    CONTRACT = 2,
-    STAKE = 3
+    TagNop,
+    TagTransfer,
+    TagContract,
+    TagStake,
+    TagBatch
 }
 
 interface ITransaction {

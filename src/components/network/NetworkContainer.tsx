@@ -5,7 +5,7 @@ import styled from "styled-components";
 import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../common/typography";
-import TransactionsTable from "../TransactionsTable";
+import TransactionsTableInfinite from "../TransactionsTableInfinite";
 import { Card, CardHeader, CardTitle } from "../common/card";
 import {
     GraphBox,
@@ -51,7 +51,7 @@ export default class NetworkContainer extends React.Component<{}, {}> {
                                     Transactions
                                 </CardTitle>
                             </CardHeader>
-                            <TransactionsTable />
+                            <TransactionsTableInfinite />
                         </Card>
                     </Box>
                 </Row>

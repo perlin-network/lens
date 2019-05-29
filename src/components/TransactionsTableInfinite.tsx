@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
+import LoadingSpinner from "./common/loadingSpinner";
 import { observer } from "mobx-react";
 import styled from "styled-components";
 import ReactTable, { FinalState } from "react-table";
@@ -8,10 +9,13 @@ import "react-table/react-table.css";
 import Pagination from "react-js-pagination";
 import { Link } from "react-router-dom";
 import Dropdown, { Option } from "react-dropdown";
+import InfiniteScroll from "react-infinite-scroller";
 
 const perlin = Perlin.getInstance();
 
 const Wrapper = styled.div`
+    overflow: auto;
+    max-height: 300px;
     .ReactTable {
         a {
             color: inherit;
@@ -138,144 +142,47 @@ const columns = [
     }
 ];
 
-const StyledPagination = styled.div`
-    text-align: center;
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    margin: 15px;
-
-    .per-page {
-        .Dropdown-root {
-            display: inline-block;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-        .Dropdown-menu {
-            text-align: left;
-        }
-    }
-    .pagination {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-
-        li.disabled {
-            display: none;
-        }
-        li.active,
-        li:hover {
-            opacity: 1;
-        }
-        li {
-            display: inline-block;
-            border: solid 1px #fff;
-            padding: 7px;
-            min-width: 30px;
-            border-radius: 3px;
-            opacity: 0.6;
-            margin-left: 5px;
-            cursor: pointer;
-
-            a {
-                color: inherit;
-
-                &:hover {
-                    text-decoration: none;
-                }
-            }
-        }
-    }
-
-    .page-active,
-    .arrow:hover,
-    .page:hover {
-        opacity: 1;
-    }
-`;
-
-const pageSizeOptions: number[] = [5, 10, 25, 50, 100];
-const CustomPagination: React.FunctionComponent<FinalState> = ({
-    page,
-    pageSize,
-    data,
-    onPageChange,
-    onPageSizeChange
-}) => {
-    const onDropdownChange = (item: Option) =>
-        onPageSizeChange(parseInt(item.value, 10), 1);
-    const pageSizeOptionsStr: string[] = pageSizeOptions.map(item => item + "");
-    return (
-        <StyledPagination>
-            <div className="per-page">
-                {data.length} result{data.length > 1 ? "s" : ""} | Per page:
-                <Dropdown
-                    options={pageSizeOptionsStr}
-                    value={pageSize + ""}
-                    onChange={onDropdownChange}
-                />
-            </div>
-
-            <Pagination
-                activePage={page || 1}
-                activeClass="active"
-                itemsCountPerPage={pageSize}
-                totalItemsCount={data.length - (pageSize || 0)}
-                pageRangeDisplayed={3}
-                nextPageText="Next"
-                prevPageText="Prev"
-                onChange={onPageChange}
-            />
-        </StyledPagination>
-    );
-};
-
 const CustomNoDataComponent: (
     loading: boolean
 ) => React.FunctionComponent<FinalState> = (loading: boolean) => props => {
     if (loading) {
         return null;
     }
-    return <div className="rt-noData">No rows found</div>;
+    return <div className="rt-noData">No transactions found</div>;
 };
 
 @observer
-export default class TransactionsTable extends React.Component<{}, {}> {
-    public state = {
-        page: 0,
-        pageSize: 10
-    };
-
-    public pageChange = (page: any) => {
-        this.setState({ page });
-        perlin.getTableTransactions(page, this.state.pageSize);
-    };
-    public pageSizeChange = async (pageSize: any) => {
-        this.setState({ pageSize, page: 0 });
-        await perlin.getTableTransactions(0, pageSize);
+export default class TransactionsTableInfinite extends React.Component<{}, {}> {
+    public loadFunc = async (page: any) => {
+        perlin.getTableTransactions(page * 50, 50);
     };
     public render() {
         const data: any[] = perlin.transactions.recent;
+        const hasMore = perlin.transactions.hasMore;
         const loading = perlin.transactions.loading;
 
         console.log("Transactions #", data.length);
 
         return (
             <Wrapper>
-                <ReactTable
-                    minRows={0}
-                    data={data}
-                    columns={columns}
-                    resizable={false}
-                    loading={loading}
-                    pageSize={this.state.pageSize}
-                    page={this.state.page}
-                    pageSizeOptions={pageSizeOptions}
-                    onPageChange={this.pageChange}
-                    onPageSizeChange={this.pageSizeChange}
-                    NoDataComponent={CustomNoDataComponent(loading)}
-                    PaginationComponent={CustomPagination}
-                />
+                <InfiniteScroll
+                    pageStart={0}
+                    loadMore={this.loadFunc}
+                    hasMore={hasMore}
+                    loader={<LoadingSpinner key={0} />}
+                    useWindow={false}
+                >
+                    <ReactTable
+                        key={1}
+                        minRows={0}
+                        data={data}
+                        pageSize={data.length}
+                        columns={columns}
+                        resizable={false}
+                        showPagination={false}
+                        NoDataComponent={CustomNoDataComponent(loading)}
+                    />
+                </InfiniteScroll>
             </Wrapper>
         );
     }

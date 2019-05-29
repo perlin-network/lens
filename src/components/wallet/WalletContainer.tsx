@@ -2,7 +2,7 @@ import * as React from "react";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import { SectionTitle } from "../common/typography";
-import TransactionsTable from "../TransactionsTable";
+import TransactionsTableInfinite from "../TransactionsTableInfinite";
 import WalletView from "./WalletView";
 
 const Row = styled(Flex)`
@@ -21,7 +21,7 @@ export default class WalletContainer extends React.Component<{}, {}> {
                 <Row>
                     <Box width={1}>
                         <SectionTitle>Transactions</SectionTitle>
-                        <TransactionsTable />
+                        <TransactionsTableInfinite />
                     </Box>
                 </Row>
             </>

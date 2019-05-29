@@ -44,10 +44,10 @@ class Perlin {
         tx = _.extend(tx, { index });
 
         switch (tx.tag) {
-            case Tag.CONTRACT:
+            case Tag.TagContract:
                 delete tx.payload;
                 break;
-            case Tag.TRANSFER:
+            case Tag.TagTransfer:
                 const payload = Perlin.parseTransferTransaction(
                     Buffer.from(tx.payload, "base64")
                 );
@@ -87,7 +87,8 @@ class Perlin {
 
     @observable public transactions = {
         recent: [] as ITransaction[],
-        loading: true
+        loading: true,
+        hasMore: true
     };
 
     @observable public peers: string[] = [];
@@ -147,7 +148,7 @@ class Perlin {
 
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.TRANSFER, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
         );
     }
 
@@ -158,7 +159,7 @@ class Perlin {
 
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.STAKE, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
         );
     }
 
@@ -169,7 +170,7 @@ class Perlin {
 
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.STAKE, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
         );
     }
 
@@ -179,7 +180,7 @@ class Perlin {
 
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.CONTRACT, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
         );
     }
 
@@ -217,7 +218,7 @@ class Perlin {
 
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.TRANSFER, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
         );
     }
 
@@ -240,6 +241,24 @@ class Perlin {
     // @ts-ignore
     public async getTransaction(id: string): Promise<any> {
         return await this.getJSON(`/tx/${id}`, {});
+    }
+
+    public async getTableTransactions(offset: number, limit: number) {
+        try {
+            const transactions = await this.requestRecentTransactions(
+                offset,
+                limit
+            );
+
+            this.transactions = {
+                ...this.transactions,
+                recent: [...this.transactions.recent, ...transactions],
+                hasMore: !!transactions.length,
+                loading: false
+            };
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     private async init() {
@@ -338,23 +357,12 @@ class Perlin {
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
-
-        this.transactions.recent = await this.requestRecentTransactions();
-
-        this.transactionMap = this.transactions.recent.reduce(
-            (acc: any, tx: any) => {
-                acc[tx.id] = true;
-                return acc;
-            },
-            {}
-        );
-
-        this.transactions.loading = false;
+        this.getTableTransactions(0, 50);
     }
 
     private async initPeers() {
         setInterval(async () => {
-            // only update peers
+            /// only update peers
             const ledger = await this.getLedger();
             this.peers = ledger.peers;
         }, this.peerPollIntv);
@@ -541,13 +549,20 @@ class Perlin {
     private async listTransactions(
         offset: number = 0,
         limit: number = 0
-    ): Promise<[]> {
-        return await this.getJSON("/tx", { offset, limit });
+    ): Promise<ITransaction[] | undefined> {
+        return await this.getJSON("/tx", {
+            offset,
+            limit,
+            sender: this.publicKeyHex
+        });
     }
 
-    private async requestRecentTransactions(): Promise<ITransaction[]> {
+    private async requestRecentTransactions(
+        offset: number,
+        limit: number
+    ): Promise<ITransaction[]> {
         return _.map(
-            await this.listTransactions(0, 0),
+            await this.listTransactions(offset, limit),
             Perlin.parseWiredTransaction
         );
     }

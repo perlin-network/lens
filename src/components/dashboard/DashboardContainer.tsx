@@ -5,7 +5,7 @@ import { Perlin } from "../../Perlin";
 // import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
-import TransactionsTable from "../TransactionsTable";
+import TransactionsTableInfinite from "../TransactionsTableInfinite";
 import QuickSend from "./quicksend/QuickSend";
 import "./dashboard.scss";
 import { observer } from "mobx-react";
@@ -81,7 +81,7 @@ export default class DashboardContainer extends React.Component {
                                     Transactions
                                 </CardTitle>
                             </CardHeader>
-                            <TransactionsTable />
+                            <TransactionsTableInfinite />
                         </Card>
                     </Box>
                 </Row>
