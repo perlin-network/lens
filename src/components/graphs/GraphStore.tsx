@@ -2,9 +2,12 @@ import { Perlin } from "../../Perlin";
 import { action, IObservableArray, observable } from "mobx";
 const perlin = Perlin.getInstance();
 
+const randomRange = (min: number, max: number) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
 interface INode {
     id: number;
     depth: number;
+    type: string;
     parents: INode[];
 }
 export class GraphStore {
@@ -17,7 +20,7 @@ export class GraphStore {
 
     private static singleton: GraphStore;
     @observable public levels: any = {};
-    @observable public links: any = {};
+    @observable public nodes: INode[] = [];
 
     constructor() {
         // @ts-ignore
@@ -33,49 +36,93 @@ export class GraphStore {
         maxDepth: number,
         round: number
     ) => {
+        if (maxDepth > accepted + rejected) {
+            console.error(
+                "Max depth cannot be larger than the number of nodes"
+            );
+        }
+        // adjusted for 0 starting index
+        maxDepth -= 1;
+
+        if (round && !this.levels[round - 1]) {
+            this.generateLevel(1, 0, 1, 0);
+        }
+
         const nodes: INode[] = [];
         const level: INode[][] = Array(maxDepth).fill(undefined);
 
-        for (let count = 0; count < accepted + rejected; count++) {
+        const addNode = (
+            id: number,
+            depth: number,
+            type: string,
+            parents: INode[] = []
+        ) => {
+            const node: INode = {
+                id: round * 10 + id,
+                type,
+                depth,
+                parents
+            };
+
+            level[depth] = level[depth] || [];
+            level[depth].push(node);
+            nodes.push(node);
+            return node;
+        };
+
+        const getRandomDepth = () => {
             let depth;
 
             // make sure all depths are populated
             do {
-                depth = Math.floor(Math.random() * maxDepth);
+                depth = randomRange(0, maxDepth - 1);
             } while (level[depth] && level.filter(item => !item).length);
 
-            const node: INode = {
-                id: count,
-                depth,
-                parents: []
-            };
-            level[depth] = level[depth] || [];
-            level[depth].push(node);
+            return depth;
+        };
+
+        for (let count = 1; count < accepted - 1; count++) {
+            const depth = getRandomDepth();
+            addNode(count, depth, "accepted");
         }
 
-        level
-            .slice()
-            .reverse()
-            .reduce((parents, curr) => {
-                curr.forEach((node: INode) => {
-                    const parentsCount = Math.floor(
-                        Math.random() * parents.length
-                    );
+        for (let count = 0; count < rejected; count++) {
+            const depth = getRandomDepth();
+            addNode(count, depth, "rejected");
+        }
 
-                    node.parents = parents
-                        .slice()
-                        .sort(() => 0.5 - Math.random())
-                        .slice(0, parentsCount);
-                });
-                return parents;
+        addNode(accepted + rejected, maxDepth, "critical");
+
+        let parentLastLevel = [];
+        if (this.levels[round - 1]) {
+            parentLastLevel = this.levels[round - 1][
+                this.levels[round - 1].length - 1
+            ];
+        }
+
+        [parentLastLevel, ...level].reverse().reduce((curr, parents, index) => {
+            curr.forEach((node: INode) => {
+                const parentsCount = randomRange(1, parents.length);
+
+                node.parents = parents
+                    .filter((item: INode) => item.type !== "rejected")
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, parentsCount);
             });
+            return parents;
+        });
 
         this.levels[round] = level;
+        this.nodes.push(...nodes);
     };
 
     @action
     private pruneLevel = (round: number) => {
-        // this.levels[round] = undefined;
+        if (this.levels[round + 1]) {
+            this.levels[round + 1][0].forEach(
+                (node: INode) => (node.parents = [])
+            );
+        }
         delete this.levels[round];
     };
 }
