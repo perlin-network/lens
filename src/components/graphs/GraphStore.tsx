@@ -4,12 +4,17 @@ const perlin = Perlin.getInstance();
 
 const randomRange = (min: number, max: number) =>
     Math.floor(Math.random() * (max - min + 1)) + min;
-interface INode {
+export interface INode {
     id: number;
     depth: number;
     type: string;
+    round: number;
     parents: INode[];
+    children: INode[];
 }
+
+type Subscriber = (round: number, level: any, nodes: INode[]) => void;
+
 export class GraphStore {
     public static getInstance(): GraphStore {
         if (GraphStore.singleton === undefined) {
@@ -19,8 +24,10 @@ export class GraphStore {
     }
 
     private static singleton: GraphStore;
-    @observable public levels: any = {};
-    @observable public nodes: INode[] = [];
+    public levels: any = {};
+    public nodes: INode[] = [];
+    private subscriptions: Subscriber[] = [];
+    private counter = 0;
 
     constructor() {
         // @ts-ignore
@@ -29,7 +36,16 @@ export class GraphStore {
         perlin.onConsensusPrune = window.pruneLevel = this.pruneLevel;
     }
 
-    @action
+    public subscribe(fn: Subscriber) {
+        this.subscriptions.push(fn);
+        return () => {
+            this.subscriptions = this.subscriptions.filter(item => item !== fn);
+        };
+    }
+    private notifySubscribers(round: number, level: any, nodes: INode[]) {
+        this.subscriptions.forEach((fn: Subscriber) => fn(round, level, nodes));
+    }
+
     private generateLevel = (
         accepted: number,
         rejected: number,
@@ -51,17 +67,14 @@ export class GraphStore {
         const nodes: INode[] = [];
         const level: INode[][] = Array(maxDepth).fill(undefined);
 
-        const addNode = (
-            id: number,
-            depth: number,
-            type: string,
-            parents: INode[] = []
-        ) => {
+        const addNode = (depth: number, type: string) => {
             const node: INode = {
-                id: round * 10 + id,
+                id: this.counter++,
                 type,
                 depth,
-                parents
+                round,
+                parents: [],
+                children: []
             };
 
             level[depth] = level[depth] || [];
@@ -81,17 +94,17 @@ export class GraphStore {
             return depth;
         };
 
-        for (let count = 1; count < accepted - 1; count++) {
+        for (let count = 0; count < accepted - 1; count++) {
             const depth = getRandomDepth();
-            addNode(count, depth, "accepted");
+            addNode(depth, "accepted");
         }
 
         for (let count = 0; count < rejected; count++) {
             const depth = getRandomDepth();
-            addNode(count, depth, "rejected");
+            addNode(depth, "rejected");
         }
 
-        addNode(accepted + rejected, maxDepth, "critical");
+        addNode(maxDepth, "critical");
 
         let parentLastLevel = [];
         if (this.levels[round - 1]) {
@@ -108,15 +121,19 @@ export class GraphStore {
                     .filter((item: INode) => item.type !== "rejected")
                     .sort(() => 0.5 - Math.random())
                     .slice(0, parentsCount);
+
+                node.parents.forEach((parent: INode) =>
+                    parent.children.push(node)
+                );
             });
             return parents;
         });
 
         this.levels[round] = level;
         this.nodes.push(...nodes);
+        this.notifySubscribers(round, level, nodes);
     };
 
-    @action
     private pruneLevel = (round: number) => {
         if (this.levels[round + 1]) {
             this.levels[round + 1][0].forEach(
