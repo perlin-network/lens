@@ -1,13 +1,15 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { when } from "mobx";
+import { when, intercept, observe, toJS } from "mobx";
 import { Perlin } from "../../Perlin";
 
 import styled from "styled-components";
 import { TransactionGraphScene } from "./TransactionGraphScene";
 import Tooltip from "./Tooltip";
 import { withRouter, RouteComponentProps } from "react-router";
+import { GraphStore } from "./GraphStore";
 
 const perlin = Perlin.getInstance();
+const graphStore = GraphStore.getInstance();
 
 const Wrapper = styled.div<{
     isHovered: boolean;
@@ -74,6 +76,13 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             scene.updateNodes();
         };
 
+        const disposerLevels = observe(graphStore.levels, changes => {
+            console.log("levels", toJS(changes.object));
+        });
+        const disposerLinks = observe(graphStore.links, changes => {
+            console.log("links", toJS(changes.object));
+        });
+
         when(
             () => perlin.transactions.recent.length > 0,
             () => {
@@ -84,6 +93,8 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
 
         return () => {
             scene.destroy();
+            disposerLevels();
+            disposerLinks();
         };
     }, []);
 

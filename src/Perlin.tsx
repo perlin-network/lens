@@ -102,6 +102,13 @@ class Perlin {
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
     public onTransactionsUpdated: () => void;
+    public onConsensusRound: (
+        accepted: number,
+        rejected: number,
+        maxDepth: number,
+        round: number
+    ) => void;
+    public onConsensusPrune: (round: number) => void;
 
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
@@ -263,7 +270,7 @@ class Perlin {
 
     private async init() {
         try {
-            await this.startSession();
+            // await this.startSession();
             await this.initLedger();
             await this.initPeers();
 
@@ -392,7 +399,9 @@ class Perlin {
     }
 
     private pollTransactionUpdates(event: string = "accepted") {
-        const url = new URL(`ws://${this.api.host}/poll/tx`);
+        const url = new URL(
+            `ws://${this.api.host}/poll/tx?sender=${this.publicKeyHex}`
+        );
         url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
@@ -483,20 +492,33 @@ class Perlin {
             data = JSON.parse(data);
             switch (data.event) {
                 case "prune":
-                    console.log("Prunning #", data.num_tx);
+                    console.log("Prunning #", data);
 
-                    const removedTransactions = this.transactions.recent.splice(
-                        0,
-                        data.num_tx
-                    );
-                    removedTransactions.forEach(
-                        tx => delete this.transactionMap[tx.id]
-                    );
-
-                    if (this.onTransactionsRemoved !== undefined) {
-                        this.onTransactionsRemoved(data.num_tx);
+                    if (this.onConsensusPrune) {
+                        this.onConsensusPrune(data.pruned_round_id);
                     }
+                    // const removedTransactions = this.transactions.recent.splice(
+                    //     0,
+                    //     data.num_tx
+                    // );
+                    // removedTransactions.forEach(
+                    //     tx => delete this.transactionMap[tx.id]
+                    // );
+
+                    // if (this.onTransactionsRemoved !== undefined) {
+                    //     this.onTransactionsRemoved(data.num_tx);
+                    // }
                     break;
+                case "round_end":
+                    console.log("Round end #", data);
+                    if (this.onConsensusRound) {
+                        this.onConsensusRound(
+                            data.num_applied_tx,
+                            data.num_rejected_tx,
+                            data.round_depth,
+                            data.new_round
+                        );
+                    }
             }
         };
     }
