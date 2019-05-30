@@ -3,9 +3,11 @@ import * as THREE from "three";
 import * as TWEEN from "es6-tween";
 import { DistanceConstraint, ParticleSystem } from "particulate";
 import * as _ from "lodash";
+import { INode } from "./GraphStore";
 
 const MAX_POINTS = 1000000;
 export class TransactionGraphScene {
+    public linkIndices: any = [];
     private el: any;
     private scene: any;
     private camera: any;
@@ -16,7 +18,7 @@ export class TransactionGraphScene {
     private renderer: any;
     private raycaster: any;
     private simulation: any;
-    private linkIndices: any = [];
+
     private controls: any;
     private lastIndex: number = 0;
     private dotTexture: any;
@@ -104,6 +106,16 @@ export class TransactionGraphScene {
         this.dots.geometry.attributes.texIndex.needsUpdate = true;
     }
 
+    public renderTree(node: INode) {
+        if (node === null) {
+            return;
+        }
+        this.linkIndices.push(node);
+        node.children.forEach(child => {
+            this.renderTree(child);
+            this.linkIndices.push(node);
+        });
+    }
     public addNodes(nodes: any[]) {
         /*
          *   It's important that the nodes ar ordered based on their relationship

@@ -65,22 +65,25 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
         );
 
         perlin.onTransactionsRemoved = (numTx: number) => {
-            scene.removeNodes(numTx);
+            // scene.removeNodes(numTx);
         };
 
         perlin.onTransactionsCreated = nodes => {
-            scene.addNodes(nodes);
+            // scene.addNodes(nodes);
         };
 
         perlin.onTransactionsUpdated = () => {
-            scene.updateNodes();
+            // scene.updateNodes();
         };
 
-        const disposerLevels = observe(graphStore.levels, changes => {
-            console.log("levels", toJS(changes.object));
-        });
-        const disposerLinks = observe(graphStore.links, changes => {
-            console.log("links", toJS(changes.object));
+        const disposer = graphStore.subscribe((round, level, nodes) => {
+            console.log({ round, level, nodes });
+            console.log({
+                allLevels: graphStore.levels,
+                allNodes: graphStore.nodes
+            });
+            scene.renderTree(graphStore.nodes[0]);
+            console.log(scene.linkIndices);
         });
 
         when(
@@ -93,8 +96,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
 
         return () => {
             scene.destroy();
-            disposerLevels();
-            disposerLinks();
+            disposer();
         };
     }, []);
 
