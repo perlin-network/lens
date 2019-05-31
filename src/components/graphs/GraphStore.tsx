@@ -11,6 +11,8 @@ export interface INode {
     round: number;
     parents: INode[];
     children: INode[];
+    globalDepth: number;
+    depthPos: number;
 }
 
 type Subscriber = (round: number, level: any, nodes: INode[]) => void;
@@ -73,6 +75,8 @@ export class GraphStore {
                 type,
                 depth,
                 round,
+                globalDepth: 0,
+                depthPos: 0,
                 parents: [],
                 children: []
             };
@@ -106,16 +110,23 @@ export class GraphStore {
 
         addNode(maxDepth, "critical");
 
-        let parentLastLevel = [];
+        let parentLastLevel: INode[] = [];
         if (this.levels[round - 1]) {
             parentLastLevel = this.levels[round - 1][
                 this.levels[round - 1].length - 1
             ];
         }
 
-        [parentLastLevel, ...level].reverse().reduce((curr, parents, index) => {
-            curr.forEach((node: INode) => {
+        [parentLastLevel, ...level].reverse().reduce((curr, parents) => {
+            curr.forEach((node: INode, index) => {
                 const parentsCount = randomRange(1, parents.length);
+
+                if (parentLastLevel[0]) {
+                    node.globalDepth =
+                        parentLastLevel[0].globalDepth + node.depth + 1;
+                }
+
+                node.depthPos = Math.floor(curr.length / 2) - index;
 
                 node.parents = parents
                     .filter((item: INode) => item.type !== "rejected")

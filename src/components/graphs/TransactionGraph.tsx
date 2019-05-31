@@ -82,15 +82,16 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
                 allLevels: graphStore.levels,
                 allNodes: graphStore.nodes
             });
-            scene.renderTree(graphStore.nodes[0]);
-            console.log(scene.linkIndices);
+            scene.renderNodes(graphStore.nodes);
+            console.log(scene.lineIndices);
+            console.log(scene.positions);
         });
 
         when(
             () => perlin.transactions.recent.length > 0,
             () => {
                 const nodes = perlin.transactions.recent;
-                scene.addNodes(nodes);
+                // scene.addNodes(nodes);
             }
         );
 

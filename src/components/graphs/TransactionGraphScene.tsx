@@ -7,7 +7,8 @@ import { INode } from "./GraphStore";
 
 const MAX_POINTS = 1000000;
 export class TransactionGraphScene {
-    public linkIndices: any = [];
+    public lineIndices: any = [];
+    public positions: any = [];
     private el: any;
     private scene: any;
     private camera: any;
@@ -33,7 +34,6 @@ export class TransactionGraphScene {
     private height: number;
     private animationId: number;
 
-    private linePositions: number;
     constructor(
         container: any,
         setTooltipHander: (newValue: any) => void,
@@ -69,94 +69,30 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
-    public removeNodes(numNodes: number) {
-        this.nodes = this.nodes.slice(numNodes);
-
-        // we need to keep track of the removed nodes to continually increase the height of the spring
-        this.removedNodes += numNodes;
-        if (!this.nodes.length) {
-            this.addNodes([]);
-            return;
-        }
-
-        this.nodes.forEach((node: any, index: number) => {
-            this.linkIndices.push(index, index + 1);
-        });
-
-        this.simulation.each((item: any) => {
-            const nextPosition = this.simulation.getPosition(
-                item + numNodes,
-                []
-            );
-            if (nextPosition[0] !== undefined) {
-                this.simulation.setPosition(item, ...nextPosition);
-            }
-        });
-
-        this.distanceConstraint.setIndices(this.linkIndices);
-
-        this.updateDots();
-        this.updateLines();
-
-        console.log("Transaction Graph Nodes #", this.nodes.length);
-    }
-
     public updateNodes() {
         this.updateDots();
         this.dots.geometry.attributes.texIndex.needsUpdate = true;
     }
 
-    public renderTree(node: INode) {
-        if (node === null) {
-            return;
-        }
-        this.linkIndices.push(node);
-        node.children.forEach(child => {
-            this.renderTree(child);
-            this.linkIndices.push(node);
+    public renderNodes(nodes: INode[]) {
+        this.nodes = nodes;
+        const step = 1;
+        this.positions = this.nodes.map((node: INode) => {
+            return [step * node.depthPos, step * node.globalDepth, 0];
         });
-    }
-    public addNodes(nodes: any[]) {
-        /*
-         *   It's important that the nodes ar ordered based on their relationship
-         *   We'll be using this.nodex[index] to refference node info
-         */
 
-        nodes = nodes.slice().sort((n1: any, n2: any) => n1.depth - n2.depth);
-
-        if (!this.simulation) {
-            this.nodes = nodes;
-            this.initSimulation();
-            this.pointCamera(this.lastIndex);
-        } else {
-            nodes.forEach((node: any) => {
-                const lastLinkIndex = this.linkIndices[
-                    this.linkIndices.length - 1
-                ];
-                this.linkIndices.push(lastLinkIndex, lastLinkIndex + 1);
-                this.nodes.push(node);
-                this.simulation.setPosition(
-                    this.nodes.length,
-                    ...this.getPos(this.nodes.length)
-                );
+        // this.visitNodes(nodes[0]);
+        this.lineIndices = this.nodes.reduce((acc: any[], curr: INode) => {
+            curr.children.forEach((child: INode) => {
+                acc.push(curr.id, child.id);
             });
-            this.distanceConstraint.setIndices(this.linkIndices);
-
-            for (let i = this.nodes.length - 1; i >= 0; i--) {
-                if (this.nodes[i].payload) {
-                    if (i !== this.lastIndex) {
-                        this.lastIndex = i;
-                        this.pointCamera(this.lastIndex);
-                    }
-                    break;
-                }
-            }
-        }
+            return acc;
+        }, []);
 
         this.updateDots();
         this.updateLines();
 
-        console.log("Transaction Graph Nodes #", this.nodes.length);
+        this.pointCamera(nodes[nodes.length - 1].id);
     }
 
     public destroy() {
@@ -178,10 +114,9 @@ export class TransactionGraphScene {
 
         const disableHover = () => {
             if (hoveredDotIndex !== -1) {
-                this.dots.geometry.attributes.texIndex.array[hoveredDotIndex] =
-                    this.nodes[hoveredDotIndex].status === "applied"
-                        ? 0.0
-                        : 2.0;
+                this.dots.geometry.attributes.texIndex.array[
+                    hoveredDotIndex
+                ] = 0.0;
                 this.dots.geometry.attributes.texIndex.needsUpdate = true;
                 hoveredDotIndex = -1;
 
@@ -241,13 +176,12 @@ export class TransactionGraphScene {
 
                 this.raycaster.setFromCamera(this.mouse, this.camera);
 
-                const intersects = this.raycaster
-                    .intersectObject(this.dots)
-                    .filter(
-                        (item: any) =>
-                            this.nodes[item.index] &&
-                            this.nodes[item.index].payload
-                    );
+                const intersects = this.raycaster.intersectObject(this.dots);
+                // .filter(
+                //     (item: any) =>
+                //         this.nodes[item.index] &&
+                //         this.nodes[item.index].payload
+                // );
 
                 if (intersects.length !== 0) {
                     const intersect = intersects.reduce(
@@ -260,8 +194,8 @@ export class TransactionGraphScene {
                     const index = intersect.index;
                     const node = this.nodes[index];
 
-                    if (intersect.distanceToRay < 0.2) {
-                        const pos = this.simulation.getPosition(index, []);
+                    if (node && intersect.distanceToRay < 0.2) {
+                        const pos = this.positions[index];
 
                         this.dots.geometry.attributes.texIndex.array[
                             index
@@ -286,11 +220,11 @@ export class TransactionGraphScene {
                             visible: true
                         };
 
-                        if (node.payload) {
-                            tooltip.title = "Transfer";
-                            tooltip.status = node.status;
-                            tooltip.text = node.payload.amount + " PERLs";
-                        }
+                        // if (node.payload) {
+                        tooltip.title = node.type;
+                        tooltip.status = node.id;
+                        tooltip.text = ""; // node.payload.amount + " PERLs";
+                        // }
                         this.setTooltipHander(tooltip);
                         hoveredDotIndex = index;
                         return;
@@ -312,7 +246,7 @@ export class TransactionGraphScene {
         position.z -= 10;
         this.focusedIndex = index;
 
-        const [x, y, z] = this.simulation.getPosition(index, []);
+        const [x, y, z] = this.positions[index];
 
         const positionTween = new TWEEN.Tween(position)
             .to({ x, y, z }, 1000)
@@ -349,48 +283,6 @@ export class TransactionGraphScene {
         this.camera = new THREE.PerspectiveCamera(20, 1, 1, 500);
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(this.scene.position);
-    }
-
-    private noiseDisplace() {
-        return 0.2 - 0.4 * Math.random();
-    }
-
-    private getPos(index: number) {
-        // must add offset based on previously removed node
-        index += this.removedNodes;
-        const n = 30;
-        const r = 3;
-
-        // spring shape
-        return [
-            this.noiseDisplace() -
-                (r + -r * Math.cos((360 / n / 180) * index * Math.PI)),
-            this.noiseDisplace() / 2 + index * 0.01,
-            this.noiseDisplace() +
-                (r + r * Math.sin((360 / n / 180) * index * Math.PI))
-        ];
-    }
-
-    private initSimulation() {
-        const simulation = ParticleSystem.create(MAX_POINTS, 12);
-
-        this.nodes.forEach((node: any, index: number) => {
-            this.linkIndices.push(index, index + 1);
-        });
-
-        simulation.each((item: any) => {
-            simulation.setPosition(item, ...this.getPos(item));
-        });
-
-        this.distanceConstraint = DistanceConstraint.create(
-            [0.3, 0.5],
-            new Array(MAX_POINTS)
-        );
-
-        this.distanceConstraint.setIndices(this.linkIndices);
-        simulation.addConstraint(this.distanceConstraint);
-
-        this.simulation = simulation;
     }
 
     private initControls() {
@@ -516,10 +408,16 @@ export class TransactionGraphScene {
             new Float32Array(MAX_POINTS * 3),
             3
         );
+
+        const indices = new THREE.BufferAttribute(
+            new Uint32Array(MAX_POINTS),
+            1
+        );
         verticles.updateRange.count = MAX_POINTS * 3;
         lineGeometry.addAttribute("position", verticles);
+        lineGeometry.setIndex(indices);
 
-        this.lines = new THREE.Line(
+        this.lines = new THREE.LineSegments(
             lineGeometry,
             new THREE.LineBasicMaterial({
                 color: 0x4a41d1,
@@ -533,24 +431,37 @@ export class TransactionGraphScene {
     }
 
     private updateDots() {
-        this.dots.geometry.attributes.position.set(this.simulation.positions);
+        this.dots.geometry.attributes.position.set(
+            new Float32Array(this.positions.flat(1))
+        );
         this.nodes.forEach((node: any, index: number) => {
-            this.dots.geometry.attributes.size.array[index] =
-                Math.log((node.payload && node.payload.amount) || 1) + 2;
-            this.dots.geometry.attributes.texIndex.array[index] =
-                node.status === "applied" ? 0.0 : 2.0;
+            // this.dots.geometry.attributes.size.array[index] =
+            //     Math.log((node.payload && node.payload.amount) || 1) + 2;
+            // this.dots.geometry.attributes.texIndex.array[index] =
+            //     node.status === "applied" ? 0.0 : 2.0;
+            this.dots.geometry.attributes.size.array[index] = 3;
+            this.dots.geometry.attributes.texIndex.array[index] = 0.0;
         });
 
-        this.dots.geometry.setDrawRange(0, this.nodes.length);
+        this.dots.geometry.setDrawRange(0, this.positions.length);
         this.dots.geometry.computeBoundingSphere();
 
         this.dots.geometry.attributes.size.needsUpdate = true;
         this.dots.geometry.attributes.position.needsUpdate = true;
     }
     private updateLines() {
-        this.lines.geometry.attributes.position.set(this.simulation.positions);
+        this.lines.geometry.attributes.position.set(
+            new Float32Array(this.positions.flat(1))
+        );
+        if (this.lineIndices.length) {
+            // const indices = [0, 1, 0, 2, 0, 4, 0, 5, 1, 3, 2, 3, 5, 6];
+            this.lines.geometry.setIndex(
+                new THREE.BufferAttribute(new Uint16Array(this.lineIndices), 1)
+            );
+        }
 
-        this.lines.geometry.setDrawRange(0, this.nodes.length);
+        // this.lines.geometry.setIndex(new Uint32Array(this.lineIndices));
+        this.lines.geometry.setDrawRange(0, this.lineIndices.length);
         this.lines.geometry.computeBoundingSphere();
         this.lines.geometry.attributes.position.needsUpdate = true;
     }
