@@ -119,9 +119,8 @@ export class TransactionGraphScene {
 
         const disableHover = () => {
             if (hoveredDotIndex !== -1) {
-                this.dots.geometry.attributes.texIndex.array[
-                    hoveredDotIndex
-                ] = 0.0;
+                this.dots.geometry.attributes.texIndex.array[hoveredDotIndex] =
+                    this.nodes[hoveredDotIndex].type === "rejected" ? 2.0 : 0.0;
                 this.dots.geometry.attributes.texIndex.needsUpdate = true;
                 hoveredDotIndex = -1;
 
@@ -444,8 +443,10 @@ export class TransactionGraphScene {
             //     Math.log((node.payload && node.payload.amount) || 1) + 2;
             // this.dots.geometry.attributes.texIndex.array[index] =
             //     node.status === "applied" ? 0.0 : 2.0;
-            this.dots.geometry.attributes.size.array[index] = 3;
-            this.dots.geometry.attributes.texIndex.array[index] = 0.0;
+            this.dots.geometry.attributes.size.array[index] =
+                node.type === "critical" ? 5 : 3;
+            this.dots.geometry.attributes.texIndex.array[index] =
+                node.type === "rejected" ? 2.0 : 0.0;
         });
 
         this.dots.geometry.setDrawRange(0, this.positions.length || 1);
