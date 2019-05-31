@@ -1,9 +1,42 @@
 import { Perlin } from "../../Perlin";
-import { action, IObservableArray, observable } from "mobx";
 const perlin = Perlin.getInstance();
 
 const randomRange = (min: number, max: number) =>
     Math.floor(Math.random() * (max - min + 1)) + min;
+// @ts-ignore
+const uniqueRandomRange = (window.uniqueRandomRange = (
+    min: number,
+    max: number
+) => {
+    if (min > max) {
+        throw new Error(`Invalid random ranges ${min} - ${max}`);
+    }
+    const extracted: number[] = [];
+    const info = {
+        done: false,
+        extracted
+    };
+    const random = () => {
+        let value: number;
+
+        while (!info.done) {
+            value = randomRange(min, max);
+            if (extracted.indexOf(value) === -1) {
+                extracted.push(value);
+                break;
+            }
+        }
+
+        info.done = extracted.length > max - min;
+        // @ts-ignore
+        return value;
+    };
+
+    return {
+        random,
+        info
+    };
+});
 
 const offset = (index: number, width: number) => index - Math.floor(width / 2);
 const getPos = (index: number, width: number) => [
@@ -88,14 +121,14 @@ export class GraphStore {
             return node;
         };
 
+        const { info, random } = uniqueRandomRange(0, maxDepth);
         const getRandomDepth = () => {
             let depth;
 
             // make sure all depths are populated
-            do {
-                depth = randomRange(0, maxDepth - 1);
-            } while (round[depth] && round.filter(item => !item).length);
+            depth = random() || randomRange(0, maxDepth);
 
+            // const {depth, extracted, done} = uniqueRandomRange(0, maxDepth - 1);
             return depth;
         };
 
@@ -109,7 +142,7 @@ export class GraphStore {
             addNode(depth, "rejected");
         }
 
-        addNode(maxDepth, "critical");
+        addNode(maxDepth + 1, "critical");
 
         let parentLastRound: INode[] = [];
         if (this.rounds[roundNum - 1]) {
@@ -141,14 +174,16 @@ export class GraphStore {
                     );
 
                     let count = 0;
-                    while (count < parentsCount) {
-                        const parentIndex = randomRange(0, parents.length - 1);
+                    const { random: uniquRandom } = uniqueRandomRange(
+                        0,
+                        parents.length - 1
+                    );
 
-                        if (node.parents.indexOf(parents[parentIndex]) === -1) {
-                            count++;
-                            node.parents.push(parents[parentIndex]);
-                            parents[parentIndex].children.push(node);
-                        }
+                    while (count < parentsCount) {
+                        const parentIndex = uniquRandom();
+                        count++;
+                        node.parents.push(parents[parentIndex]);
+                        parents[parentIndex].children.push(node);
                     }
                 });
             }
@@ -166,14 +201,15 @@ export class GraphStore {
         const nodes = Object.values(this.rounds).reduce(
             (acc: INode[], depth: any) => {
                 const depthNodes = depth.flat(1);
-                depthNodes.forEach((node: INode) => (node.id = counter++));
-
                 acc.push(...depthNodes);
                 return acc;
             },
             []
-        );
-        this.nodes = nodes as INode[];
+        ) as INode[];
+
+        nodes.forEach((node: INode) => (node.id = counter++));
+
+        this.nodes = nodes;
     }
 
     private pruneRound = (roundNum: number) => {
