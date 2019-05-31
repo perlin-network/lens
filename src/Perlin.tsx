@@ -108,7 +108,7 @@ class Perlin {
         maxDepth: number,
         round: number
     ) => void;
-    public onConsensusPrune: (round: number) => void;
+    public onConsensusPrune: (round: number, numTx: number) => void;
 
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
@@ -495,7 +495,10 @@ class Perlin {
                     console.log("Prunning #", data);
 
                     if (this.onConsensusPrune) {
-                        this.onConsensusPrune(data.pruned_round_id);
+                        this.onConsensusPrune(
+                            data.pruned_round_id,
+                            data.num_tx
+                        );
                     }
                     // const removedTransactions = this.transactions.recent.splice(
                     //     0,
