@@ -76,12 +76,15 @@ export class TransactionGraphScene {
 
     public renderNodes(nodes: INode[]) {
         this.nodes = nodes;
-        const step = 1;
+        const step = 0.5;
         this.positions = this.nodes.map((node: INode) => {
-            return [step * node.depthPos, step * node.globalDepth, 0];
+            return [
+                step * node.depthPos[0],
+                step * 2 * node.globalDepth,
+                step * node.depthPos[1]
+            ];
         });
 
-        // this.visitNodes(nodes[0]);
         this.lineIndices = this.nodes.reduce((acc: any[], curr: INode) => {
             curr.children.forEach((child: INode) => {
                 acc.push(curr.id, child.id);
@@ -92,7 +95,9 @@ export class TransactionGraphScene {
         this.updateDots();
         this.updateLines();
 
-        this.pointCamera(nodes[nodes.length - 1].id);
+        if (nodes[nodes.length - 1]) {
+            this.pointCamera(nodes[nodes.length - 1].id);
+        }
     }
 
     public destroy() {
@@ -410,10 +415,10 @@ export class TransactionGraphScene {
         );
 
         const indices = new THREE.BufferAttribute(
-            new Uint32Array(MAX_POINTS),
+            new Uint32Array(MAX_POINTS * 10),
             1
         );
-        verticles.updateRange.count = MAX_POINTS * 3;
+        // verticles.updateRange.count = MAX_POINTS * 3;
         lineGeometry.addAttribute("position", verticles);
         lineGeometry.setIndex(indices);
 
@@ -443,7 +448,7 @@ export class TransactionGraphScene {
             this.dots.geometry.attributes.texIndex.array[index] = 0.0;
         });
 
-        this.dots.geometry.setDrawRange(0, this.positions.length);
+        this.dots.geometry.setDrawRange(0, this.positions.length || 1);
         this.dots.geometry.computeBoundingSphere();
 
         this.dots.geometry.attributes.size.needsUpdate = true;
@@ -453,15 +458,15 @@ export class TransactionGraphScene {
         this.lines.geometry.attributes.position.set(
             new Float32Array(this.positions.flat(1))
         );
-        if (this.lineIndices.length) {
-            // const indices = [0, 1, 0, 2, 0, 4, 0, 5, 1, 3, 2, 3, 5, 6];
-            this.lines.geometry.setIndex(
-                new THREE.BufferAttribute(new Uint16Array(this.lineIndices), 1)
-            );
-        }
+        // if (this.lineIndices.length) {
+        // const indices = [0, 1, 0, 2, 0, 4, 0, 5, 1, 3, 2, 3, 5, 6];
+        this.lines.geometry.setIndex(
+            new THREE.BufferAttribute(new Uint32Array(this.lineIndices), 1)
+        );
+        // }
 
         // this.lines.geometry.setIndex(new Uint32Array(this.lineIndices));
-        this.lines.geometry.setDrawRange(0, this.lineIndices.length);
+        this.lines.geometry.setDrawRange(0, this.lineIndices.length || 1);
         this.lines.geometry.computeBoundingSphere();
         this.lines.geometry.attributes.position.needsUpdate = true;
     }
@@ -503,10 +508,8 @@ export class TransactionGraphScene {
 
     private animate() {
         this.animationId = window.requestAnimationFrame(this.animate);
-        if (this.nodes.length) {
-            this.update();
-            this.render();
-        }
+        this.update();
+        this.render();
     }
 }
 

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { when, intercept, observe, toJS } from "mobx";
 import { Perlin } from "../../Perlin";
-
+import { INode } from "./GraphStore";
 import styled from "styled-components";
 import { TransactionGraphScene } from "./TransactionGraphScene";
 import Tooltip from "./Tooltip";
@@ -76,15 +76,15 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             // scene.updateNodes();
         };
 
-        const disposer = graphStore.subscribe((round, level, nodes) => {
-            console.log({ round, level, nodes });
-            console.log({
-                allLevels: graphStore.levels,
-                allNodes: graphStore.nodes
-            });
-            scene.renderNodes(graphStore.nodes);
-            console.log(scene.lineIndices);
-            console.log(scene.positions);
+        const disposer = graphStore.subscribe((nodes: INode[]) => {
+            // console.log({ round, level, nodes });
+            // console.log({
+            //     allLevels: graphStore.levels,
+            //     allNodes: graphStore.nodes
+            // });
+            scene.renderNodes(nodes);
+            // console.log(scene.lineIndices);
+            // console.log(scene.positions);
         });
 
         when(
