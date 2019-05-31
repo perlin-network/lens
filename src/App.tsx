@@ -24,26 +24,25 @@ const ContentWrapper = styled(Flex)`
     margin: 0px;
     padding: 0px;
     background-color: #0c112b;
+    background-image: url(${MainBackgroundSVG});
+    background-size: 100% auto;
     min-height: 100vh;
+    background-repeat: no-repeat;
 `;
-const SideWrapper = styled(Box).attrs({
-    width: 1 / 6
-})`
+const SideWrapper = styled(Box)`
     background-color: #0c112b;
     margin: 0px;
     padding: 0px;
-    min-width: 150px;
-    max-width: 250px;
+    width: 150px;
 `;
 const Content = styled(Box).attrs({
-    width: 5 / 6
+    flex: 1
 })`
-    background-image: url(${MainBackgroundSVG});
     margin: 0px;
     padding-left: 2em;
     padding-right: 2em;
-    background-size: 100% 1500px;
-    background-repeat: no-repeat;
+    max-width: 1500px;
+    width: calc(100% - 150px);
 `;
 
 const routes = [
