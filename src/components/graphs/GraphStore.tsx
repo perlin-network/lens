@@ -1,8 +1,11 @@
 import { Perlin } from "../../Perlin";
 const perlin = Perlin.getInstance();
 
-const randomRange = (min: number, max: number) =>
-    Math.floor(Math.random() * (max - min + 1)) + min;
+const randomRange = (min: number, max: number) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 // @ts-ignore
 const uniqueRandomRange = (window.uniqueRandomRange = (
     min: number,
@@ -102,11 +105,12 @@ export class GraphStore {
         maxDepth -= 1;
 
         const round: INode[][] = Array(maxDepth).fill(undefined);
-        const nodes: INode[] = [];
+        let nodeIndex = this.nodes.length;
+        let numTx = 0;
 
         const addNode = (depth: number, type: string) => {
             const node: INode = {
-                id: 0,
+                id: nodeIndex++,
                 type,
                 depth,
                 round: roundNum,
@@ -118,8 +122,9 @@ export class GraphStore {
 
             round[depth] = round[depth] || [];
             round[depth].push(node);
+            numTx++;
 
-            nodes.push(node);
+            this.nodes.push(node);
             return node;
         };
 
@@ -128,13 +133,14 @@ export class GraphStore {
             let depth;
 
             // make sure all depths are populated
-            depth = random() || randomRange(0, maxDepth);
-
-            // const {depth, extracted, done} = uniqueRandomRange(0, maxDepth - 1);
+            depth = random();
+            if (typeof depth === "undefined") {
+                depth = randomRange(0, maxDepth);
+            }
             return depth;
         };
 
-        for (let count = 0; count < accepted - 1; count++) {
+        for (let count = 0; count < accepted; count++) {
             const depth = getRandomDepth();
             addNode(depth, "accepted");
         }
@@ -148,7 +154,7 @@ export class GraphStore {
 
         let parentLastRound: INode[] = [];
         if (this.rounds[roundNum - 1]) {
-            const parentRound = this.rounds[roundNum - 1];
+            const parentRound = this.rounds[roundNum - 1].round;
             parentLastRound = parentRound[parentRound.length - 1];
         }
 
@@ -162,13 +168,10 @@ export class GraphStore {
                         Math.ceil(randomRange(1, parents.length) * 0.33),
                         5
                     );
-
+                    const parentCritical = parentLastRound[0];
                     const globalDepth =
-                        ((parentLastRound[0] &&
-                            parentLastRound[0].globalDepth) ||
-                            0) +
-                        node.depth +
-                        1;
+                        ((parentCritical && parentCritical.globalDepth) || 0) +
+                        node.depth;
                     node.globalDepth = globalDepth;
                     node.depthPos = getPos(
                         index,
@@ -183,9 +186,10 @@ export class GraphStore {
 
                     while (count < parentsCount) {
                         const parentIndex = uniqueRandom();
+                        const parent = parents[parentIndex];
                         count++;
-                        node.parents.push(parents[parentIndex]);
-                        parents[parentIndex].children.push(node);
+                        node.parents.push(parent);
+                        parent.children.push(node);
                     }
                 });
             }
@@ -193,45 +197,31 @@ export class GraphStore {
             return allParents;
         });
 
-        this.rounds[roundNum] = round;
-        this.nodes.push(...nodes);
-        // console.log("rounds", this.rounds);
-        this.calculateNodes();
-        console.log(this.nodes);
+        this.rounds[roundNum] = {
+            round,
+            numTx
+        };
+
+        console.log("Nodes #", this.nodes.length);
         this.notifySubscribers(this.nodes);
     };
     private calculateNodes() {
         let counter = 0;
-        // const nodes = Object.values(this.rounds).reduce(
-        //     (acc: INode[], depth: any) => {
-        //         const depthNodes = depth.flat(1);
-        //         acc.push(...depthNodes);
-        //         return acc;
-        //     },
-        //     []
-        // ) as INode[];
 
         this.nodes.forEach((node: INode) => (node.id = counter++));
-
-        // this.nodes = nodes;
     }
 
     private pruneRound = (roundNum: number, numTx: number) => {
         if (!this.rounds[roundNum]) {
             return;
         }
-        console.log("Prunning round", { roundNum });
-        // if (this.rounds[roundNum + 1]) {
-        //     this.rounds[roundNum + 1][0].forEach(
-        //         (node: INode) => (node.parents = [])
-        //     );
-        // }
-        numTx = this.rounds[roundNum].flat(2).length;
+
+        numTx = this.rounds[roundNum].numTx;
+        console.log("Prunning round", { roundNum, numTx });
+
         delete this.rounds[roundNum];
         this.nodes.splice(0, numTx);
+        console.log("Nodes #", this.nodes.length);
         this.calculateNodes();
-        console.log(this.nodes);
-        // console.log("rounds", this.rounds);
-        this.notifySubscribers(this.nodes);
     };
 }

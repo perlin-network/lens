@@ -5,10 +5,11 @@ import { DistanceConstraint, ParticleSystem } from "particulate";
 import * as _ from "lodash";
 import { INode } from "./GraphStore";
 
-const MAX_POINTS = 1000000;
+const MAX_POINTS = 5000000;
 export class TransactionGraphScene {
-    public lineIndices: any = [];
-    public positions: any = [];
+    public lineIndices: any = new Uint32Array(MAX_POINTS * 3);
+    public lineIndicesCount: number = 0;
+    public positions: any = new Float32Array(MAX_POINTS * 3);
     private el: any;
     private scene: any;
     private camera: any;
@@ -18,7 +19,54 @@ export class TransactionGraphScene {
     private mouse: any;
     private renderer: any;
     private raycaster: any;
-    private simulation: any;
+    private pointCamera = _.debounce(
+        (index: number) => {
+            if (index === -1) {
+                return;
+            }
+            const position = this.camera.position.clone();
+
+            position.z -= 10;
+            this.focusedIndex = index;
+
+            const [x, y, z] = [
+                this.positions[index * 3],
+                this.positions[index * 3 + 1],
+                this.positions[index * 3 + 2]
+            ];
+            // const [x,y,z] = [0,0,0];
+
+            const positionTween = new TWEEN.Tween(position)
+                .to({ x, y, z }, 1000)
+                .delay(200)
+                .easing(TWEEN.Easing.Cubic.InOut)
+                .on("update", (newPosition: any) => {
+                    this.camera.position.set(
+                        newPosition.x,
+                        newPosition.y,
+                        newPosition.z + 10
+                    );
+                })
+                .start();
+
+            const targetPosition = this.controls.target.clone();
+            const targetTween = new TWEEN.Tween(targetPosition)
+                .to({ x, y, z }, 1000)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .on("update", (newPosition: any) => {
+                    this.controls.target.set(
+                        newPosition.x,
+                        newPosition.y,
+                        newPosition.z
+                    );
+                })
+                .start();
+        },
+        1200,
+        {
+            maxWait: 1200
+        }
+    );
 
     private controls: any;
     private lastIndex: number = 0;
@@ -77,20 +125,28 @@ export class TransactionGraphScene {
     public renderNodes(nodes: INode[]) {
         this.nodes = nodes;
         const step = 0.5;
-        this.positions = this.nodes.map((node: INode) => {
-            return [
-                step * node.depthPos[0],
-                step * 2 * node.globalDepth,
-                step * node.depthPos[1]
-            ];
+        let count = 0;
+        this.lineIndicesCount = 0;
+
+        nodes.forEach(node => {
+            this.positions[count++] = step * node.depthPos[0];
+            this.positions[count++] = step * 2 * node.globalDepth;
+            this.positions[count++] = step * node.depthPos[1];
+
+            node.children.forEach((child: INode) => {
+                this.lineIndices[this.lineIndicesCount++] = node.id;
+                this.lineIndices[this.lineIndicesCount++] = child.id;
+            });
         });
 
-        this.lineIndices = this.nodes.reduce((acc: any[], curr: INode) => {
-            curr.children.forEach((child: INode) => {
-                acc.push(curr.id, child.id);
-            });
-            return acc;
-        }, []);
+        // this.lineIndices = this.nodes.reduce((acc: any[], curr: INode) => {
+        //     curr.children.forEach((child: INode) => {
+        //         acc.push(curr.id, child.id);
+        //     });
+        //     return acc;
+        // }, []);
+
+        // this.lineIndices = indices;
 
         this.updateDots();
         this.updateLines();
@@ -199,7 +255,11 @@ export class TransactionGraphScene {
                     const node = this.nodes[index];
 
                     if (node && intersect.distanceToRay < 0.2) {
-                        const pos = this.positions[index];
+                        const pos = [
+                            this.positions[index * 3],
+                            this.positions[index * 3 + 1],
+                            this.positions[index * 3 + 2]
+                        ];
 
                         this.dots.geometry.attributes.texIndex.array[
                             index
@@ -240,43 +300,6 @@ export class TransactionGraphScene {
             }, 20),
             true
         );
-    }
-    private pointCamera(index: number) {
-        if (index === -1) {
-            return;
-        }
-        const position = this.camera.position.clone();
-
-        position.z -= 10;
-        this.focusedIndex = index;
-
-        const [x, y, z] = this.positions[index];
-
-        const positionTween = new TWEEN.Tween(position)
-            .to({ x, y, z }, 1000)
-            .delay(200)
-            .easing(TWEEN.Easing.Cubic.InOut)
-            .on("update", (newPosition: any) => {
-                this.camera.position.set(
-                    newPosition.x,
-                    newPosition.y,
-                    newPosition.z + 10
-                );
-            })
-            .start();
-
-        const targetPosition = this.controls.target.clone();
-        const targetTween = new TWEEN.Tween(targetPosition)
-            .to({ x, y, z }, 1000)
-            .easing(TWEEN.Easing.Quadratic.Out)
-            .on("update", (newPosition: any) => {
-                this.controls.target.set(
-                    newPosition.x,
-                    newPosition.y,
-                    newPosition.z
-                );
-            })
-            .start();
     }
 
     private initScene() {
@@ -414,7 +437,7 @@ export class TransactionGraphScene {
         );
 
         const indices = new THREE.BufferAttribute(
-            new Uint32Array(MAX_POINTS * 10),
+            new Uint32Array(MAX_POINTS * 3),
             1
         );
         // verticles.updateRange.count = MAX_POINTS * 3;
@@ -435,39 +458,27 @@ export class TransactionGraphScene {
     }
 
     private updateDots() {
-        this.dots.geometry.attributes.position.set(
-            new Float32Array(this.positions.flat(1))
-        );
+        this.dots.geometry.attributes.position.set(this.positions);
         this.nodes.forEach((node: any, index: number) => {
-            // this.dots.geometry.attributes.size.array[index] =
-            //     Math.log((node.payload && node.payload.amount) || 1) + 2;
-            // this.dots.geometry.attributes.texIndex.array[index] =
-            //     node.status === "applied" ? 0.0 : 2.0;
             this.dots.geometry.attributes.size.array[index] =
                 node.type === "critical" ? 5 : 3;
             this.dots.geometry.attributes.texIndex.array[index] =
                 node.type === "rejected" ? 2.0 : 0.0;
         });
 
-        this.dots.geometry.setDrawRange(0, this.positions.length || 1);
+        this.dots.geometry.setDrawRange(0, this.nodes.length);
         this.dots.geometry.computeBoundingSphere();
 
         this.dots.geometry.attributes.size.needsUpdate = true;
         this.dots.geometry.attributes.position.needsUpdate = true;
     }
     private updateLines() {
-        this.lines.geometry.attributes.position.set(
-            new Float32Array(this.positions.flat(1))
-        );
-        // if (this.lineIndices.length) {
-        // const indices = [0, 1, 0, 2, 0, 4, 0, 5, 1, 3, 2, 3, 5, 6];
+        this.lines.geometry.attributes.position.set(this.positions);
         this.lines.geometry.setIndex(
-            new THREE.BufferAttribute(new Uint32Array(this.lineIndices), 1)
+            new THREE.BufferAttribute(this.lineIndices, 1)
         );
-        // }
 
-        // this.lines.geometry.setIndex(new Uint32Array(this.lineIndices));
-        this.lines.geometry.setDrawRange(0, this.lineIndices.length || 1);
+        this.lines.geometry.setDrawRange(0, this.lineIndicesCount);
         this.lines.geometry.computeBoundingSphere();
         this.lines.geometry.attributes.position.needsUpdate = true;
     }
