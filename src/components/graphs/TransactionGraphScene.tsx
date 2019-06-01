@@ -1,7 +1,6 @@
 import * as TrackballControls from "three-trackballcontrols";
 import * as THREE from "three";
 import * as TWEEN from "es6-tween";
-import { DistanceConstraint, ParticleSystem } from "particulate";
 import * as _ from "lodash";
 import { INode } from "./GraphStore";
 

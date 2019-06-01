@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { when, intercept, observe, toJS } from "mobx";
+import React, { useRef, useEffect, useState } from "react";
+import { when } from "mobx";
 import { Perlin } from "../../Perlin";
 import { INode } from "./GraphStore";
 import styled from "styled-components";
