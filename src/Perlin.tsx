@@ -365,7 +365,7 @@ class Perlin {
 
         const round = this.ledger.round;
         if (this.onConsensusRound) {
-            console.log("Initial round #", round);
+            console.log("Initial round #", round.applied);
             this.onConsensusRound(
                 round.applied,
                 round.rejected || 0,
@@ -380,11 +380,11 @@ class Perlin {
     }
 
     private async initPeers() {
-        setInterval(async () => {
-            /// only update peers
-            const ledger = await this.getLedger();
-            this.peers = ledger.peers;
-        }, this.peerPollIntv);
+        // setInterval(async () => {
+        /// only update peers
+        const ledger = await this.getLedger();
+        this.peers = ledger.peers;
+        // }, this.peerPollIntv);
     }
 
     private async startSession() {
@@ -507,32 +507,25 @@ class Perlin {
                     console.log("Prunning #", data);
 
                     if (this.onConsensusPrune) {
-                        this.onConsensusPrune(
-                            data.pruned_round_id,
-                            data.num_tx
-                        );
+                        setTimeout(() => {
+                            this.onConsensusPrune(
+                                data.pruned_round_id,
+                                data.num_tx
+                            );
+                        });
                     }
-                    // const removedTransactions = this.transactions.recent.splice(
-                    //     0,
-                    //     data.num_tx
-                    // );
-                    // removedTransactions.forEach(
-                    //     tx => delete this.transactionMap[tx.id]
-                    // );
-
-                    // if (this.onTransactionsRemoved !== undefined) {
-                    //     this.onTransactionsRemoved(data.num_tx);
-                    // }
                     break;
                 case "round_end":
                     console.log("Round end #", data);
                     if (this.onConsensusRound) {
-                        this.onConsensusRound(
-                            data.num_applied_tx,
-                            data.num_rejected_tx,
-                            data.round_depth,
-                            data.new_round
-                        );
+                        setTimeout(() => {
+                            this.onConsensusRound(
+                                data.num_applied_tx,
+                                data.num_rejected_tx,
+                                data.round_depth,
+                                data.new_round
+                            );
+                        });
                     }
             }
         };

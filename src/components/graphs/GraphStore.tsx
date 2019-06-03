@@ -14,23 +14,25 @@ const uniqueRandomRange = (window.uniqueRandomRange = (
     if (min > max) {
         throw new Error(`Invalid random ranges ${min} - ${max}`);
     }
-    const extracted: number[] = [];
+    const extracted: any = {};
+    let extractedCount = 0;
     const info = {
         done: false,
         extracted
     };
-    const random = () => {
+    const random = (overrideMin: number = min, overrideMax: number = max) => {
         let value: number;
 
         while (!info.done) {
-            value = randomRange(min, max);
-            if (extracted.indexOf(value) === -1) {
-                extracted.push(value);
+            value = randomRange(overrideMin, overrideMax);
+            if (!extracted[value]) {
+                extracted[value] = true;
+                extractedCount++;
                 break;
             }
         }
 
-        info.done = extracted.length > max - min;
+        info.done = extractedCount > max - min;
         // @ts-ignore
         return value;
     };
@@ -43,8 +45,8 @@ const uniqueRandomRange = (window.uniqueRandomRange = (
 
 const offset = (index: number, width: number) => index - Math.floor(width / 2);
 const getPos = (index: number, width: number) => [
-    offset(index % width, width),
-    offset(Math.floor(index / width), width)
+    index % width,
+    Math.floor(index / width)
 ];
 export interface INode {
     id: number;
@@ -68,9 +70,11 @@ export class GraphStore {
     }
 
     private static singleton: GraphStore;
+
     public rounds: any = {};
     public nodes: INode[] = [];
     private subscriptions: Subscriber[] = [];
+    private lastCritical: INode;
 
     constructor() {
         // @ts-ignore
@@ -89,139 +93,144 @@ export class GraphStore {
         this.subscriptions.forEach((fn: Subscriber) => fn(nodes));
     }
 
+    private addNode = (
+        depth: number,
+        depthPos: number[],
+        type: string,
+        round: number,
+        globalDepth: number
+    ) => {
+        const node: INode = {
+            id: this.nodes.length,
+            type,
+            depth,
+            round,
+            globalDepth,
+            depthPos,
+            parents: [],
+            children: []
+        };
+
+        this.nodes.push(node);
+        return node;
+    };
+
     private addRound = (
         accepted: number,
         rejected: number,
         maxDepth: number,
         roundNum: number
     ) => {
-        console.log("Adding round", { accepted, rejected, maxDepth, roundNum });
-        if (maxDepth > accepted + rejected) {
-            console.error(
-                "Max depth cannot be larger than the number of nodes"
-            );
+        const numTx = accepted + rejected - 1;
+        const { random: uniqueRandom } = uniqueRandomRange(0, numTx - 1);
+
+        const depthSize = Math.ceil(numTx / maxDepth);
+        const typeMap: any = {};
+        let count = 0;
+
+        while (count < rejected) {
+            typeMap[uniqueRandom()] = "rejected";
+            count++;
         }
-        // adjusted for 0 starting index
-        maxDepth -= 1;
 
-        const round: INode[][] = Array(maxDepth).fill(undefined);
-        let nodeIndex = this.nodes.length;
-        let numTx = 0;
+        const round: any = {};
+        const createNode = (index: number, type: string) => {
+            let depthIndex = index % depthSize;
 
-        const addNode = (depth: number, type: string) => {
-            const node: INode = {
-                id: nodeIndex++,
-                type,
+            let depth = index % maxDepth; // Math.floor(index / depthSize);
+
+            if (type === "critical") {
+                depth = depthSize > 1 ? maxDepth : maxDepth - 1;
+                depthIndex = 0;
+            }
+
+            let lastCriticalDepth = 0;
+            if (this.lastCritical) {
+                lastCriticalDepth += this.lastCritical.globalDepth + 1;
+            }
+            const globalDepth = lastCriticalDepth + depth;
+
+            const depthPos = getPos(
+                depthIndex,
+                Math.ceil(Math.sqrt(depthSize))
+            );
+
+            const node = this.addNode(
                 depth,
-                round: roundNum,
-                globalDepth: 0,
-                depthPos: [0, 0],
-                parents: [],
-                children: []
-            };
-
-            round[depth] = round[depth] || [];
-            round[depth].push(node);
-            numTx++;
-
-            this.nodes.push(node);
-            return node;
-        };
-
-        const { info, random } = uniqueRandomRange(0, maxDepth);
-        const getRandomDepth = () => {
-            let depth;
-
-            // make sure all depths are populated
-            depth = random();
-            if (typeof depth === "undefined") {
-                depth = randomRange(0, maxDepth);
-            }
-            return depth;
-        };
-
-        for (let count = 0; count < accepted; count++) {
-            const depth = getRandomDepth();
-            addNode(depth, "accepted");
-        }
-
-        for (let count = 0; count < rejected; count++) {
-            const depth = getRandomDepth();
-            addNode(depth, "rejected");
-        }
-
-        addNode(maxDepth + 1, "critical");
-
-        let parentLastRound: INode[] = [];
-        const parentRound = this.rounds[roundNum - 1] || this.rounds[0];
-        if (parentRound) {
-            parentLastRound = parentRound.round[parentRound.round.length - 1];
-        }
-
-        [parentLastRound, ...round].reverse().reduce((curr, allParents) => {
-            const parents = allParents.filter(
-                (item: INode) => item.type !== "rejected"
+                depthPos,
+                type,
+                roundNum,
+                globalDepth
             );
-            if (parents.length) {
-                curr.forEach((node: INode, index) => {
-                    const parentsCount = Math.min(
-                        Math.ceil(randomRange(1, parents.length) * 0.33),
-                        5
-                    );
-                    const parentCritical = parentLastRound[0];
-                    const globalDepth =
-                        ((parentCritical && parentCritical.globalDepth) || 0) +
-                        node.depth;
-                    node.globalDepth = globalDepth + 1;
-                    node.depthPos = getPos(
-                        index,
-                        Math.ceil(Math.sqrt(curr.length))
-                    );
 
-                    let count = 0;
-                    const { random: uniqueRandom } = uniqueRandomRange(
-                        0,
-                        parents.length - 1
-                    );
+            if (node.type === "critical") {
+                this.lastCritical = node;
+            }
+            round[depth] = round[depth] || [];
+            round[depth][depthIndex] = node;
 
-                    while (count < parentsCount) {
-                        const parentIndex = uniqueRandom();
-                        const parent = parents[parentIndex];
-                        count++;
-                        node.parents.push(parent);
-                        parent.children.push(node);
-                    }
-                });
+            if (this.lastCritical && depth === 0) {
+                node.parents.push(this.lastCritical);
+                this.lastCritical.children.push(node);
             }
 
-            return allParents;
-        });
+            const parentsLimit = node.type === "critical" ? depthSize : 2;
+            let parentIndex = depthIndex;
 
-        this.rounds[roundNum] = {
-            round,
-            numTx
+            const { random } = uniqueRandomRange(0, depthSize);
+
+            while (node.parents.length < parentsLimit) {
+                const parent =
+                    (round[depth - 1] || [])[parentIndex] ||
+                    (round[depth - 2] || [])[parentIndex];
+
+                if (parent && parent.type !== "rejected") {
+                    if (
+                        node.type === "critical" ||
+                        parent.type === "critical" ||
+                        !node.parents.length
+                    ) {
+                        parent.children.push(node);
+                        node.parents.push(parent);
+                    }
+                }
+
+                parentIndex = random();
+
+                if (typeof parentIndex === "undefined") {
+                    break;
+                }
+            }
         };
+
+        for (let index = 0; index < numTx; index++) {
+            createNode(index, typeMap[index] || "accepted");
+        }
+
+        createNode(numTx, "critical");
+
+        this.rounds[roundNum] = numTx;
 
         console.log("Nodes #", this.nodes.length);
         this.notifySubscribers(this.nodes);
     };
-    private calculateNodes() {
-        let counter = 0;
 
+    private resetNodeIds() {
+        let counter = 0;
         this.nodes.forEach((node: INode) => (node.id = counter++));
     }
 
     private pruneRound = (roundNum: number, numTx: number) => {
-        if (!this.rounds[roundNum]) {
+        if (typeof this.rounds[roundNum] === "undefined") {
             return;
         }
 
-        numTx = this.rounds[roundNum].numTx;
+        numTx = this.rounds[roundNum];
         console.log("Prunning round", { roundNum, numTx });
 
         delete this.rounds[roundNum];
         this.nodes.splice(0, numTx);
-        console.log("Nodes #", this.nodes.length);
-        this.calculateNodes();
+        console.log("Nodes after prunning #", this.nodes.length);
+        this.resetNodeIds();
     };
 }

@@ -21,7 +21,7 @@ export class TransactionGraphScene {
     private mouse: any;
     private renderer: any;
     private raycaster: any;
-    private pointCamera = _.debounce(
+    private pointCamera = _.throttle(
         (index: number) => {
             if (index === -1) {
                 return;
@@ -66,7 +66,7 @@ export class TransactionGraphScene {
         },
         1200,
         {
-            maxWait: 1200
+            leading: true
         }
     );
 
@@ -126,14 +126,14 @@ export class TransactionGraphScene {
 
     public renderNodes(nodes: INode[]) {
         this.nodes = nodes;
-        const step = 0.5;
+        const step = 0.75;
         let count = 0;
         this.lineIndicesCount = 0;
         this.dashIndicesCount = 0;
 
         nodes.forEach(node => {
             this.positions[count++] = step * node.depthPos[0];
-            this.positions[count++] = step * 2 * node.globalDepth;
+            this.positions[count++] = step * 1.2 * node.globalDepth;
             this.positions[count++] = step * node.depthPos[1];
 
             node.children.forEach((child: INode) => {
