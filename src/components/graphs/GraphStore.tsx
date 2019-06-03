@@ -153,9 +153,9 @@ export class GraphStore {
         addNode(maxDepth + 1, "critical");
 
         let parentLastRound: INode[] = [];
-        if (this.rounds[roundNum - 1]) {
-            const parentRound = this.rounds[roundNum - 1].round;
-            parentLastRound = parentRound[parentRound.length - 1];
+        const parentRound = this.rounds[roundNum - 1] || this.rounds[0];
+        if (parentRound) {
+            parentLastRound = parentRound.round[parentRound.round.length - 1];
         }
 
         [parentLastRound, ...round].reverse().reduce((curr, allParents) => {
@@ -172,7 +172,7 @@ export class GraphStore {
                     const globalDepth =
                         ((parentCritical && parentCritical.globalDepth) || 0) +
                         node.depth;
-                    node.globalDepth = globalDepth;
+                    node.globalDepth = globalDepth + 1;
                     node.depthPos = getPos(
                         index,
                         Math.ceil(Math.sqrt(curr.length))

@@ -74,7 +74,8 @@ class Perlin {
     @observable public ledger = {
         public_key: "",
         address: "",
-        peers: [] as string[]
+        peers: [] as string[],
+        round: {} as any
     };
 
     @observable public account: IAccount = {
@@ -361,6 +362,17 @@ class Perlin {
     private async initLedger() {
         this.ledger = await this.getLedger();
         this.peers = this.ledger.peers;
+
+        const round = this.ledger.round;
+        if (this.onConsensusRound) {
+            console.log("Initial round #", round);
+            this.onConsensusRound(
+                round.applied,
+                round.rejected || 0,
+                round.depth,
+                0
+            );
+        }
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
