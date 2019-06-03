@@ -504,28 +504,24 @@ class Perlin {
             data = JSON.parse(data);
             switch (data.event) {
                 case "prune":
-                    console.log("Prunning #", data);
+                    console.log("Prunning #", data.pruned_round_id);
 
                     if (this.onConsensusPrune) {
-                        setTimeout(() => {
-                            this.onConsensusPrune(
-                                data.pruned_round_id,
-                                data.num_tx
-                            );
-                        });
+                        this.onConsensusPrune(
+                            data.pruned_round_id,
+                            data.num_tx
+                        );
                     }
                     break;
                 case "round_end":
-                    console.log("Round end #", data);
+                    console.log("Round end #", data.new_round);
                     if (this.onConsensusRound) {
-                        setTimeout(() => {
-                            this.onConsensusRound(
-                                data.num_applied_tx,
-                                data.num_rejected_tx,
-                                data.round_depth,
-                                data.new_round
-                            );
-                        });
+                        this.onConsensusRound(
+                            data.num_applied_tx,
+                            data.num_rejected_tx,
+                            data.round_depth,
+                            data.new_round
+                        );
                     }
             }
         };

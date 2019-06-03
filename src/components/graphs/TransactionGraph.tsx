@@ -76,16 +76,19 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             // scene.updateNodes();
         };
 
-        const disposer = graphStore.subscribe((nodes: INode[]) => {
-            // console.log({ round, level, nodes });
-            // console.log({
-            //     allLevels: graphStore.levels,
-            //     allNodes: graphStore.nodes
-            // });
-            scene.renderNodes(nodes);
-            // console.log(scene.lineIndices);
-            // console.log(scene.positions);
-        });
+        const addRoundDisposer = graphStore.subscribe(
+            "addRound",
+            (data: any) => {
+                scene.renderNodes(data.nodes, data.roundNum);
+            }
+        );
+
+        const pruneRoundDisposer = graphStore.subscribe(
+            "pruneRound",
+            (roundNum: number) => {
+                scene.removeNodes(roundNum);
+            }
+        );
 
         when(
             () => perlin.transactions.recent.length > 0,
@@ -97,7 +100,8 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
 
         return () => {
             scene.destroy();
-            disposer();
+            addRoundDisposer();
+            pruneRoundDisposer();
         };
     }, []);
 

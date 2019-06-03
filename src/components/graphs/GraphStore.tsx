@@ -53,13 +53,11 @@ export interface INode {
     depth: number;
     type: string;
     round: number;
-    parents: INode[];
-    children: INode[];
+    parents: number[];
+    children: number[];
     globalDepth: number;
     depthPos: number[];
 }
-
-type Subscriber = (nodes: INode[]) => void;
 
 export class GraphStore {
     public static getInstance(): GraphStore {
@@ -73,24 +71,39 @@ export class GraphStore {
 
     public rounds: any = {};
     public nodes: INode[] = [];
-    private subscriptions: Subscriber[] = [];
+    private subscriptions: any = [];
     private lastCritical: INode;
+    private worker: Worker;
 
     constructor() {
+        this.worker = new Worker(
+            process.env.PUBLIC_URL + "/graph-store-worker.js"
+        );
+
+        // Receive messages from postMessage() calls in the Worker
+        this.worker.onmessage = evt => {
+            const { type, data } = JSON.parse(evt.data);
+            this.notifySubscribers(type, data);
+        };
+
         // @ts-ignore
         perlin.onConsensusRound = window.addRound = this.addRound;
         // @ts-ignore
         perlin.onConsensusPrune = window.pruneRound = this.pruneRound;
     }
 
-    public subscribe(fn: Subscriber) {
-        this.subscriptions.push(fn);
+    public subscribe(type: string, fn: any) {
+        this.subscriptions[type] = this.subscriptions[type] || [];
+        this.subscriptions[type].push(fn);
         return () => {
-            this.subscriptions = this.subscriptions.filter(item => item !== fn);
+            this.subscriptions[type] = this.subscriptions[type].filter(
+                (item: any) => item !== fn
+            );
         };
     }
-    private notifySubscribers(nodes: INode[]) {
-        this.subscriptions.forEach((fn: Subscriber) => fn(nodes));
+    private notifySubscribers(type: string, data: any) {
+        this.subscriptions[type] = this.subscriptions[type] || [];
+        this.subscriptions[type].forEach((fn: any) => fn(data));
     }
 
     private addNode = (
@@ -121,116 +134,16 @@ export class GraphStore {
         maxDepth: number,
         roundNum: number
     ) => {
-        const numTx = accepted + rejected - 1;
-        const { random: uniqueRandom } = uniqueRandomRange(0, numTx - 1);
-
-        const depthSize = Math.ceil(numTx / maxDepth);
-        const typeMap: any = {};
-        let count = 0;
-
-        while (count < rejected) {
-            typeMap[uniqueRandom()] = "rejected";
-            count++;
-        }
-
-        const round: any = {};
-        const createNode = (index: number, type: string) => {
-            let depthIndex = index % depthSize;
-
-            let depth = index % maxDepth; // Math.floor(index / depthSize);
-
-            if (type === "critical") {
-                depth = depthSize > 1 ? maxDepth : maxDepth - 1;
-                depthIndex = 0;
-            }
-
-            let lastCriticalDepth = 0;
-            if (this.lastCritical) {
-                lastCriticalDepth += this.lastCritical.globalDepth + 1;
-            }
-            const globalDepth = lastCriticalDepth + depth;
-
-            const depthPos = getPos(
-                depthIndex,
-                Math.ceil(Math.sqrt(depthSize))
-            );
-
-            const node = this.addNode(
-                depth,
-                depthPos,
-                type,
-                roundNum,
-                globalDepth
-            );
-
-            if (node.type === "critical") {
-                this.lastCritical = node;
-            }
-            round[depth] = round[depth] || [];
-            round[depth][depthIndex] = node;
-
-            if (this.lastCritical && depth === 0) {
-                node.parents.push(this.lastCritical);
-                this.lastCritical.children.push(node);
-            }
-
-            const parentsLimit = node.type === "critical" ? depthSize : 2;
-            let parentIndex = depthIndex;
-
-            const { random } = uniqueRandomRange(0, depthSize);
-
-            while (node.parents.length < parentsLimit) {
-                const parent =
-                    (round[depth - 1] || [])[parentIndex] ||
-                    (round[depth - 2] || [])[parentIndex];
-
-                if (parent && parent.type !== "rejected") {
-                    if (
-                        node.type === "critical" ||
-                        parent.type === "critical" ||
-                        !node.parents.length
-                    ) {
-                        parent.children.push(node);
-                        node.parents.push(parent);
-                    }
-                }
-
-                parentIndex = random();
-
-                if (typeof parentIndex === "undefined") {
-                    break;
-                }
-            }
-        };
-
-        for (let index = 0; index < numTx; index++) {
-            createNode(index, typeMap[index] || "accepted");
-        }
-
-        createNode(numTx, "critical");
-
-        this.rounds[roundNum] = numTx;
-
-        console.log("Nodes #", this.nodes.length);
-        this.notifySubscribers(this.nodes);
+        this.worker.postMessage({
+            type: "addRound",
+            accepted,
+            rejected,
+            maxDepth,
+            roundNum
+        });
     };
 
-    private resetNodeIds() {
-        let counter = 0;
-        this.nodes.forEach((node: INode) => (node.id = counter++));
-    }
-
     private pruneRound = (roundNum: number, numTx: number) => {
-        if (typeof this.rounds[roundNum] === "undefined") {
-            return;
-        }
-
-        numTx = this.rounds[roundNum];
-        console.log("Prunning round", { roundNum, numTx });
-
-        delete this.rounds[roundNum];
-        this.nodes.splice(0, numTx);
-        console.log("Nodes after prunning #", this.nodes.length);
-        this.resetNodeIds();
+        this.worker.postMessage({ type: "pruneRound", roundNum });
     };
 }

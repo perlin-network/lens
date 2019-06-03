@@ -10,7 +10,7 @@ export class TransactionGraphScene {
     public lineIndicesCount: number = 0;
     public dashIndices: any = new Uint32Array(MAX_POINTS * 3);
     public dashIndicesCount: number = 0;
-    public positions: any = new Float32Array(MAX_POINTS * 3);
+
     private el: any;
     private scene: any;
     private camera: any;
@@ -22,20 +22,13 @@ export class TransactionGraphScene {
     private renderer: any;
     private raycaster: any;
     private pointCamera = _.throttle(
-        (index: number) => {
-            if (index === -1) {
-                return;
-            }
+        positions => {
             const position = this.camera.position.clone();
 
             position.z -= 10;
-            this.focusedIndex = index;
+            // this.focusedIndex = index;
 
-            const [x, y, z] = [
-                this.positions[index * 3],
-                this.positions[index * 3 + 1],
-                this.positions[index * 3 + 2]
-            ];
+            const [x, y, z] = positions;
             // const [x,y,z] = [0,0,0];
 
             const positionTween = new TWEEN.Tween(position)
@@ -83,6 +76,7 @@ export class TransactionGraphScene {
     private width: number;
     private height: number;
     private animationId: number;
+    private rounds: any = {};
 
     constructor(
         container: any,
@@ -100,9 +94,6 @@ export class TransactionGraphScene {
         this.setTooltipHander = setTooltipHander;
         this.clickHandler = clickHandler;
         this.initScene();
-        this.initDots();
-
-        this.initLines();
 
         this.initRenderer();
 
@@ -119,49 +110,76 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
-    public updateNodes() {
-        this.updateDots();
-        this.dots.geometry.attributes.texIndex.needsUpdate = true;
-    }
+    public renderNodes(nodes: INode[], roundNum: number) {
+        this.rounds[roundNum] = {};
+        this.rounds[roundNum].nodes = nodes;
 
-    public renderNodes(nodes: INode[]) {
-        this.nodes = nodes;
+        console.log("Transaction Graph Nodes #", nodes.length);
         const step = 0.75;
+
         let count = 0;
-        this.lineIndicesCount = 0;
-        this.dashIndicesCount = 0;
+        const tmpPositions: number[] = [];
+        const tmpTexIndices: number[] = [];
+        const tmpLineIndices: number[] = [];
+        const tmpSizes: number[] = [];
+        const tmpDashIndices: number[] = [];
 
         nodes.forEach(node => {
-            this.positions[count++] = step * node.depthPos[0];
-            this.positions[count++] = step * 1.2 * node.globalDepth;
-            this.positions[count++] = step * node.depthPos[1];
+            tmpPositions[count++] = step * node.depthPos[0];
+            tmpPositions[count++] = step * 1.2 * node.globalDepth;
+            tmpPositions[count++] = step * node.depthPos[1];
 
-            node.children.forEach((child: INode) => {
+            tmpSizes.push(node.type === "critical" ? 5 : 3);
+            tmpTexIndices.push(node.type === "rejected" ? 2.0 : 0.0);
+
+            node.children.forEach((child: any) => {
                 if (node.type === "rejected" || child.type === "rejected") {
-                    this.dashIndices[this.dashIndicesCount++] = node.id;
-                    this.dashIndices[this.dashIndicesCount++] = child.id;
+                    tmpDashIndices.push(node.id);
+                    tmpDashIndices.push(child.id);
                 } else {
-                    this.lineIndices[this.lineIndicesCount++] = node.id;
-                    this.lineIndices[this.lineIndicesCount++] = child.id;
+                    tmpLineIndices.push(node.id);
+                    tmpLineIndices.push(child.id);
                 }
             });
         });
 
-        // this.lineIndices = this.nodes.reduce((acc: any[], curr: INode) => {
-        //     curr.children.forEach((child: INode) => {
-        //         acc.push(curr.id, child.id);
-        //     });
-        //     return acc;
-        // }, []);
+        const lineIndices = new Uint32Array(tmpLineIndices);
+        const dashIndices = new Uint32Array(tmpDashIndices);
 
-        // this.lineIndices = indices;
+        const positions = new Float32Array(tmpPositions);
+        const sizes = new Float32Array(tmpSizes);
+        const texIndices = new Float32Array(tmpTexIndices);
 
-        this.updateDots();
-        this.updateLines();
-
-        if (nodes[nodes.length - 1]) {
-            this.pointCamera(nodes[nodes.length - 1].id);
+        this.addDots(positions, sizes, texIndices, roundNum);
+        this.addLines(positions, lineIndices, dashIndices, roundNum);
+        const lastNodeIndex = nodes.length - 1;
+        if (nodes[lastNodeIndex]) {
+            this.pointCamera([
+                positions[3 * lastNodeIndex],
+                positions[3 * lastNodeIndex + 1],
+                positions[3 * lastNodeIndex + 2]
+            ]);
         }
+    }
+
+    public removeNodes(roundNum: number) {
+        if (!this.rounds[roundNum]) {
+            return;
+        }
+
+        this.scene.remove(this.rounds[roundNum].dots);
+        this.scene.remove(this.rounds[roundNum].lines);
+        this.scene.remove(this.rounds[roundNum].dashes);
+
+        this.rounds[roundNum].dots.material.dispose();
+        this.rounds[roundNum].lines.material.dispose();
+        this.rounds[roundNum].dashes.material.dispose();
+
+        this.rounds[roundNum].dots.geometry.dispose();
+        this.rounds[roundNum].lines.geometry.dispose();
+        this.rounds[roundNum].dashes.geometry.dispose();
+
+        delete this.rounds[roundNum];
     }
 
     public destroy() {
@@ -173,6 +191,81 @@ export class TransactionGraphScene {
         window.cancelAnimationFrame(this.animationId);
 
         window.removeEventListener("resize", this.onWindowResize);
+    }
+
+    private addDots(
+        positions: Float32Array,
+        sizes: Float32Array,
+        texIndices: Float32Array,
+        roundNum: number
+    ) {
+        const dotsGeometry = new THREE.BufferGeometry();
+        const material = this.getDotMaterial();
+
+        const verticles = new THREE.BufferAttribute(positions, 3);
+        const sizesAttr = new THREE.BufferAttribute(sizes, 1);
+        const texIndicesAttr = new THREE.BufferAttribute(texIndices, 1);
+
+        dotsGeometry.addAttribute("position", verticles);
+        dotsGeometry.addAttribute("size", sizesAttr);
+        dotsGeometry.addAttribute("texIndex", texIndicesAttr);
+
+        dotsGeometry.computeBoundingSphere();
+
+        const dots = new THREE.Points(dotsGeometry, material);
+        dots.renderOrder = 1;
+
+        this.scene.add(dots);
+        this.rounds[roundNum].dots = dots;
+    }
+
+    private addLines(
+        positions: Float32Array,
+        lineIndices: Uint32Array,
+        dashIndices: Uint32Array,
+        roundNum: number
+    ) {
+        const lineGeometry = new THREE.BufferGeometry();
+        const dashGeometry = new THREE.BufferGeometry();
+
+        const verticles = new THREE.BufferAttribute(positions, 3);
+
+        lineGeometry.addAttribute("position", verticles);
+        dashGeometry.addAttribute("position", verticles);
+        lineGeometry.setIndex(new THREE.BufferAttribute(lineIndices, 1));
+        dashGeometry.setIndex(new THREE.BufferAttribute(dashIndices, 1));
+
+        lineGeometry.computeBoundingSphere();
+        dashGeometry.computeBoundingSphere();
+
+        const lines = new THREE.LineSegments(
+            lineGeometry,
+            new THREE.LineBasicMaterial({
+                color: 0x4a41d1,
+                opacity: 0.8,
+                transparent: true,
+                depthTest: false
+            })
+        );
+
+        const dashes = new THREE.LineSegments(
+            dashGeometry,
+            new THREE.LineBasicMaterial({
+                color: 0x4a41d1,
+                opacity: 0.4,
+                transparent: true,
+                depthTest: false
+            })
+        );
+
+        lines.renderOrder = 0;
+        dashes.renderOrder = 0;
+
+        this.scene.add(lines);
+        this.scene.add(dashes);
+
+        this.rounds[roundNum].lines = lines;
+        this.rounds[roundNum].dashes = dashes;
     }
 
     private initMouseEvents() {
@@ -251,57 +344,57 @@ export class TransactionGraphScene {
                 //         this.nodes[item.index].payload
                 // );
 
-                if (intersects.length !== 0) {
-                    const intersect = intersects.reduce(
-                        (curr: any, next: any) => {
-                            return curr.distanceToRay < next.distanceToRay
-                                ? curr
-                                : next;
-                        }
-                    );
-                    const index = intersect.index;
-                    const node = this.nodes[index];
+                // if (intersects.length !== 0) {
+                //     const intersect = intersects.reduce(
+                //         (curr: any, next: any) => {
+                //             return curr.distanceToRay < next.distanceToRay
+                //                 ? curr
+                //                 : next;
+                //         }
+                //     );
+                //     const index = intersect.index;
+                //     const node = this.nodes[index];
 
-                    if (node && intersect.distanceToRay < 0.2) {
-                        const pos = [
-                            this.positions[index * 3],
-                            this.positions[index * 3 + 1],
-                            this.positions[index * 3 + 2]
-                        ];
+                //     if (node && intersect.distanceToRay < 0.2) {
+                //         const pos = [
+                //             this.positions[index * 3],
+                //             this.positions[index * 3 + 1],
+                //             this.positions[index * 3 + 2]
+                //         ];
 
-                        this.dots.geometry.attributes.texIndex.array[
-                            index
-                        ] = 1.0;
-                        this.dots.geometry.attributes.texIndex.needsUpdate = true;
+                //         this.dots.geometry.attributes.texIndex.array[
+                //             index
+                //         ] = 1.0;
+                //         this.dots.geometry.attributes.texIndex.needsUpdate = true;
 
-                        const vec = new THREE.Vector3(...pos);
-                        const out = vec.project(this.camera);
+                //         const vec = new THREE.Vector3(...pos);
+                //         const out = vec.project(this.camera);
 
-                        const widthHalf = this.width / 2;
-                        const heightHalf = this.height / 2;
+                //         const widthHalf = this.width / 2;
+                //         const heightHalf = this.height / 2;
 
-                        const x = out.x * widthHalf + widthHalf;
-                        const y = -(out.y * heightHalf) + heightHalf;
+                //         const x = out.x * widthHalf + widthHalf;
+                //         const y = -(out.y * heightHalf) + heightHalf;
 
-                        const tooltip = {
-                            x,
-                            y: y - 10,
-                            title: "Transaction",
-                            text: "nop",
-                            status: "",
-                            visible: true
-                        };
+                //         const tooltip = {
+                //             x,
+                //             y: y - 10,
+                //             title: "Transaction",
+                //             text: "nop",
+                //             status: "",
+                //             visible: true
+                //         };
 
-                        // if (node.payload) {
-                        tooltip.title = node.type;
-                        tooltip.status = node.id;
-                        tooltip.text = ""; // node.payload.amount + " PERLs";
-                        // }
-                        this.setTooltipHander(tooltip);
-                        hoveredDotIndex = index;
-                        return;
-                    }
-                }
+                //         // if (node.payload) {
+                //         tooltip.title = node.type;
+                //         tooltip.status = node.id;
+                //         tooltip.text = ""; // node.payload.amount + " PERLs";
+                //         // }
+                //         this.setTooltipHander(tooltip);
+                //         hoveredDotIndex = index;
+                //         return;
+                //     }
+                // }
                 this.setTooltipHander({
                     visible: false
                 });
@@ -408,117 +501,42 @@ export class TransactionGraphScene {
         return material;
     }
 
-    private initDots() {
-        const dotsGeometry = new THREE.BufferGeometry();
-        const material = this.getDotMaterial();
+    // private updateDots() {
+    //     this.dots.geometry.attributes.position.set(this.positions);
+    //     this.nodes.forEach((node: any, index: number) => {
+    //         this.dots.geometry.attributes.size.array[index] =
+    //             node.type === "critical" ? 5 : 3;
+    //         this.dots.geometry.attributes.texIndex.array[index] =
+    //             node.type === "rejected" ? 2.0 : 0.0;
+    //     });
 
-        const verticles = new THREE.BufferAttribute(
-            new Float32Array(MAX_POINTS * 3),
-            3
-        );
+    //     this.dots.geometry.setDrawRange(0, this.nodes.length);
+    //     this.dots.geometry.computeBoundingSphere();
 
-        const sizes = new THREE.BufferAttribute(
-            new Float32Array(MAX_POINTS),
-            1
-        );
+    //     this.dots.geometry.attributes.size.needsUpdate = true;
+    //     this.dots.geometry.attributes.position.needsUpdate = true;
+    //     this.dots.geometry.attributes.texIndex.needsUpdate = true;
+    // }
+    // private updateLines() {
+    //     this.lines.geometry.attributes.position.set(this.positions);
+    //     this.dashes.geometry.attributes.position.set(this.positions);
 
-        const texIndices = new THREE.BufferAttribute(
-            new Float32Array(MAX_POINTS),
-            1
-        );
+    //     this.lines.geometry.setIndex(
+    //         new THREE.BufferAttribute(this.lineIndices, 1)
+    //     );
 
-        dotsGeometry.addAttribute("position", verticles);
-        dotsGeometry.addAttribute("size", sizes);
-        dotsGeometry.addAttribute("texIndex", texIndices);
+    //     this.dashes.geometry.setIndex(
+    //         new THREE.BufferAttribute(this.dashIndices, 1)
+    //     );
 
-        this.dots = new THREE.Points(dotsGeometry, material);
-        this.dots.renderOrder = 1;
-        this.scene.add(this.dots);
-    }
+    //     this.dashes.geometry.setDrawRange(0, this.dashIndicesCount);
+    //     this.dashes.geometry.computeBoundingSphere();
+    //     this.dashes.geometry.attributes.position.needsUpdate = true;
 
-    private initLines() {
-        const lineGeometry = new THREE.BufferGeometry();
-        const dashGeometry = new THREE.BufferGeometry();
-
-        const verticles = new THREE.BufferAttribute(
-            new Float32Array(MAX_POINTS * 3),
-            3
-        );
-
-        const indices = new THREE.BufferAttribute(
-            new Uint32Array(MAX_POINTS * 3),
-            1
-        );
-        // verticles.updateRange.count = MAX_POINTS * 3;
-        lineGeometry.addAttribute("position", verticles);
-        lineGeometry.setIndex(indices);
-
-        dashGeometry.addAttribute("position", verticles);
-        dashGeometry.setIndex(indices);
-
-        this.lines = new THREE.LineSegments(
-            lineGeometry,
-            new THREE.LineBasicMaterial({
-                color: 0x4a41d1,
-                opacity: 0.8,
-                transparent: true,
-                depthTest: false
-            })
-        );
-
-        this.lines.renderOrder = 0;
-        this.scene.add(this.lines);
-
-        this.dashes = new THREE.LineSegments(
-            dashGeometry,
-            new THREE.LineBasicMaterial({
-                color: 0x4a41d1,
-                opacity: 0.4,
-                transparent: true,
-                depthTest: false
-            })
-        );
-
-        this.dashes.renderOrder = 0;
-        this.scene.add(this.dashes);
-    }
-
-    private updateDots() {
-        this.dots.geometry.attributes.position.set(this.positions);
-        this.nodes.forEach((node: any, index: number) => {
-            this.dots.geometry.attributes.size.array[index] =
-                node.type === "critical" ? 5 : 3;
-            this.dots.geometry.attributes.texIndex.array[index] =
-                node.type === "rejected" ? 2.0 : 0.0;
-        });
-
-        this.dots.geometry.setDrawRange(0, this.nodes.length);
-        this.dots.geometry.computeBoundingSphere();
-
-        this.dots.geometry.attributes.size.needsUpdate = true;
-        this.dots.geometry.attributes.position.needsUpdate = true;
-        this.dots.geometry.attributes.texIndex.needsUpdate = true;
-    }
-    private updateLines() {
-        this.lines.geometry.attributes.position.set(this.positions);
-        this.dashes.geometry.attributes.position.set(this.positions);
-
-        this.lines.geometry.setIndex(
-            new THREE.BufferAttribute(this.lineIndices, 1)
-        );
-
-        this.dashes.geometry.setIndex(
-            new THREE.BufferAttribute(this.dashIndices, 1)
-        );
-
-        this.dashes.geometry.setDrawRange(0, this.dashIndicesCount);
-        this.dashes.geometry.computeBoundingSphere();
-        this.dashes.geometry.attributes.position.needsUpdate = true;
-
-        this.lines.geometry.setDrawRange(0, this.lineIndicesCount);
-        this.lines.geometry.computeBoundingSphere();
-        this.lines.geometry.attributes.position.needsUpdate = true;
-    }
+    //     this.lines.geometry.setDrawRange(0, this.lineIndicesCount);
+    //     this.lines.geometry.computeBoundingSphere();
+    //     this.lines.geometry.attributes.position.needsUpdate = true;
+    // }
 
     private initRenderer() {
         const renderer = new THREE.WebGLRenderer({
