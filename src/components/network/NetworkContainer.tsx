@@ -1,11 +1,10 @@
 import * as React from "react";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
-// import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../common/typography";
-import TransactionsTableInfinite from "../TransactionsTableInfinite";
+import TransactionsTable from "../TransactionsTable";
 import { Card, CardHeader, CardTitle } from "../common/card";
 import {
     GraphBox,
@@ -51,7 +50,7 @@ export default class NetworkContainer extends React.Component<{}, {}> {
                                     Transactions
                                 </CardTitle>
                             </CardHeader>
-                            <TransactionsTableInfinite />
+                            <TransactionsTable />
                         </Card>
                     </Box>
                 </Row>

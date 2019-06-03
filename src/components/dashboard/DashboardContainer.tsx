@@ -2,10 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { Flex, Box } from "@rebass/grid";
 import { Perlin } from "../../Perlin";
-// import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
-import TransactionsTableInfinite from "../TransactionsTableInfinite";
+import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import "./dashboard.scss";
 import { observer } from "mobx-react";
@@ -81,7 +80,7 @@ export default class DashboardContainer extends React.Component {
                                     Transactions
                                 </CardTitle>
                             </CardHeader>
-                            <TransactionsTableInfinite />
+                            <TransactionsTable />
                         </Card>
                     </Box>
                 </Row>

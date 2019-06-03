@@ -2,7 +2,7 @@ import * as React from "react";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import { SectionTitle } from "../common/typography";
-import TransactionsTableInfinite from "../TransactionsTableInfinite";
+import TransactionsTable from "../TransactionsTable";
 import ValidatorView from "./ValidatorView";
 import QuickSend from "../dashboard/quicksend/QuickSend";
 import { Card, CardHeader, CardTitle } from "../common/card";
@@ -33,7 +33,7 @@ export default class ValidatorContainer extends React.Component<{}, {}> {
                                     Transactions
                                 </CardTitle>
                             </CardHeader>
-                            <TransactionsTableInfinite />
+                            <TransactionsTable />
                         </Card>
                     </Box>
                 </Row>
