@@ -8,11 +8,14 @@ const MAX_POINTS = 5000000;
 export class TransactionGraphScene {
     public lineIndices: any = new Uint32Array(MAX_POINTS * 3);
     public lineIndicesCount: number = 0;
+    public dashIndices: any = new Uint32Array(MAX_POINTS * 3);
+    public dashIndicesCount: number = 0;
     public positions: any = new Float32Array(MAX_POINTS * 3);
     private el: any;
     private scene: any;
     private camera: any;
     private lines: any;
+    private dashes: any;
     private dots: any;
     private nodes: any = [];
     private mouse: any;
@@ -126,6 +129,7 @@ export class TransactionGraphScene {
         const step = 0.5;
         let count = 0;
         this.lineIndicesCount = 0;
+        this.dashIndicesCount = 0;
 
         nodes.forEach(node => {
             this.positions[count++] = step * node.depthPos[0];
@@ -133,8 +137,13 @@ export class TransactionGraphScene {
             this.positions[count++] = step * node.depthPos[1];
 
             node.children.forEach((child: INode) => {
-                this.lineIndices[this.lineIndicesCount++] = node.id;
-                this.lineIndices[this.lineIndicesCount++] = child.id;
+                if (node.type === "rejected" || child.type === "rejected") {
+                    this.dashIndices[this.dashIndicesCount++] = node.id;
+                    this.dashIndices[this.dashIndicesCount++] = child.id;
+                } else {
+                    this.lineIndices[this.lineIndicesCount++] = node.id;
+                    this.lineIndices[this.lineIndicesCount++] = child.id;
+                }
             });
         });
 
@@ -429,6 +438,7 @@ export class TransactionGraphScene {
 
     private initLines() {
         const lineGeometry = new THREE.BufferGeometry();
+        const dashGeometry = new THREE.BufferGeometry();
 
         const verticles = new THREE.BufferAttribute(
             new Float32Array(MAX_POINTS * 3),
@@ -443,17 +453,34 @@ export class TransactionGraphScene {
         lineGeometry.addAttribute("position", verticles);
         lineGeometry.setIndex(indices);
 
+        dashGeometry.addAttribute("position", verticles);
+        dashGeometry.setIndex(indices);
+
         this.lines = new THREE.LineSegments(
             lineGeometry,
             new THREE.LineBasicMaterial({
                 color: 0x4a41d1,
-                opacity: 0.7,
+                opacity: 0.8,
                 transparent: true,
                 depthTest: false
             })
         );
+
         this.lines.renderOrder = 0;
         this.scene.add(this.lines);
+
+        this.dashes = new THREE.LineSegments(
+            dashGeometry,
+            new THREE.LineBasicMaterial({
+                color: 0x4a41d1,
+                opacity: 0.4,
+                transparent: true,
+                depthTest: false
+            })
+        );
+
+        this.dashes.renderOrder = 0;
+        this.scene.add(this.dashes);
     }
 
     private updateDots() {
@@ -470,12 +497,23 @@ export class TransactionGraphScene {
 
         this.dots.geometry.attributes.size.needsUpdate = true;
         this.dots.geometry.attributes.position.needsUpdate = true;
+        this.dots.geometry.attributes.texIndex.needsUpdate = true;
     }
     private updateLines() {
         this.lines.geometry.attributes.position.set(this.positions);
+        this.dashes.geometry.attributes.position.set(this.positions);
+
         this.lines.geometry.setIndex(
             new THREE.BufferAttribute(this.lineIndices, 1)
         );
+
+        this.dashes.geometry.setIndex(
+            new THREE.BufferAttribute(this.dashIndices, 1)
+        );
+
+        this.dashes.geometry.setDrawRange(0, this.dashIndicesCount);
+        this.dashes.geometry.computeBoundingSphere();
+        this.dashes.geometry.attributes.position.needsUpdate = true;
 
         this.lines.geometry.setDrawRange(0, this.lineIndicesCount);
         this.lines.geometry.computeBoundingSphere();
