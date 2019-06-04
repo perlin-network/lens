@@ -16,7 +16,10 @@ onmessage = evt => {
 };
 
 const offset = (index, width) => index - Math.floor(width / 2);
-const getPos = (index, width) => [index % width, Math.floor(index / width)];
+const getPos = (index, width) => [
+    offset(index % width, width),
+    offset(Math.floor(index / width), width)
+];
 
 let lastCritical;
 const rounds = {};
@@ -54,33 +57,24 @@ const uniqueRandomRange = (min, max) => {
         return value;
     };
 
+    const extract = value => {
+        extracted[value] = true;
+        extractedCount++;
+    };
+
     return {
         random,
-        info
+        info,
+        extract
     };
-};
-
-const addNode = (id, depth, depthPos, type, round, globalDepth) => {
-    const node = {
-        id,
-        type,
-        depth,
-        round,
-        globalDepth,
-        depthPos,
-        parents: [],
-        children: []
-    };
-
-    return node;
 };
 
 const addRound = (accepted, rejected, maxDepth, roundNum) => {
     if (rounds[roundNum]) {
         return;
     }
-    const numTx = accepted + rejected - 1;
-    const { random: uniqueRandom } = uniqueRandomRange(0, numTx - 1);
+    let numTx = accepted + rejected;
+    const { random: uniqueRandom } = uniqueRandomRange(1, numTx);
 
     const depthSize = Math.ceil(numTx / maxDepth);
     const typeMap = {};
@@ -94,67 +88,83 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
     const round = {};
     const nodes = [];
     const createNode = (index, type) => {
-        let depthIndex = index % depthSize;
-
-        let depth = index % maxDepth; // Math.floor(index / depthSize);
+        // index - 1 we must omitt the start node
+        let depthIndex = (index - 1) % depthSize;
+        let depth = (index - 1) % maxDepth; // Math.floor((index - 1) / depthSize);
 
         if (type === "critical") {
-            depth = depthSize > 1 ? maxDepth : maxDepth - 1;
-            depthIndex = 0;
+            depth = maxDepth;
+            depthIndex = Math.floor((depthSize - 1) / 2);
         }
 
-        let lastCriticalDepth = 0;
-        if (lastCritical) {
-            lastCriticalDepth += lastCritical.globalDepth + 1;
+        let globalDepth = depth;
+        if (startNode) {
+            globalDepth = startNode.globalDepth + depth + 1;
         }
-        const globalDepth = lastCriticalDepth + depth;
 
-        const depthPos = getPos(depthIndex, Math.ceil(Math.sqrt(depthSize)));
+        // for first startNode
+        if (type === "start") {
+            depthIndex = Math.floor(depthSize / 2);
+            depth = -1;
+            globalDepth = -1;
+        }
 
-        const node = addNode(
-            index,
-            depth,
-            depthPos,
+        const depthWidth = Math.ceil(Math.sqrt(depthSize));
+        const depthPos = getPos(depthIndex, depthWidth);
+
+        const node = {
+            id: index,
             type,
-            roundNum,
-            globalDepth
-        );
+            depth,
+            round: roundNum,
+            globalDepth,
+            depthPos,
+            parents: [],
+            children: []
+        };
 
         nodes.push(node);
 
         round[depth] = round[depth] || [];
         round[depth][depthIndex] = node;
 
-        if (lastCritical && depth === 0) {
-            node.parents.push({
-                id: lastCritical.id,
-                type: lastCritical.type
-            });
-            lastCritical.children.push({
-                id: node.id,
-                type: node.type
-            });
+        if (node.type === "start") {
+            return node;
         }
 
-        const parentsLimit = node.type === "critical" ? depthSize : 2;
+        const parentsLimit = randomRange(
+            1,
+            node.type === "critical" ? depthSize : 2
+        );
         let parentIndex = depthIndex;
 
-        const { random } = uniqueRandomRange(0, depthSize);
+        const { random, extract } = uniqueRandomRange(0, depthSize);
+
+        extract(parentIndex);
 
         if (node.type === "critical") {
             lastCritical = node;
         }
 
         while (node.parents.length < parentsLimit) {
-            const parent =
-                (round[depth - 1] || [])[parentIndex] ||
-                (round[depth - 2] || [])[parentIndex];
+            const parent1 = (round[depth - 1] || [])[parentIndex];
+            const parent2 = (round[depth - 2] || [])[parentIndex];
+            let parent;
 
-            if (parent && parent.type !== "rejected") {
+            if (parent1 && parent1.type !== "rejected") {
+                parent = parent1;
+            } else if (parent2 && parent2.type !== "rejected") {
+                parent = parent2;
+            } else {
+                parent = startNode;
+            }
+
+            if (parent) {
                 if (
                     node.type === "critical" ||
                     parent.type === "critical" ||
-                    !node.parents.length
+                    !node.parents.length ||
+                    parent.children.length < randomRange(0, 2)
                 ) {
                     parent.children.push({
                         id: node.id,
@@ -175,13 +185,26 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
         }
     };
 
-    for (let index = 0; index < numTx; index++) {
+    let startNode;
+    let index = 0;
+
+    if (lastCritical) {
+        startNode = {
+            ...lastCritical,
+            id: index,
+            type: "start",
+            depth: -1
+        };
+        nodes.push(startNode);
+    } else {
+        startNode = createNode(index, "start");
+    }
+
+    while (++index < numTx) {
         createNode(index, typeMap[index] || "accepted");
     }
 
-    const prevCritical = lastCritical;
     createNode(numTx, "critical");
-
     rounds[roundNum] = numTx + 1;
 
     postMessage(
@@ -189,8 +212,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
             type: "addRound",
             data: {
                 roundNum,
-                nodes,
-                prevCritical
+                nodes
             }
         })
     );

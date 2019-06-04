@@ -54,7 +54,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
     const [tooltip, setTooltip] = useTooltip(transTooltip);
 
     useEffect(() => {
-        const goToTxDetailPage = (id: string) => {
+        const goToTxDetailPage = (id: number) => {
             history.push("/transactions/" + id);
         };
 
@@ -79,7 +79,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
         const addRoundDisposer = graphStore.subscribe(
             "addRound",
             (data: any) => {
-                scene.renderNodes(data.nodes, data.roundNum, data.prevCritical);
+                scene.renderNodes(data.nodes, data.roundNum);
             }
         );
 

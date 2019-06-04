@@ -4,6 +4,19 @@ import * as TWEEN from "es6-tween";
 import * as _ from "lodash";
 import { INode } from "./GraphStore";
 
+const texIndicesMap = {
+    rejected: 2.0,
+    accepted: 0.0,
+    critical: 0.0,
+    start: 0.0
+};
+const sizeMap = {
+    rejected: 3,
+    accepted: 3,
+    critical: 5,
+    start: 0
+};
+
 const MAX_POINTS = 5000000;
 export class TransactionGraphScene {
     public lineIndices: any = new Uint32Array(MAX_POINTS * 3);
@@ -11,6 +24,7 @@ export class TransactionGraphScene {
     public dashIndices: any = new Uint32Array(MAX_POINTS * 3);
     public dashIndicesCount: number = 0;
 
+    private focusedNode: INode;
     private el: any;
     private scene: any;
     private camera: any;
@@ -22,17 +36,17 @@ export class TransactionGraphScene {
     private renderer: any;
     private raycaster: any;
     private pointCamera = _.throttle(
-        positions => {
+        node => {
             const position = this.camera.position.clone();
 
             position.z -= 10;
-            // this.focusedIndex = index;
+            this.focusedNode = node;
 
-            const [x, y, z] = positions;
+            const [x, y, z] = this.getPos(node);
             // const [x,y,z] = [0,0,0];
 
             const positionTween = new TWEEN.Tween(position)
-                .to({ x, y, z }, 1000)
+                .to({ x, y, z }, 2000)
                 .delay(200)
                 .easing(TWEEN.Easing.Cubic.InOut)
                 .on("update", (newPosition: any) => {
@@ -46,7 +60,7 @@ export class TransactionGraphScene {
 
             const targetPosition = this.controls.target.clone();
             const targetTween = new TWEEN.Tween(targetPosition)
-                .to({ x, y, z }, 1000)
+                .to({ x, y, z }, 2000)
                 .easing(TWEEN.Easing.Quadratic.Out)
                 .on("update", (newPosition: any) => {
                     this.controls.target.set(
@@ -57,7 +71,7 @@ export class TransactionGraphScene {
                 })
                 .start();
         },
-        1200,
+        2400,
         {
             leading: true
         }
@@ -71,7 +85,7 @@ export class TransactionGraphScene {
     private dotHoverTexture: any;
     private distanceConstraint: any;
     private setTooltipHander: (newValue: any) => void;
-    private clickHandler: (id: string) => void;
+    private clickHandler: (id: number) => void;
     private focusedIndex: any; // node index towards which the camera is pointing
     private width: number;
     private height: number;
@@ -81,7 +95,7 @@ export class TransactionGraphScene {
     constructor(
         container: any,
         setTooltipHander: (newValue: any) => void,
-        clickHandler: (id: string) => void
+        clickHandler: (id: number) => void
     ) {
         this.el = container;
         this.dotTexture = this.createDotTexture("#4A41D1", "#0C122B");
@@ -110,12 +124,11 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
-    public renderNodes(nodes: INode[], roundNum: number, prevCritical: INode) {
+    public renderNodes(nodes: INode[], roundNum: number) {
         this.rounds[roundNum] = {};
         this.rounds[roundNum].nodes = nodes;
 
-        console.log("Transaction Graph Nodes #", nodes.length);
-        const step = 0.75;
+        console.log("New Round Graph Nodes #", nodes.length - 1);
 
         let count = 0;
         const tmpPositions: number[] = [];
@@ -123,35 +136,23 @@ export class TransactionGraphScene {
         const tmpLineIndices: number[] = [];
         const tmpSizes: number[] = [];
         const tmpDashIndices: number[] = [];
-        if (prevCritical) {
-            nodes.unshift(prevCritical);
-        }
-
-        const offsetId = (node: INode) => {
-            if (!prevCritical) {
-                return node.id;
-            }
-            if (node === prevCritical) {
-                return 0;
-            }
-            return node.id + 1;
-        };
 
         nodes.forEach(node => {
-            tmpPositions[count++] = step * node.depthPos[0];
-            tmpPositions[count++] = step * 1.2 * node.globalDepth;
-            tmpPositions[count++] = step * node.depthPos[1];
+            const position = this.getPos(node);
+            tmpPositions[count++] = position[0];
+            tmpPositions[count++] = position[1];
+            tmpPositions[count++] = position[2];
 
-            tmpSizes.push(node.type === "critical" ? 5 : 3);
-            tmpTexIndices.push(node.type === "rejected" ? 2.0 : 0.0);
+            tmpSizes.push(sizeMap[node.type]);
+            tmpTexIndices.push(texIndicesMap[node.type]);
 
             node.children.forEach((child: any) => {
                 if (node.type === "rejected" || child.type === "rejected") {
-                    tmpDashIndices.push(offsetId(node));
-                    tmpDashIndices.push(offsetId(child));
+                    tmpDashIndices.push(node.id);
+                    tmpDashIndices.push(child.id);
                 } else {
-                    tmpLineIndices.push(offsetId(node));
-                    tmpLineIndices.push(offsetId(child));
+                    tmpLineIndices.push(node.id);
+                    tmpLineIndices.push(child.id);
                 }
             });
         });
@@ -167,11 +168,7 @@ export class TransactionGraphScene {
         this.addLines(positions, lineIndices, dashIndices, roundNum);
         const lastNodeIndex = nodes.length - 1;
         if (nodes[lastNodeIndex]) {
-            this.pointCamera([
-                positions[3 * lastNodeIndex],
-                positions[3 * lastNodeIndex + 1],
-                positions[3 * lastNodeIndex + 2]
-            ]);
+            this.pointCamera(nodes[lastNodeIndex]);
         }
     }
 
@@ -196,9 +193,15 @@ export class TransactionGraphScene {
     }
 
     public destroy() {
-        this.lines.geometry.dispose();
-        this.dots.geometry.dispose();
+        Object.values(this.rounds).forEach((round: any) => {
+            round.dots.material.dispose();
+            round.lines.material.dispose();
+            round.dashes.material.dispose();
 
+            round.dots.geometry.dispose();
+            round.lines.geometry.dispose();
+            round.dashes.geometry.dispose();
+        });
         this.scene.dispose();
         this.renderer.dispose();
         window.cancelAnimationFrame(this.animationId);
@@ -230,6 +233,15 @@ export class TransactionGraphScene {
 
         this.scene.add(dots);
         this.rounds[roundNum].dots = dots;
+    }
+
+    private getPos(node: INode) {
+        const step = 0.75;
+        return [
+            step * node.depthPos[0],
+            step * 1.2 * node.globalDepth,
+            step * node.depthPos[1]
+        ];
     }
 
     private addLines(
@@ -284,15 +296,17 @@ export class TransactionGraphScene {
     private initMouseEvents() {
         this.mouse = new THREE.Vector2(1, 1);
 
-        let hoveredDotIndex = -1;
+        let hoveredNode: INode | null;
+
         let mouseDown: boolean = false;
 
         const disableHover = () => {
-            if (hoveredDotIndex !== -1) {
-                this.dots.geometry.attributes.texIndex.array[hoveredDotIndex] =
-                    this.nodes[hoveredDotIndex].type === "rejected" ? 2.0 : 0.0;
-                this.dots.geometry.attributes.texIndex.needsUpdate = true;
-                hoveredDotIndex = -1;
+            if (hoveredNode) {
+                const round = this.rounds[hoveredNode.round];
+                round.dots.geometry.attributes.texIndex.array[hoveredNode.id] =
+                    texIndicesMap[hoveredNode.type];
+                round.dots.geometry.attributes.texIndex.needsUpdate = true;
+                hoveredNode = null;
 
                 this.setTooltipHander({
                     visible: false
@@ -318,15 +332,14 @@ export class TransactionGraphScene {
             "mouseup",
             (event: any) => {
                 mouseDown = false;
-                if (hoveredDotIndex < 0) {
+                if (!hoveredNode) {
                     return;
                 }
 
-                if (this.focusedIndex === hoveredDotIndex) {
-                    const node = this.nodes[hoveredDotIndex];
-                    this.clickHandler(node.id);
+                if (this.focusedNode === hoveredNode) {
+                    this.clickHandler(hoveredNode.id);
                 } else {
-                    this.pointCamera(hoveredDotIndex);
+                    this.pointCamera(hoveredNode);
                 }
                 disableHover();
             },
@@ -337,7 +350,7 @@ export class TransactionGraphScene {
             "mousemove",
             _.debounce((event: any) => {
                 disableHover();
-                if (!this.dots || mouseDown) {
+                if (mouseDown) {
                     return;
                 }
 
@@ -350,66 +363,69 @@ export class TransactionGraphScene {
 
                 this.raycaster.setFromCamera(this.mouse, this.camera);
 
-                const intersects = this.raycaster.intersectObject(this.dots);
-                // .filter(
-                //     (item: any) =>
-                //         this.nodes[item.index] &&
-                //         this.nodes[item.index].payload
-                // );
+                const checkDots = (dots: any, nodes: INode[]) => {
+                    const intersects = this.raycaster.intersectObject(dots);
+                    // .filter(
+                    //     (item: any) =>
+                    //         nodes[item.index] &&
+                    //         nodes[item.index].payload
+                    // );
 
-                // if (intersects.length !== 0) {
-                //     const intersect = intersects.reduce(
-                //         (curr: any, next: any) => {
-                //             return curr.distanceToRay < next.distanceToRay
-                //                 ? curr
-                //                 : next;
-                //         }
-                //     );
-                //     const index = intersect.index;
-                //     const node = this.nodes[index];
+                    if (intersects.length !== 0) {
+                        const intersect = intersects.reduce(
+                            (curr: any, next: any) => {
+                                return curr.distanceToRay < next.distanceToRay
+                                    ? curr
+                                    : next;
+                            }
+                        );
+                        const index = intersect.index;
+                        const node = nodes[index];
 
-                //     if (node && intersect.distanceToRay < 0.2) {
-                //         const pos = [
-                //             this.positions[index * 3],
-                //             this.positions[index * 3 + 1],
-                //             this.positions[index * 3 + 2]
-                //         ];
+                        if (node && intersect.distanceToRay < 0.2) {
+                            const pos = this.getPos(node);
 
-                //         this.dots.geometry.attributes.texIndex.array[
-                //             index
-                //         ] = 1.0;
-                //         this.dots.geometry.attributes.texIndex.needsUpdate = true;
+                            dots.geometry.attributes.texIndex.array[
+                                index
+                            ] = 1.0;
+                            dots.geometry.attributes.texIndex.needsUpdate = true;
 
-                //         const vec = new THREE.Vector3(...pos);
-                //         const out = vec.project(this.camera);
+                            const vec = new THREE.Vector3(...pos);
+                            const out = vec.project(this.camera);
 
-                //         const widthHalf = this.width / 2;
-                //         const heightHalf = this.height / 2;
+                            const widthHalf = this.width / 2;
+                            const heightHalf = this.height / 2;
 
-                //         const x = out.x * widthHalf + widthHalf;
-                //         const y = -(out.y * heightHalf) + heightHalf;
+                            const x = out.x * widthHalf + widthHalf;
+                            const y = -(out.y * heightHalf) + heightHalf;
 
-                //         const tooltip = {
-                //             x,
-                //             y: y - 10,
-                //             title: "Transaction",
-                //             text: "nop",
-                //             status: "",
-                //             visible: true
-                //         };
+                            const tooltip = {
+                                x,
+                                y: y - 10,
+                                title: "Transaction",
+                                text: "nop",
+                                status: "",
+                                visible: true
+                            };
 
-                //         // if (node.payload) {
-                //         tooltip.title = node.type;
-                //         tooltip.status = node.id;
-                //         tooltip.text = ""; // node.payload.amount + " PERLs";
-                //         // }
-                //         this.setTooltipHander(tooltip);
-                //         hoveredDotIndex = index;
-                //         return;
-                //     }
-                // }
-                this.setTooltipHander({
-                    visible: false
+                            // if (node.payload) {
+                            tooltip.title = node.type;
+                            tooltip.status = node.id + "";
+                            tooltip.text = ""; // node.payload.amount + " PERLs";
+                            // }
+                            this.setTooltipHander(tooltip);
+                            hoveredNode = node;
+                            return true;
+                        }
+                    }
+                    this.setTooltipHander({
+                        visible: false
+                    });
+                    return false;
+                };
+
+                Object.values(this.rounds).some((round: any) => {
+                    return checkDots(round.dots, round.nodes);
                 });
             }, 20),
             true
@@ -486,9 +502,9 @@ export class TransactionGraphScene {
             textures: {
                 type: "tv",
                 value: [
-                    this.dotTexture,
-                    this.dotHoverTexture,
-                    this.dotSecondaryTexture
+                    this.dotTexture, // normal
+                    this.dotHoverTexture, // has glow
+                    this.dotSecondaryTexture // slightly transparent
                 ]
             },
             color: { type: "c", value: new THREE.Color(0xffffff) },
@@ -513,43 +529,6 @@ export class TransactionGraphScene {
 
         return material;
     }
-
-    // private updateDots() {
-    //     this.dots.geometry.attributes.position.set(this.positions);
-    //     this.nodes.forEach((node: any, index: number) => {
-    //         this.dots.geometry.attributes.size.array[index] =
-    //             node.type === "critical" ? 5 : 3;
-    //         this.dots.geometry.attributes.texIndex.array[index] =
-    //             node.type === "rejected" ? 2.0 : 0.0;
-    //     });
-
-    //     this.dots.geometry.setDrawRange(0, this.nodes.length);
-    //     this.dots.geometry.computeBoundingSphere();
-
-    //     this.dots.geometry.attributes.size.needsUpdate = true;
-    //     this.dots.geometry.attributes.position.needsUpdate = true;
-    //     this.dots.geometry.attributes.texIndex.needsUpdate = true;
-    // }
-    // private updateLines() {
-    //     this.lines.geometry.attributes.position.set(this.positions);
-    //     this.dashes.geometry.attributes.position.set(this.positions);
-
-    //     this.lines.geometry.setIndex(
-    //         new THREE.BufferAttribute(this.lineIndices, 1)
-    //     );
-
-    //     this.dashes.geometry.setIndex(
-    //         new THREE.BufferAttribute(this.dashIndices, 1)
-    //     );
-
-    //     this.dashes.geometry.setDrawRange(0, this.dashIndicesCount);
-    //     this.dashes.geometry.computeBoundingSphere();
-    //     this.dashes.geometry.attributes.position.needsUpdate = true;
-
-    //     this.lines.geometry.setDrawRange(0, this.lineIndicesCount);
-    //     this.lines.geometry.computeBoundingSphere();
-    //     this.lines.geometry.attributes.position.needsUpdate = true;
-    // }
 
     private initRenderer() {
         const renderer = new THREE.WebGLRenderer({
