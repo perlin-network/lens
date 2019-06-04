@@ -17,13 +17,7 @@ const sizeMap = {
     start: 0
 };
 
-const MAX_POINTS = 5000000;
 export class TransactionGraphScene {
-    public lineIndices: any = new Uint32Array(MAX_POINTS * 3);
-    public lineIndicesCount: number = 0;
-    public dashIndices: any = new Uint32Array(MAX_POINTS * 3);
-    public dashIndicesCount: number = 0;
-
     private focusedNode: INode;
     private el: any;
     private scene: any;
@@ -43,10 +37,9 @@ export class TransactionGraphScene {
             this.focusedNode = node;
 
             const [x, y, z] = this.getPos(node);
-            // const [x,y,z] = [0,0,0];
 
             const positionTween = new TWEEN.Tween(position)
-                .to({ x, y, z }, 2000)
+                .to({ x, y, z }, 1800)
                 .delay(200)
                 .easing(TWEEN.Easing.Cubic.InOut)
                 .on("update", (newPosition: any) => {
@@ -60,7 +53,7 @@ export class TransactionGraphScene {
 
             const targetPosition = this.controls.target.clone();
             const targetTween = new TWEEN.Tween(targetPosition)
-                .to({ x, y, z }, 2000)
+                .to({ x, y, z }, 1800)
                 .easing(TWEEN.Easing.Quadratic.Out)
                 .on("update", (newPosition: any) => {
                     this.controls.target.set(
@@ -85,7 +78,7 @@ export class TransactionGraphScene {
     private dotHoverTexture: any;
     private distanceConstraint: any;
     private setTooltipHander: (newValue: any) => void;
-    private clickHandler: (id: number) => void;
+    private clickHandler: (id: string) => void;
     private focusedIndex: any; // node index towards which the camera is pointing
     private width: number;
     private height: number;
@@ -95,7 +88,7 @@ export class TransactionGraphScene {
     constructor(
         container: any,
         setTooltipHander: (newValue: any) => void,
-        clickHandler: (id: number) => void
+        clickHandler: (id: string) => void
     ) {
         this.el = container;
         this.dotTexture = this.createDotTexture("#4A41D1", "#0C122B");
@@ -336,8 +329,8 @@ export class TransactionGraphScene {
                     return;
                 }
 
-                if (this.focusedNode === hoveredNode) {
-                    this.clickHandler(hoveredNode.id);
+                if (this.focusedNode === hoveredNode && hoveredNode.txId) {
+                    this.clickHandler(hoveredNode.txId);
                 } else {
                     this.pointCamera(hoveredNode);
                 }

@@ -94,6 +94,8 @@ class Perlin {
 
     @observable public peers: string[] = [];
 
+    @observable public initRound: any;
+
     @observable public metrics = {
         acceptedMean: 0,
         receivedMean: 0
@@ -107,7 +109,9 @@ class Perlin {
         accepted: number,
         rejected: number,
         maxDepth: number,
-        round: number
+        round: number,
+        startId?: string,
+        endId?: string
     ) => void;
     public onConsensusPrune: (round: number, numTx: number) => void;
 
@@ -363,16 +367,7 @@ class Perlin {
         this.ledger = await this.getLedger();
         this.peers = this.ledger.peers;
 
-        const round = this.ledger.round;
-        if (this.onConsensusRound) {
-            console.log("Initial round #", round.applied);
-            this.onConsensusRound(
-                round.applied,
-                round.rejected || 0,
-                round.depth,
-                0
-            );
-        }
+        this.initRound = this.ledger.round;
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
@@ -520,7 +515,9 @@ class Perlin {
                             data.num_applied_tx,
                             data.num_rejected_tx,
                             data.round_depth,
-                            data.new_round
+                            data.new_round,
+                            data.old_root,
+                            data.new_root
                         );
                     }
             }

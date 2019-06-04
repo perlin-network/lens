@@ -1,53 +1,6 @@
 import { Perlin } from "../../Perlin";
 const perlin = Perlin.getInstance();
 
-const randomRange = (min: number, max: number) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-// @ts-ignore
-const uniqueRandomRange = (window.uniqueRandomRange = (
-    min: number,
-    max: number
-) => {
-    if (min > max) {
-        throw new Error(`Invalid random ranges ${min} - ${max}`);
-    }
-    const extracted: any = {};
-    let extractedCount = 0;
-    const info = {
-        done: false,
-        extracted
-    };
-    const random = (overrideMin: number = min, overrideMax: number = max) => {
-        let value: number;
-
-        while (!info.done) {
-            value = randomRange(overrideMin, overrideMax);
-            if (!extracted[value]) {
-                extracted[value] = true;
-                extractedCount++;
-                break;
-            }
-        }
-
-        info.done = extractedCount > max - min;
-        // @ts-ignore
-        return value;
-    };
-
-    return {
-        random,
-        info
-    };
-});
-
-const offset = (index: number, width: number) => index - Math.floor(width / 2);
-const getPos = (index: number, width: number) => [
-    index % width,
-    Math.floor(index / width)
-];
 export interface INode {
     id: number;
     depth: number;
@@ -57,6 +10,7 @@ export interface INode {
     children: number[];
     globalDepth: number;
     depthPos: number[];
+    txId?: string;
 }
 
 export class GraphStore {
@@ -68,11 +22,7 @@ export class GraphStore {
     }
 
     private static singleton: GraphStore;
-
-    public rounds: any = {};
-    public nodes: INode[] = [];
     private subscriptions: any = [];
-    private lastCritical: INode;
     private worker: Worker;
 
     constructor() {
@@ -101,49 +51,37 @@ export class GraphStore {
             );
         };
     }
-    private notifySubscribers(type: string, data: any) {
-        this.subscriptions[type] = this.subscriptions[type] || [];
-        this.subscriptions[type].forEach((fn: any) => fn(data));
-    }
-
-    private addNode = (
-        depth: number,
-        depthPos: number[],
-        type: string,
-        round: number,
-        globalDepth: number
-    ) => {
-        const node: INode = {
-            id: this.nodes.length,
-            type,
-            depth,
-            round,
-            globalDepth,
-            depthPos,
-            parents: [],
-            children: []
-        };
-
-        this.nodes.push(node);
-        return node;
-    };
-
-    private addRound = (
+    public addRound = (
         accepted: number,
         rejected: number,
         maxDepth: number,
-        roundNum: number
+        roundNum: number,
+        startId?: string,
+        endId?: string
     ) => {
         this.worker.postMessage({
             type: "addRound",
             accepted,
             rejected,
             maxDepth,
-            roundNum
+            roundNum,
+            startId,
+            endId
         });
     };
 
-    private pruneRound = (roundNum: number, numTx: number) => {
+    public destroy() {
+        this.worker.postMessage({
+            type: "destroy"
+        });
+    }
+
+    public pruneRound = (roundNum: number, numTx: number) => {
         this.worker.postMessage({ type: "pruneRound", roundNum });
     };
+
+    private notifySubscribers(type: string, data: any) {
+        this.subscriptions[type] = this.subscriptions[type] || [];
+        this.subscriptions[type].forEach((fn: any) => fn(data));
+    }
 }

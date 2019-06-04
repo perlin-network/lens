@@ -4,7 +4,7 @@ import { Flex } from "@rebass/grid";
 interface ICardProps {
     showBoxShadow?: boolean;
 }
-const Card = styled(Flex)`
+export const Card = styled(Flex)`
     background-color: #0e1a49;
     border-radius: 2px;
     width: 100%;
@@ -25,7 +25,7 @@ interface IButtonProps {
     fontSize?: string;
     hideOverflow?: boolean;
 }
-const Button = styled.button`
+export const Button = styled.button`
     width: ${(props: IButtonProps) => props.width};
     height: 40px;
     border: 0;
@@ -66,7 +66,7 @@ interface IInputProps {
     width?: string;
     fontSize?: string;
 }
-const Input = styled.input`
+export const Input = styled.input`
     outline: none;
     border: none;
     min-width: 200px;
@@ -95,4 +95,44 @@ Input.defaultProps = {
     fontSize: "14px"
 };
 
-export { Card, Button, Input };
+export const randomRange = (min: number, max: number) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+// @ts-ignore
+export const uniqueRandomRange = (window.uniqueRandomRange = (
+    min: number,
+    max: number
+) => {
+    if (min > max) {
+        throw new Error(`Invalid random ranges ${min} - ${max}`);
+    }
+    const extracted: any = {};
+    let extractedCount = 0;
+    const info = {
+        done: false,
+        extracted
+    };
+    const random = (overrideMin: number = min, overrideMax: number = max) => {
+        let value: number;
+
+        while (!info.done) {
+            value = randomRange(overrideMin, overrideMax);
+            if (!extracted[value]) {
+                extracted[value] = true;
+                extractedCount++;
+                break;
+            }
+        }
+
+        info.done = extractedCount > max - min;
+        // @ts-ignore
+        return value;
+    };
+
+    return {
+        random,
+        info
+    };
+});

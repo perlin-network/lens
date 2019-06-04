@@ -54,7 +54,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
     const [tooltip, setTooltip] = useTooltip(transTooltip);
 
     useEffect(() => {
-        const goToTxDetailPage = (id: number) => {
+        const goToTxDetailPage = (id: string) => {
             history.push("/transactions/" + id);
         };
 
@@ -91,15 +91,23 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
         );
 
         when(
-            () => perlin.transactions.recent.length > 0,
+            () => perlin.initRound,
             () => {
-                const nodes = perlin.transactions.recent;
-                // scene.addNodes(nodes);
+                const round = perlin.initRound;
+                graphStore.addRound(
+                    round.applied,
+                    round.rejected || 0,
+                    round.depth,
+                    0,
+                    round.start_id,
+                    round.end_id
+                );
             }
         );
 
         return () => {
             scene.destroy();
+            graphStore.destroy();
             addRoundDisposer();
             pruneRoundDisposer();
         };

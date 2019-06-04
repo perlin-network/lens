@@ -6,11 +6,16 @@ onmessage = evt => {
                 data.accepted,
                 data.rejected,
                 data.maxDepth,
-                data.roundNum
+                data.roundNum,
+                data.startId,
+                data.endId
             );
             break;
         case "pruneRound":
             pruneRound(data.roundNum);
+            break;
+        case "destroy":
+            destroy();
             break;
     }
 };
@@ -22,7 +27,7 @@ const getPos = (index, width) => [
 ];
 
 let lastCritical;
-const rounds = {};
+let rounds = {};
 
 const randomRange = (min, max) => {
     min = Math.ceil(min);
@@ -69,7 +74,7 @@ const uniqueRandomRange = (min, max) => {
     };
 };
 
-const addRound = (accepted, rejected, maxDepth, roundNum) => {
+const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     if (rounds[roundNum]) {
         return;
     }
@@ -88,13 +93,15 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
     const round = {};
     const nodes = [];
     const createNode = (index, type) => {
+        let txId;
         // index - 1 we must omitt the start node
         let depthIndex = (index - 1) % depthSize;
         let depth = (index - 1) % maxDepth; // Math.floor((index - 1) / depthSize);
 
         if (type === "critical") {
-            depth = maxDepth;
+            depth = depthSize === 1 ? maxDepth - 1 : maxDepth;
             depthIndex = Math.floor((depthSize - 1) / 2);
+            txId = endId;
         }
 
         let globalDepth = depth;
@@ -107,6 +114,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
             depthIndex = Math.floor(depthSize / 2);
             depth = -1;
             globalDepth = -1;
+            txId = startId;
         }
 
         const depthWidth = Math.ceil(Math.sqrt(depthSize));
@@ -120,7 +128,8 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
             globalDepth,
             depthPos,
             parents: [],
-            children: []
+            children: [],
+            txId
         };
 
         nodes.push(node);
@@ -238,4 +247,9 @@ const pruneRound = (roundNum, numTx) => {
             data: roundNum
         })
     );
+};
+
+const destroy = () => {
+    rounds = {};
+    lastCritical = undefined;
 };
