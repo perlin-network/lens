@@ -179,6 +179,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
         createNode(index, typeMap[index] || "accepted");
     }
 
+    const prevCritical = lastCritical;
     createNode(numTx, "critical");
 
     rounds[roundNum] = numTx + 1;
@@ -188,7 +189,8 @@ const addRound = (accepted, rejected, maxDepth, roundNum) => {
             type: "addRound",
             data: {
                 roundNum,
-                nodes
+                nodes,
+                prevCritical
             }
         })
     );

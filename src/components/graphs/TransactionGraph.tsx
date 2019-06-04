@@ -79,7 +79,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
         const addRoundDisposer = graphStore.subscribe(
             "addRound",
             (data: any) => {
-                scene.renderNodes(data.nodes, data.roundNum);
+                scene.renderNodes(data.nodes, data.roundNum, data.prevCritical);
             }
         );
 

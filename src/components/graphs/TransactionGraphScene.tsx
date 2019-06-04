@@ -110,7 +110,7 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
-    public renderNodes(nodes: INode[], roundNum: number) {
+    public renderNodes(nodes: INode[], roundNum: number, prevCritical: INode) {
         this.rounds[roundNum] = {};
         this.rounds[roundNum].nodes = nodes;
 
@@ -123,6 +123,19 @@ export class TransactionGraphScene {
         const tmpLineIndices: number[] = [];
         const tmpSizes: number[] = [];
         const tmpDashIndices: number[] = [];
+        if (prevCritical) {
+            nodes.unshift(prevCritical);
+        }
+
+        const offsetId = (node: INode) => {
+            if (!prevCritical) {
+                return node.id;
+            }
+            if (node === prevCritical) {
+                return 0;
+            }
+            return node.id + 1;
+        };
 
         nodes.forEach(node => {
             tmpPositions[count++] = step * node.depthPos[0];
@@ -134,11 +147,11 @@ export class TransactionGraphScene {
 
             node.children.forEach((child: any) => {
                 if (node.type === "rejected" || child.type === "rejected") {
-                    tmpDashIndices.push(node.id);
-                    tmpDashIndices.push(child.id);
+                    tmpDashIndices.push(offsetId(node));
+                    tmpDashIndices.push(offsetId(child));
                 } else {
-                    tmpLineIndices.push(node.id);
-                    tmpLineIndices.push(child.id);
+                    tmpLineIndices.push(offsetId(node));
+                    tmpLineIndices.push(offsetId(child));
                 }
             });
         });
