@@ -95,12 +95,15 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     const createNode = (index, type) => {
         let txId;
         // index - 1 we must omitt the start node
-        let depthIndex = (index - 1) % depthSize;
         let depth = (index - 1) % maxDepth; // Math.floor((index - 1) / depthSize);
+        let depthIndex;
+        do {
+            depthIndex = randomRange(0, depthSize - 1);
+        } while (round[depth] && round[depth][depthIndex]);
 
         if (type === "critical") {
             depth = depthSize === 1 ? maxDepth - 1 : maxDepth;
-            depthIndex = Math.floor((depthSize - 1) / 2);
+
             txId = endId;
         }
 
@@ -111,7 +114,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
 
         // for first startNode
         if (type === "start") {
-            depthIndex = Math.floor(depthSize / 2);
             depth = -1;
             globalDepth = -1;
             txId = startId;
@@ -129,7 +131,8 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             depthPos,
             parents: [],
             children: [],
-            txId
+            txId,
+            posOffset: randomRange(-15, 15) / 100
         };
 
         nodes.push(node);

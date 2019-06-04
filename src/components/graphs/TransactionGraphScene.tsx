@@ -30,44 +30,10 @@ export class TransactionGraphScene {
     private renderer: any;
     private raycaster: any;
     private pointCamera = _.throttle(
-        node => {
-            const position = this.camera.position.clone();
-
-            position.z -= 10;
-            this.focusedNode = node;
-
-            const [x, y, z] = this.getPos(node);
-
-            const positionTween = new TWEEN.Tween(position)
-                .to({ x, y, z }, 1800)
-                .delay(200)
-                .easing(TWEEN.Easing.Cubic.InOut)
-                .on("update", (newPosition: any) => {
-                    this.camera.position.set(
-                        newPosition.x,
-                        newPosition.y,
-                        newPosition.z + 10
-                    );
-                })
-                .start();
-
-            const targetPosition = this.controls.target.clone();
-            const targetTween = new TWEEN.Tween(targetPosition)
-                .to({ x, y, z }, 1800)
-                .easing(TWEEN.Easing.Quadratic.Out)
-                .on("update", (newPosition: any) => {
-                    this.controls.target.set(
-                        newPosition.x,
-                        newPosition.y,
-                        newPosition.z
-                    );
-                })
-                .start();
-        },
-        2400,
-        {
-            leading: true
-        }
+        // @ts-ignore
+        (...args) => this.fastPointCamera(...args),
+        2200,
+        { leading: true }
     );
 
     private controls: any;
@@ -84,6 +50,7 @@ export class TransactionGraphScene {
     private height: number;
     private animationId: number;
     private rounds: any = {};
+    private disposeMouseEvents: () => void;
 
     constructor(
         container: any,
@@ -195,13 +162,52 @@ export class TransactionGraphScene {
             round.lines.geometry.dispose();
             round.dashes.geometry.dispose();
         });
+
         this.scene.dispose();
         this.renderer.dispose();
         window.cancelAnimationFrame(this.animationId);
 
         window.removeEventListener("resize", this.onWindowResize);
+
+        if (this.disposeMouseEvents) {
+            this.disposeMouseEvents();
+        }
     }
 
+    private fastPointCamera = (node: INode) => {
+        const position = this.camera.position.clone();
+
+        position.z -= 15;
+        this.focusedNode = node;
+
+        const [x, y, z] = this.getPos(node);
+
+        const positionTween = new TWEEN.Tween(position)
+            .to({ x, y, z }, 1800)
+            // .delay(200)
+            .easing(TWEEN.Easing.Cubic.InOut)
+            .on("update", (newPosition: any) => {
+                this.camera.position.set(
+                    newPosition.x,
+                    newPosition.y,
+                    newPosition.z + 15
+                );
+            })
+            .start();
+
+        const targetPosition = this.controls.target.clone();
+        const targetTween = new TWEEN.Tween(targetPosition)
+            .to({ x, y, z }, 1800)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .on("update", (newPosition: any) => {
+                this.controls.target.set(
+                    newPosition.x,
+                    newPosition.y,
+                    newPosition.z
+                );
+            })
+            .start();
+    };
     private addDots(
         positions: Float32Array,
         sizes: Float32Array,
@@ -231,9 +237,9 @@ export class TransactionGraphScene {
     private getPos(node: INode) {
         const step = 0.75;
         return [
-            step * node.depthPos[0],
+            step * node.depthPos[0] + node.posOffset,
             step * 1.2 * node.globalDepth,
-            step * node.depthPos[1]
+            step * node.depthPos[1] - node.posOffset
         ];
     }
 
@@ -306,123 +312,137 @@ export class TransactionGraphScene {
                 });
             }
         };
-        this.el.addEventListener(
-            "mousedown",
-            (event: any) => {
-                mouseDown = true;
-            },
-            true
-        );
-        this.el.addEventListener(
-            "mouseout",
-            (event: any) => {
-                mouseDown = false;
-                disableHover();
-            },
-            true
-        );
-        this.el.addEventListener(
-            "mouseup",
-            (event: any) => {
-                mouseDown = false;
-                if (!hoveredNode) {
-                    return;
+
+        const onKeyDown = (event: any) => {
+            let round;
+
+            if (event.key === "ArrowDown") {
+                round = this.rounds[this.focusedNode.round - 1];
+            }
+
+            if (event.key === "ArrowUp") {
+                round = this.rounds[this.focusedNode.round + 1];
+            }
+
+            if (round) {
+                const lastNodeIndex = round.nodes.length - 1;
+                if (round.nodes[lastNodeIndex]) {
+                    this.fastPointCamera(round.nodes[lastNodeIndex]);
                 }
+                event.preventDefault();
+            }
+        };
+        window.addEventListener("keydown", onKeyDown);
 
-                if (this.focusedNode === hoveredNode && hoveredNode.txId) {
-                    this.clickHandler(hoveredNode.txId);
-                } else {
-                    this.pointCamera(hoveredNode);
-                }
-                disableHover();
-            },
-            true
-        );
+        const onMouseDown = (event: any) => {
+            mouseDown = true;
+        };
 
-        this.el.addEventListener(
-            "mousemove",
-            _.debounce((event: any) => {
-                disableHover();
-                if (mouseDown) {
-                    return;
-                }
+        const onMouseOut = (event: any) => {
+            mouseDown = false;
+            disableHover();
+        };
 
-                const { left, top } = this.el.getBoundingClientRect();
-                const clientX = event.clientX - left;
-                const clientY = event.clientY - top;
+        const onMouseUp = (event: any) => {
+            mouseDown = false;
+            if (!hoveredNode) {
+                return;
+            }
 
-                this.mouse.x = (clientX / this.width) * 2 - 1;
-                this.mouse.y = -(clientY / this.height) * 2 + 1;
+            if (this.focusedNode === hoveredNode && hoveredNode.txId) {
+                this.clickHandler(hoveredNode.txId);
+            } else {
+                this.pointCamera(hoveredNode);
+            }
+            disableHover();
+        };
 
-                this.raycaster.setFromCamera(this.mouse, this.camera);
+        const onMouseMove = _.debounce((event: any) => {
+            disableHover();
+            if (mouseDown) {
+                return;
+            }
 
-                const checkDots = (dots: any, nodes: INode[]) => {
-                    const intersects = this.raycaster.intersectObject(dots);
-                    // .filter(
-                    //     (item: any) =>
-                    //         nodes[item.index] &&
-                    //         nodes[item.index].payload
-                    // );
+            const { left, top } = this.el.getBoundingClientRect();
+            const clientX = event.clientX - left;
+            const clientY = event.clientY - top;
 
-                    if (intersects.length !== 0) {
-                        const intersect = intersects.reduce(
-                            (curr: any, next: any) => {
-                                return curr.distanceToRay < next.distanceToRay
-                                    ? curr
-                                    : next;
-                            }
-                        );
-                        const index = intersect.index;
-                        const node = nodes[index];
+            this.mouse.x = (clientX / this.width) * 2 - 1;
+            this.mouse.y = -(clientY / this.height) * 2 + 1;
 
-                        if (node && intersect.distanceToRay < 0.2) {
-                            const pos = this.getPos(node);
+            this.raycaster.setFromCamera(this.mouse, this.camera);
 
-                            dots.geometry.attributes.texIndex.array[
-                                index
-                            ] = 1.0;
-                            dots.geometry.attributes.texIndex.needsUpdate = true;
+            const checkDots = (dots: any, nodes: INode[]) => {
+                const intersects = this.raycaster.intersectObject(dots);
 
-                            const vec = new THREE.Vector3(...pos);
-                            const out = vec.project(this.camera);
-
-                            const widthHalf = this.width / 2;
-                            const heightHalf = this.height / 2;
-
-                            const x = out.x * widthHalf + widthHalf;
-                            const y = -(out.y * heightHalf) + heightHalf;
-
-                            const tooltip = {
-                                x,
-                                y: y - 10,
-                                title: "Transaction",
-                                text: "nop",
-                                status: "",
-                                visible: true
-                            };
-
-                            // if (node.payload) {
-                            tooltip.title = node.type;
-                            tooltip.status = node.id + "";
-                            tooltip.text = ""; // node.payload.amount + " PERLs";
-                            // }
-                            this.setTooltipHander(tooltip);
-                            hoveredNode = node;
-                            return true;
+                if (intersects.length !== 0) {
+                    const intersect = intersects.reduce(
+                        (curr: any, next: any) => {
+                            return curr.distanceToRay < next.distanceToRay
+                                ? curr
+                                : next;
                         }
-                    }
-                    this.setTooltipHander({
-                        visible: false
-                    });
-                    return false;
-                };
+                    );
+                    const index = intersect.index;
+                    const node = nodes[index];
 
-                Object.values(this.rounds).some((round: any) => {
-                    return checkDots(round.dots, round.nodes);
+                    if (node && intersect.distanceToRay < 0.2) {
+                        const pos = this.getPos(node);
+
+                        dots.geometry.attributes.texIndex.array[index] = 1.0;
+                        dots.geometry.attributes.texIndex.needsUpdate = true;
+
+                        const vec = new THREE.Vector3(...pos);
+                        const out = vec.project(this.camera);
+
+                        const widthHalf = this.width / 2;
+                        const heightHalf = this.height / 2;
+
+                        const x = out.x * widthHalf + widthHalf;
+                        const y = -(out.y * heightHalf) + heightHalf;
+
+                        const tooltip = {
+                            x,
+                            y: y - 10,
+                            title: "Transaction",
+                            text: "nop",
+                            status: "",
+                            visible: true
+                        };
+
+                        // if (node.payload) {
+                        tooltip.title = node.type;
+                        tooltip.status = node.id + "";
+                        tooltip.text = ""; // node.payload.amount + " PERLs";
+                        // }
+                        this.setTooltipHander(tooltip);
+                        hoveredNode = node;
+                        return true;
+                    }
+                }
+                this.setTooltipHander({
+                    visible: false
                 });
-            }, 20),
-            true
-        );
+                return false;
+            };
+
+            Object.values(this.rounds).some((round: any) => {
+                return checkDots(round.dots, round.nodes);
+            });
+        }, 20);
+
+        this.el.addEventListener("mousedown", onMouseDown, true);
+        this.el.addEventListener("mouseout", onMouseOut, true);
+        this.el.addEventListener("mouseup", onMouseUp, true);
+        this.el.addEventListener("mousemove", onMouseMove, true);
+
+        this.disposeMouseEvents = () => {
+            this.el.removeEventListener("mousedown", onMouseDown);
+            this.el.removeEventListener("mouseout", onMouseOut);
+            this.el.removeEventListener("mouseup", onMouseUp);
+            this.el.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("keydown", onKeyDown);
+        };
     }
 
     private initScene() {

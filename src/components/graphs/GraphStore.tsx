@@ -10,6 +10,7 @@ export interface INode {
     children: number[];
     globalDepth: number;
     depthPos: number[];
+    posOffset: number;
     txId?: string;
 }
 
