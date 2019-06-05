@@ -219,15 +219,13 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     createNode(numTx, "critical");
     rounds[roundNum] = numTx + 1;
 
-    postMessage(
-        JSON.stringify({
-            type: "addRound",
-            data: {
-                roundNum,
-                nodes
-            }
-        })
-    );
+    postMessage({
+        type: "addRound",
+        data: {
+            roundNum,
+            nodes
+        }
+    });
 };
 
 const resetNodeIds = () => {
@@ -244,12 +242,10 @@ const pruneRound = (roundNum, numTx) => {
 
     delete rounds[roundNum];
     // nodes.splice(0, numTx);
-    postMessage(
-        JSON.stringify({
-            type: "pruneRound",
-            data: roundNum
-        })
-    );
+    postMessage({
+        type: "pruneRound",
+        data: roundNum
+    });
 };
 
 const destroy = () => {

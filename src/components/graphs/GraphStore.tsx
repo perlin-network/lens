@@ -33,7 +33,7 @@ export class GraphStore {
 
         // Receive messages from postMessage() calls in the Worker
         this.worker.onmessage = evt => {
-            const { type, data } = JSON.parse(evt.data);
+            const { type, data } = evt.data;
             this.notifySubscribers(type, data);
         };
 
