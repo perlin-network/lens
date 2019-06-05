@@ -14,7 +14,7 @@ const sizeMap = {
     rejected: 3,
     accepted: 3,
     critical: 5,
-    start: 0
+    start: 5
 };
 
 export class TransactionGraphScene {
@@ -184,7 +184,7 @@ export class TransactionGraphScene {
 
         const positionTween = new TWEEN.Tween(position)
             .to({ x, y, z }, 1800)
-            // .delay(200)
+            .delay(200)
             .easing(TWEEN.Easing.Cubic.InOut)
             .on("update", (newPosition: any) => {
                 this.camera.position.set(
@@ -315,20 +315,29 @@ export class TransactionGraphScene {
 
         const onKeyDown = (event: any) => {
             let round;
+            let node;
+            const focusedRound = this.rounds[this.focusedNode.round];
 
             if (event.key === "ArrowDown") {
                 round = this.rounds[this.focusedNode.round - 1];
+                node = focusedRound.nodes[0];
             }
 
             if (event.key === "ArrowUp") {
-                round = this.rounds[this.focusedNode.round + 1];
+                if (this.focusedNode.depth !== -1) {
+                    round = this.rounds[this.focusedNode.round + 1];
+                }
+
+                node = focusedRound.nodes[focusedRound.nodes.length - 1];
             }
 
             if (round) {
                 const lastNodeIndex = round.nodes.length - 1;
-                if (round.nodes[lastNodeIndex]) {
-                    this.fastPointCamera(round.nodes[lastNodeIndex]);
-                }
+                node = round.nodes[lastNodeIndex] || node;
+            }
+
+            if (node) {
+                this.fastPointCamera(node);
                 event.preventDefault();
             }
         };
@@ -450,7 +459,7 @@ export class TransactionGraphScene {
         this.scene.fog = new THREE.Fog(0x151a34, 0, 130);
         this.raycaster = new THREE.Raycaster();
         this.raycaster.near = 0;
-        this.camera = new THREE.PerspectiveCamera(20, 1, 1, 500);
+        this.camera = new THREE.PerspectiveCamera(20, 1, 1, 1000);
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(this.scene.position);
     }
@@ -462,7 +471,7 @@ export class TransactionGraphScene {
         controls.panSpeed = 0.9;
         controls.noZoom = false;
         controls.noPan = false;
-        controls.staticMoving = true;
+        controls.staticMoving = false;
         controls.dynamicDampingFactor = 0.3;
         controls.keys = [65, 17, 16];
         this.controls = controls;

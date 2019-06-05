@@ -167,7 +167,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
                 parent = parent1;
             } else if (parent2 && parent2.type !== "rejected") {
                 parent = parent2;
-            } else {
+            } else if (depth === 0) {
                 parent = startNode;
             }
 
