@@ -302,9 +302,12 @@ export class TransactionGraphScene {
         const disableHover = () => {
             if (hoveredNode) {
                 const round = this.rounds[hoveredNode.round];
-                round.dots.geometry.attributes.texIndex.array[hoveredNode.id] =
-                    texIndicesMap[hoveredNode.type];
-                round.dots.geometry.attributes.texIndex.needsUpdate = true;
+                if (round) {
+                    round.dots.geometry.attributes.texIndex.array[
+                        hoveredNode.id
+                    ] = texIndicesMap[hoveredNode.type];
+                    round.dots.geometry.attributes.texIndex.needsUpdate = true;
+                }
                 hoveredNode = null;
 
                 this.setTooltipHander({

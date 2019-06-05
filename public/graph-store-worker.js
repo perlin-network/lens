@@ -251,4 +251,5 @@ const pruneRound = (roundNum, numTx) => {
 const destroy = () => {
     rounds = {};
     lastCritical = undefined;
+    self.close();
 };
