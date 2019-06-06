@@ -413,34 +413,6 @@ class Perlin {
 
         const ws = new ReconnectingWebSocket(url.toString());
 
-        const pushTransactions = _.debounce(
-            () => {
-                const txLength = this.transactions.recent.length;
-                this.transactions.recent = transactions;
-                if (this.onTransactionsCreated !== undefined) {
-                    this.onTransactionsCreated(transactions.slice(txLength));
-                }
-            },
-            this.transactionDebounceIntv,
-            {
-                maxWait: 2 * this.transactionDebounceIntv
-            }
-        );
-
-        const updateTransactions = _.debounce(
-            () => {
-                if (this.onTransactionsUpdated !== undefined) {
-                    this.onTransactionsUpdated();
-                }
-            },
-            this.transactionDebounceIntv,
-            {
-                maxWait: 2 * this.transactionDebounceIntv
-            }
-        );
-
-        const transactions = [...this.transactions.recent];
-
         ws.onmessage = async ({ data }) => {
             data = JSON.parse(data);
 
@@ -463,25 +435,25 @@ class Perlin {
                 case "applied":
                     const parsedTx = Perlin.parseWiredTransaction(
                         tx,
-                        transactions.length
+                        this.transactions.recent.length
                     );
 
                     if (!this.transactionMap[parsedTx.id]) {
-                        transactions.push(parsedTx);
+                        this.transactions.recent = [
+                            parsedTx,
+                            ...this.transactions.recent
+                        ];
                         this.transactionMap[parsedTx.id] = parsedTx;
                     } else {
-                        const currentStatus = this.transactionMap[parsedTx.id]
-                            .status;
-                        if (currentStatus !== parsedTx.status) {
-                            this.transactionMap[parsedTx.id].status =
-                                parsedTx.status;
-                            updateTransactions();
-                        }
-
-                        return;
+                        // update tx refference and change this.transactions.recent refference to force change detection
+                        Object.assign(
+                            this.transactionMap[parsedTx.id],
+                            parsedTx
+                        );
+                        this.transactions.recent = [
+                            ...this.transactions.recent
+                        ];
                     }
-
-                    pushTransactions();
                     break;
                 case "failed":
                     console.log(data.error);

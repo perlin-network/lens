@@ -178,6 +178,7 @@ export default class TransactionsTable extends React.Component<{}, {}> {
                         pageSize={data.length}
                         columns={columns}
                         resizable={false}
+                        sortable={false}
                         showPagination={false}
                         NoDataComponent={CustomNoDataComponent(loading)}
                     />
