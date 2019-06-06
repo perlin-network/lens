@@ -55,9 +55,9 @@ const uniqueRandomRange = (min, max) => {
                 extractedCount++;
                 break;
             }
-            info.done = extractedCount > max - min;
         }
 
+        info.done = extractedCount > max - min;
         // @ts-ignore
         return value;
     };
@@ -75,11 +75,10 @@ const uniqueRandomRange = (min, max) => {
 };
 
 const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
-    let numTx = accepted + rejected;
-
-    if (rounds[roundNum] || !numTx) {
+    if (rounds[roundNum]) {
         return;
     }
+    let numTx = accepted + rejected;
     const { random: uniqueRandom } = uniqueRandomRange(1, numTx);
 
     const depthSize = Math.ceil(numTx / maxDepth);
@@ -94,6 +93,27 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     const round = {};
     const nodes = [];
 
+    const checkParent = (node, parent) => {
+        if (parent && parent.type !== "rejected") {
+            if (
+                node.type === "critical" ||
+                parent.type === "start" ||
+                !node.parents.length ||
+                !parent.children.length
+            ) {
+                parent.children.push({
+                    id: node.id,
+                    type: node.type
+                });
+                node.parents.push({
+                    id: parent.id,
+                    type: node.type
+                });
+            }
+            return true;
+        }
+        return false;
+    };
     const createNode = (index, type) => {
         let txId;
         // index - 1 we must omitt the start node
@@ -105,7 +125,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
 
         if (type === "critical") {
             depth = depthSize === 1 ? maxDepth - 1 : maxDepth;
-
             txId = endId;
         }
 
@@ -130,7 +149,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             depth,
             round: roundNum,
             globalDepth,
-            depthIndex,
             depthPos,
             parents: [],
             children: [],
@@ -143,42 +161,17 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         round[depth] = round[depth] || [];
         round[depth][depthIndex] = node;
 
-        return node;
-    };
+        if (node.type === "start") {
+            return node;
+        }
 
-    const createLinks = node => {
-        const parentsLimit =
-            node.type === "critical" ? depthSize : randomRange(1, 2);
-        let parentIndex = node.depthIndex;
+        const parentsLimit = randomRange(
+            1,
+            node.type === "critical" ? depthSize : 3
+        );
+        let parentIndex = depthIndex;
 
-        const checkParent = (node, parent) => {
-            if (parent && parent.type !== "rejected") {
-                const diffX = Math.abs(node.depthPos[0] - parent.depthPos[0]);
-                const diffY = Math.abs(node.depthPos[1] - parent.depthPos[1]);
-                const diff = (diffX + diffY) / 2;
-
-                if (
-                    node.type === "critical" ||
-                    parent.type === "start" ||
-                    !node.parents.length ||
-                    (!parent.children.length &&
-                        diff <= 0.5 &&
-                        node.parents.length <= parentsLimit)
-                ) {
-                    parent.children.push({
-                        id: node.id,
-                        type: node.type
-                    });
-                    node.parents.push({
-                        id: parent.id,
-                        type: node.type
-                    });
-                    return true;
-                }
-            }
-            return false;
-        };
-        const { random, extract, info } = uniqueRandomRange(0, depthSize - 1);
+        const { random, extract } = uniqueRandomRange(0, depthSize);
 
         extract(parentIndex);
 
@@ -187,14 +180,13 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         }
 
         while (node.parents.length <= parentsLimit) {
-            const parent1 = (round[node.depth - 1] || [])[parentIndex];
-            const parent2 = (round[node.depth - 2] || [])[parentIndex];
+            const parent1 = (round[depth - 1] || [])[parentIndex];
+            const parent2 = (round[depth - 2] || [])[parentIndex];
 
             if (!checkParent(node, parent1)) {
                 checkParent(node, parent2);
             }
-
-            if (node.depth === 0) {
+            if (depth === 0) {
                 checkParent(node, startNode);
             }
 
@@ -226,9 +218,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     }
 
     createNode(numTx, "critical");
-
-    nodes.forEach(createLinks);
-
     rounds[roundNum] = numTx + 1;
 
     postMessage({

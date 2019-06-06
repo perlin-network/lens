@@ -117,7 +117,7 @@ class Perlin {
 
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
-    private peerPollIntv: number = 5000;
+    private peerPollIntv: number = 10000;
     private transactionMap: any = {};
 
     private constructor() {
@@ -413,7 +413,18 @@ class Perlin {
 
         const ws = new ReconnectingWebSocket(url.toString());
 
-        ws.onmessage = ({ data }) => {
+        const pushTransactions = _.debounce(
+            () => {
+                this.transactions.recent = transactions;
+            },
+            this.transactionDebounceIntv,
+            {
+                maxWait: 2 * this.transactionDebounceIntv
+            }
+        );
+        const transactions = [...this.transactions.recent];
+
+        ws.onmessage = async ({ data }) => {
             data = JSON.parse(data);
 
             const tx: ITransaction = {
@@ -435,25 +446,11 @@ class Perlin {
                 case "applied":
                     const parsedTx = Perlin.parseWiredTransaction(
                         tx,
-                        this.transactions.recent.length
+                        transactions.length
                     );
 
-                    if (!this.transactionMap[parsedTx.id]) {
-                        this.transactions.recent = [
-                            parsedTx,
-                            ...this.transactions.recent
-                        ];
-                        this.transactionMap[parsedTx.id] = parsedTx;
-                    } else {
-                        // update tx refference and change this.transactions.recent refference to force change detection
-                        Object.assign(
-                            this.transactionMap[parsedTx.id],
-                            parsedTx
-                        );
-                        this.transactions.recent = [
-                            ...this.transactions.recent
-                        ];
-                    }
+                    transactions.unshift(parsedTx);
+                    pushTransactions();
                     break;
                 case "failed":
                     console.log(data.error);
@@ -522,6 +519,9 @@ class Perlin {
         const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
+            if (!data) {
+                return;
+            }
             data = JSONbig.parse(data);
 
             if (data.account_id === id) {
