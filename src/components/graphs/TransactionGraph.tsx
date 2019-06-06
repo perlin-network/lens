@@ -64,18 +64,6 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             goToTxDetailPage
         );
 
-        perlin.onTransactionsRemoved = (numTx: number) => {
-            // scene.removeNodes(numTx);
-        };
-
-        perlin.onTransactionsCreated = nodes => {
-            // scene.addNodes(nodes);
-        };
-
-        perlin.onTransactionsUpdated = () => {
-            // scene.updateNodes();
-        };
-
         const addRoundDisposer = graphStore.subscribe(
             "addRound",
             (data: any) => {

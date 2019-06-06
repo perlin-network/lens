@@ -414,16 +414,11 @@ export class TransactionGraphScene {
                             x,
                             y: y - 10,
                             title: "Transaction",
-                            text: "nop",
-                            status: "",
+                            text: "round: " + node.round,
+                            status: node.type,
                             visible: true
                         };
 
-                        // if (node.payload) {
-                        tooltip.title = node.type;
-                        tooltip.status = node.id + "";
-                        tooltip.text = ""; // node.payload.amount + " PERLs";
-                        // }
                         this.setTooltipHander(tooltip);
                         hoveredNode = node;
                         return true;

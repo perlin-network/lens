@@ -71,6 +71,16 @@ const statusTypes = {
         display: "block",
         text: "Accepted"
     },
+    critical: {
+        color: "#4788f1",
+        display: "block",
+        text: "Critical"
+    },
+    start: {
+        color: "#4788f1",
+        display: "block",
+        text: "Critical"
+    },
     failed: {
         color: "#940f1f",
         display: "block",
