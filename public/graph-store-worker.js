@@ -75,10 +75,11 @@ const uniqueRandomRange = (min, max) => {
 };
 
 const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
-    if (rounds[roundNum]) {
+    let numTx = accepted + rejected;
+
+    if (rounds[roundNum] || !numTx) {
         return;
     }
-    let numTx = accepted + rejected;
     const { random: uniqueRandom } = uniqueRandomRange(1, numTx);
 
     const depthSize = Math.ceil(numTx / maxDepth);
@@ -144,10 +145,8 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             return node;
         }
 
-        const parentsLimit = randomRange(
-            1,
-            node.type === "critical" ? depthSize : 2
-        );
+        const parentsLimit =
+            node.type === "critical" ? depthSize : randomRange(1, 2);
         let parentIndex = depthIndex;
 
         const { random, extract } = uniqueRandomRange(0, depthSize);
@@ -176,7 +175,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
                     node.type === "critical" ||
                     parent.type === "critical" ||
                     !node.parents.length ||
-                    parent.children.length < randomRange(0, 2)
+                    !parent.children.length
                 ) {
                     parent.children.push({
                         id: node.id,

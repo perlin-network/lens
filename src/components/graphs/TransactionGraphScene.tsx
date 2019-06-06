@@ -319,6 +319,11 @@ export class TransactionGraphScene {
         const onKeyDown = (event: any) => {
             let round;
             let node;
+            event.preventDefault();
+
+            if (!this.focusedNode) {
+                return;
+            }
             const focusedRound = this.rounds[this.focusedNode.round];
 
             if (event.key === "ArrowDown") {
@@ -341,7 +346,6 @@ export class TransactionGraphScene {
 
             if (node) {
                 this.fastPointCamera(node);
-                event.preventDefault();
             }
         };
         window.addEventListener("keydown", onKeyDown);
