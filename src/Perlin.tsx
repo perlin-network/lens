@@ -413,52 +413,58 @@ class Perlin {
 
         const ws = new ReconnectingWebSocket(url.toString());
 
-        ws.onmessage = async ({ data }) => {
-            data = JSON.parse(data);
+        ws.onmessage = _.debounce(
+            ({ data }) => {
+                data = JSON.parse(data);
 
-            const tx: ITransaction = {
-                id: data.tx_id,
-                sender: data.sender_id,
-                creator: data.creator_id,
-                parents: data.parents,
-                nonce: data.nonce,
-                depth: data.depth,
-                confidence: data.confidence,
-                tag: data.tag,
-                payload: data.payload,
-                status: data.event
-            };
+                const tx: ITransaction = {
+                    id: data.tx_id,
+                    sender: data.sender_id,
+                    creator: data.creator_id,
+                    parents: data.parents,
+                    nonce: data.nonce,
+                    depth: data.depth,
+                    confidence: data.confidence,
+                    tag: data.tag,
+                    payload: data.payload,
+                    status: data.event
+                };
 
-            console.log(data.event, tx.id);
-            switch (data.event) {
-                case "new":
-                case "applied":
-                    const parsedTx = Perlin.parseWiredTransaction(
-                        tx,
-                        this.transactions.recent.length
-                    );
-
-                    if (!this.transactionMap[parsedTx.id]) {
-                        this.transactions.recent = [
-                            parsedTx,
-                            ...this.transactions.recent
-                        ];
-                        this.transactionMap[parsedTx.id] = parsedTx;
-                    } else {
-                        // update tx refference and change this.transactions.recent refference to force change detection
-                        Object.assign(
-                            this.transactionMap[parsedTx.id],
-                            parsedTx
+                console.log(data.event, tx.id);
+                switch (data.event) {
+                    case "new":
+                    case "applied":
+                        const parsedTx = Perlin.parseWiredTransaction(
+                            tx,
+                            this.transactions.recent.length
                         );
-                        this.transactions.recent = [
-                            ...this.transactions.recent
-                        ];
-                    }
-                    break;
-                case "failed":
-                    console.log(data.error);
+
+                        if (!this.transactionMap[parsedTx.id]) {
+                            this.transactions.recent = [
+                                parsedTx,
+                                ...this.transactions.recent
+                            ];
+                            this.transactionMap[parsedTx.id] = parsedTx;
+                        } else {
+                            // update tx refference and change this.transactions.recent refference to force change detection
+                            Object.assign(
+                                this.transactionMap[parsedTx.id],
+                                parsedTx
+                            );
+                            this.transactions.recent = [
+                                ...this.transactions.recent
+                            ];
+                        }
+                        break;
+                    case "failed":
+                        console.log(data.error);
+                }
+            },
+            1000,
+            {
+                maxWait: 1000
             }
-        };
+        );
     }
 
     private pollConsensusUpdates() {
@@ -467,33 +473,39 @@ class Perlin {
 
         const ws = new ReconnectingWebSocket(url.toString());
 
-        ws.onmessage = ({ data }) => {
-            data = JSON.parse(data);
-            switch (data.event) {
-                case "prune":
-                    console.log("Prunning #", data.pruned_round_id);
+        ws.onmessage = _.debounce(
+            ({ data }) => {
+                data = JSON.parse(data);
+                switch (data.event) {
+                    case "prune":
+                        console.log("Prunning #", data.pruned_round_id);
 
-                    if (this.onConsensusPrune) {
-                        this.onConsensusPrune(
-                            data.pruned_round_id,
-                            data.num_tx
-                        );
-                    }
-                    break;
-                case "round_end":
-                    console.log("Round end #", data.new_round);
-                    if (this.onConsensusRound) {
-                        this.onConsensusRound(
-                            data.num_applied_tx,
-                            data.num_rejected_tx,
-                            data.round_depth,
-                            data.new_round,
-                            data.old_root,
-                            data.new_root
-                        );
-                    }
+                        if (this.onConsensusPrune) {
+                            this.onConsensusPrune(
+                                data.pruned_round_id,
+                                data.num_tx
+                            );
+                        }
+                        break;
+                    case "round_end":
+                        console.log("Round end #", data.new_round);
+                        if (this.onConsensusRound) {
+                            this.onConsensusRound(
+                                data.num_applied_tx,
+                                data.num_rejected_tx,
+                                data.round_depth,
+                                data.new_round,
+                                data.old_root,
+                                data.new_root
+                            );
+                        }
+                }
+            },
+            1000,
+            {
+                maxWait: 1000
             }
-        };
+        );
     }
 
     private pollMetricsUpdates() {

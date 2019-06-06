@@ -173,9 +173,8 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             if (parent) {
                 if (
                     node.type === "critical" ||
-                    parent.type === "critical" ||
-                    !node.parents.length ||
-                    !parent.children.length
+                    parent.type === "start" ||
+                    !node.parents.length
                 ) {
                     parent.children.push({
                         id: node.id,

@@ -5,10 +5,10 @@ import * as _ from "lodash";
 import { INode } from "./GraphStore";
 
 const texIndicesMap = {
-    rejected: 2.0,
-    accepted: 0.0,
-    critical: 0.0,
-    start: 0.0
+    rejected: 2,
+    accepted: 0,
+    critical: 0,
+    start: 0
 };
 const sizeMap = {
     rejected: 3,
@@ -22,10 +22,6 @@ export class TransactionGraphScene {
     private el: any;
     private scene: any;
     private camera: any;
-    private lines: any;
-    private dashes: any;
-    private dots: any;
-    private nodes: any = [];
     private mouse: any;
     private renderer: any;
     private raycaster: any;
@@ -37,15 +33,11 @@ export class TransactionGraphScene {
     );
 
     private controls: any;
-    private lastIndex: number = 0;
     private dotTexture: any;
-    private removedNodes = 0;
     private dotSecondaryTexture: any;
     private dotHoverTexture: any;
-    private distanceConstraint: any;
     private setTooltipHander: (newValue: any) => void;
     private clickHandler: (id: string) => void;
-    private focusedIndex: any; // node index towards which the camera is pointing
     private width: number;
     private height: number;
     private animationId: number;
@@ -117,12 +109,12 @@ export class TransactionGraphScene {
             });
         });
 
-        const lineIndices = new Uint32Array(tmpLineIndices);
-        const dashIndices = new Uint32Array(tmpDashIndices);
+        const lineIndices = new Uint16Array(tmpLineIndices);
+        const dashIndices = new Uint16Array(tmpDashIndices);
 
         const positions = new Float32Array(tmpPositions);
-        const sizes = new Float32Array(tmpSizes);
-        const texIndices = new Float32Array(tmpTexIndices);
+        const sizes = new Uint8Array(tmpSizes);
+        const texIndices = new Uint8Array(tmpTexIndices);
 
         this.addDots(positions, sizes, texIndices, roundNum);
         this.addLines(positions, lineIndices, dashIndices, roundNum);
@@ -210,8 +202,8 @@ export class TransactionGraphScene {
     };
     private addDots(
         positions: Float32Array,
-        sizes: Float32Array,
-        texIndices: Float32Array,
+        sizes: Uint8Array,
+        texIndices: Uint8Array,
         roundNum: number
     ) {
         const dotsGeometry = new THREE.BufferGeometry();
@@ -245,8 +237,8 @@ export class TransactionGraphScene {
 
     private addLines(
         positions: Float32Array,
-        lineIndices: Uint32Array,
-        dashIndices: Uint32Array,
+        lineIndices: Uint16Array,
+        dashIndices: Uint16Array,
         roundNum: number
     ) {
         const lineGeometry = new THREE.BufferGeometry();
@@ -319,7 +311,6 @@ export class TransactionGraphScene {
         const onKeyDown = (event: any) => {
             let round;
             let node;
-            event.preventDefault();
 
             if (!this.focusedNode) {
                 return;
@@ -327,11 +318,13 @@ export class TransactionGraphScene {
             const focusedRound = this.rounds[this.focusedNode.round];
 
             if (event.key === "ArrowDown") {
+                event.preventDefault();
                 round = this.rounds[this.focusedNode.round - 1];
                 node = focusedRound.nodes[0];
             }
 
             if (event.key === "ArrowUp") {
+                event.preventDefault();
                 if (this.focusedNode.depth !== -1) {
                     round = this.rounds[this.focusedNode.round + 1];
                 }
