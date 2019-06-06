@@ -109,8 +109,8 @@ export class TransactionGraphScene {
             });
         });
 
-        const lineIndices = new Uint16Array(tmpLineIndices);
-        const dashIndices = new Uint16Array(tmpDashIndices);
+        const lineIndices = new Uint32Array(tmpLineIndices);
+        const dashIndices = new Uint32Array(tmpDashIndices);
 
         const positions = new Float32Array(tmpPositions);
         const sizes = new Uint8Array(tmpSizes);
@@ -237,8 +237,8 @@ export class TransactionGraphScene {
 
     private addLines(
         positions: Float32Array,
-        lineIndices: Uint16Array,
-        dashIndices: Uint16Array,
+        lineIndices: Uint32Array,
+        dashIndices: Uint32Array,
         roundNum: number
     ) {
         const lineGeometry = new THREE.BufferGeometry();
