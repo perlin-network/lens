@@ -425,6 +425,9 @@ class Perlin {
         const transactions = [...this.transactions.recent];
 
         ws.onmessage = async ({ data }) => {
+            if (!data) {
+                return;
+            }
             data = JSON.parse(data);
 
             const tx: ITransaction = {
@@ -478,7 +481,13 @@ class Perlin {
                     }
                     break;
                 case "round_end":
-                    console.log("Round end #", data.new_round);
+                    console.log(
+                        "Round end {num_tx, rejected_tx, round_depth, round_num}",
+                        data.num_applied_tx,
+                        data.num_rejected_tx,
+                        data.round_depth,
+                        data.new_round
+                    );
                     if (this.onConsensusRound) {
                         this.onConsensusRound(
                             data.num_applied_tx,

@@ -414,7 +414,7 @@ export class TransactionGraphScene {
                             x,
                             y: y - 10,
                             title: "Transaction",
-                            text: "round: " + node.round,
+                            text: `round: ${node.round}`,
                             status: node.type,
                             visible: true
                         };

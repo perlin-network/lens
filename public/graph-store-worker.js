@@ -73,7 +73,7 @@ const uniqueRandomRange = (min, max) => {
         extract
     };
 };
-
+let startNode;
 const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     if (rounds[roundNum]) {
         return;
@@ -94,30 +94,27 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     const nodes = [];
 
     const checkParent = (node, parent) => {
-        if (parent && parent.type !== "rejected") {
+        if (parent && node) {
+            const diffY = Math.abs(parent.depthPos[0] - node.depthPos[0]);
+            const diffX = Math.abs(parent.depthPos[1] - node.depthPos[1]);
+            const diff = (diffX + diffY) / 2;
             if (
                 node.type === "critical" ||
                 parent.type === "start" ||
-                !node.parents.length ||
-                !parent.children.length
+                (!node.parents.length && diff <= 1) ||
+                (!parent.children.length && diff <= 1)
             ) {
-                parent.children.push({
-                    id: node.id,
-                    type: node.type
-                });
-                node.parents.push({
-                    id: parent.id,
-                    type: node.type
-                });
+                createLink(node, parent);
             }
             return true;
         }
         return false;
     };
-    const createNode = (index, type) => {
+    const createNode = (id, type) => {
         let txId;
+        let index = id - 1;
         // index - 1 we must omitt the start node
-        let depth = (index - 1) % maxDepth; // Math.floor((index - 1) / depthSize);
+        let depth = index % maxDepth; // Math.floor((index - 1) / depthSize);
         let depthIndex;
         do {
             depthIndex = randomRange(0, depthSize - 1);
@@ -144,19 +141,18 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         const depthPos = getPos(depthIndex, depthWidth);
 
         const node = {
-            id: index,
+            id,
             type,
             depth,
             round: roundNum,
             globalDepth,
             depthPos,
+            depthIndex,
             parents: [],
             children: [],
             txId,
             posOffset: randomRange(-15, 15) / 100
         };
-
-        nodes.push(node);
 
         round[depth] = round[depth] || [];
         round[depth][depthIndex] = node;
@@ -165,73 +161,92 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             return node;
         }
 
-        const parentsLimit = randomRange(
-            1,
-            node.type === "critical" ? depthSize : 3
-        );
-        let parentIndex = depthIndex;
-
-        const { random, extract } = uniqueRandomRange(0, depthSize);
-
-        extract(parentIndex);
+        if (node.depth === 0) {
+            createLink(node, startNode);
+            return node;
+        }
 
         if (node.type === "critical") {
-            lastCritical = node;
+            startNode = node;
+            (round[depth - 1] || []).forEach(parent =>
+                createLink(node, parent)
+            );
+            // return node;
         }
 
-        while (node.parents.length <= parentsLimit) {
-            const parent1 = (round[depth - 1] || [])[parentIndex];
-            const parent2 = (round[depth - 2] || [])[parentIndex];
-
-            if (!checkParent(node, parent1)) {
-                checkParent(node, parent2);
-            }
-            if (depth === 0) {
-                checkParent(node, startNode);
-            }
-
-            parentIndex = random();
-
-            if (typeof parentIndex === "undefined") {
-                break;
-            }
-        }
+        return node;
     };
 
-    let startNode;
     let index = 0;
 
-    if (lastCritical) {
+    if (startNode) {
         startNode = {
-            ...lastCritical,
+            ...startNode,
             id: index,
             type: "start",
             depth: -1
         };
-        nodes.push(startNode);
     } else {
         startNode = createNode(index, "start");
     }
+    nodes.push(startNode);
 
     while (++index < numTx) {
-        createNode(index, typeMap[index] || "accepted");
+        const node = createNode(index, typeMap[index] || "accepted");
+        nodes.push(node);
     }
 
-    createNode(numTx, "critical");
-    rounds[roundNum] = numTx + 1;
+    const node = createNode(numTx, "critical");
+    nodes.push(node);
 
-    postMessage({
-        type: "addRound",
-        data: {
-            roundNum,
-            nodes
+    nodes.forEach(node => {
+        let parentIndex = node.depthIndex;
+        let level = 1;
+        let inc = -1;
+        const parentLimit = randomRange(1, 3);
+        while (parentIndex >= 0 && parentIndex < depthSize) {
+            const parent1 = (round[node.depth - level] || [])[parentIndex];
+            const parent2 = (round[node.depth + level] || [])[parentIndex];
+
+            if (!checkParent(node, parent1)) {
+                checkParent(parent2, node);
+            }
+
+            if (node.parents.length >= parentLimit) {
+                return;
+            }
+            parentIndex -= inc;
+
+            if (parentIndex < 0 && level <= 4) {
+                level++;
+                inc = level % 2 === 0 ? -1 : 1;
+                parentIndex = node.depthIndex;
+            }
         }
     });
-};
+    rounds[roundNum] = numTx + 1;
 
-const resetNodeIds = () => {
-    let counter = 0;
-    nodes.forEach(node => (node.id = counter++));
+    postMessage(
+        JSON.stringify({
+            type: "addRound",
+            data: {
+                roundNum,
+                nodes
+            }
+        })
+    );
+};
+const createLink = (node, parent) => {
+    if (parent.type !== "rejected") {
+        parent.children.push({
+            id: node.id,
+            type: node.type
+        });
+        node.parents.push({
+            id: parent.id,
+            type: parent.type
+        });
+    }
 };
 
 const pruneRound = (roundNum, numTx) => {
@@ -239,14 +254,14 @@ const pruneRound = (roundNum, numTx) => {
         rounds[roundNum] = -1;
     }
 
-    // numTx = rounds[roundNum];
-
     delete rounds[roundNum];
-    // nodes.splice(0, numTx);
-    postMessage({
-        type: "pruneRound",
-        data: roundNum
-    });
+
+    postMessage(
+        JSON.stringify({
+            type: "pruneRound",
+            data: roundNum
+        })
+    );
 };
 
 const destroy = () => {

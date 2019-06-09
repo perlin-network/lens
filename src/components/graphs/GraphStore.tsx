@@ -25,6 +25,7 @@ export class GraphStore {
     private static singleton: GraphStore;
     private subscriptions: any = [];
     private worker: Worker;
+    private start: any;
 
     constructor() {
         this.worker = new Worker(
@@ -33,7 +34,11 @@ export class GraphStore {
 
         // Receive messages from postMessage() calls in the Worker
         this.worker.onmessage = evt => {
-            const { type, data } = evt.data;
+            const { type, data } = JSON.parse(evt.data);
+            if (type === "addRound") {
+                const done = new Date().getTime();
+                console.log("generate nodes time:", done - this.start);
+            }
             this.notifySubscribers(type, data);
         };
 
@@ -60,6 +65,7 @@ export class GraphStore {
         startId?: string,
         endId?: string
     ) => {
+        this.start = new Date().getTime();
         this.worker.postMessage({
             type: "addRound",
             accepted,
