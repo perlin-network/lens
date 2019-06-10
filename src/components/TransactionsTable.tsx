@@ -153,7 +153,7 @@ const CustomNoDataComponent: (
 @observer
 export default class TransactionsTable extends React.Component<{}, {}> {
     public loadFunc = async (page: any) => {
-        perlin.getTableTransactions(page * 50, 50);
+        perlin.getTableTransactions((page - 1) * 250, 250);
     };
     public render() {
         const data: any[] = perlin.transactions.recent;

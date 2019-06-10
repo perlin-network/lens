@@ -118,7 +118,6 @@ class Perlin {
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
     private peerPollIntv: number = 10000;
-    private transactionMap: any = {};
 
     private constructor() {
         this.keys = nacl.sign.keyPair.fromSecretKey(
@@ -376,7 +375,6 @@ class Perlin {
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex);
-        this.getTableTransactions(0, 50);
     }
 
     private async initPeers() {
@@ -419,15 +417,14 @@ class Perlin {
         const ws = new ReconnectingWebSocket(url.toString());
 
         const pushTransactions = _.debounce(
-            () => {
-                this.transactions.recent = transactions;
+            tx => {
+                this.transactions.recent = [tx, ...this.transactions.recent];
             },
             this.transactionDebounceIntv,
             {
                 maxWait: 2 * this.transactionDebounceIntv
             }
         );
-        const transactions = [...this.transactions.recent];
 
         ws.onmessage = async ({ data }) => {
             if (!data) {
@@ -454,11 +451,9 @@ class Perlin {
                 case "applied":
                     const parsedTx = Perlin.parseWiredTransaction(
                         tx,
-                        transactions.length
+                        this.transactions.recent.length
                     );
-
-                    transactions.unshift(parsedTx);
-                    pushTransactions();
+                    pushTransactions(parsedTx);
                     break;
                 case "failed":
                     console.log(data.error);
@@ -526,7 +521,9 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(`ws://${this.api.host}/poll/accounts`);
+        const url = new URL(
+            `ws://${this.api.host}/poll/accounts?id=${this.publicKeyHex}`
+        );
         url.searchParams.append("token", this.api.token);
         url.searchParams.append("id", id);
 
@@ -559,7 +556,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<ITransaction[] | undefined> {
-        return await this.getJSON("/tx", {
+        return await this.getJSON(`/tx?sender=${this.publicKeyHex}`, {
             offset,
             limit,
             sender: this.publicKeyHex
