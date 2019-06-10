@@ -149,7 +149,11 @@ class Perlin {
         };
     }
 
-    public async transfer(recipient: string, amount: number): Promise<any> {
+    public async transfer(
+        recipient: string,
+        amount: number,
+        gasLimit: number = 0
+    ): Promise<any> {
         if (recipient.length !== 64) {
             throw new Error("Recipient must be a length-64 hex-encoded.");
         }
@@ -157,6 +161,7 @@ class Perlin {
         const payload = new PayloadWriter();
         payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
+        payload.writeUint64(Long.fromNumber(gasLimit, true));
 
         return await this.post(
             "/tx/send",
