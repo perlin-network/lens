@@ -216,6 +216,9 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
 
     // we wait for all of the nodes to be positioned before we start linking them
     nodes.forEach(node => {
+        if (node.type === "critical" || node.type === "start") {
+            return;
+        }
         // above and beneath nodes are prefered for linking
         let parentIndex = node.depthIndex;
         let counter = 0;
@@ -250,7 +253,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             parentIndex += inc;
             counter++;
 
-            if (parentIndex < 0 && level <= 4) {
+            if (parentIndex < 0 && level <= 2) {
                 level++;
 
                 // we alternate the increment direction so that there a diagonal links on both directions
