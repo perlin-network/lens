@@ -25,8 +25,6 @@ const getPos = (index, width) => [
     offset(index % width, width),
     offset(Math.floor(index / width), width)
 ];
-
-let lastCritical;
 let rounds = {};
 
 const randomRange = (min, max) => {
@@ -34,7 +32,7 @@ const randomRange = (min, max) => {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
-// @ts-ignore
+
 const uniqueRandomRange = (min, max) => {
     if (min > max) {
         throw new Error(`Invalid random ranges ${min} - ${max}`);
@@ -73,7 +71,13 @@ const uniqueRandomRange = (min, max) => {
         extract
     };
 };
+
+/*
+ *   startNode is the first node in the current round
+ *   and the end (critical) node of the previous round
+ */
 let startNode;
+
 const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     if (rounds[roundNum]) {
         return;
@@ -81,7 +85,10 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     let numTx = accepted + rejected;
     const { random: uniqueRandom } = uniqueRandomRange(1, numTx);
 
+    // depthSize represents the maximum number of nodes which can be on depth level
     const depthSize = Math.ceil(numTx / maxDepth);
+
+    // random indices will be assigned rejected status
     const typeMap = {};
     let count = 0;
 
@@ -95,6 +102,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
 
     const checkParent = (node, parent) => {
         if (parent && node) {
+            // diff of node positions assures that there a no cris-crossing links
             const diffY = Math.abs(parent.depthPos[0] - node.depthPos[0]);
             const diffX = Math.abs(parent.depthPos[1] - node.depthPos[1]);
             const diff = (diffX + diffY) / 2;
@@ -113,30 +121,38 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     const createNode = (id, type) => {
         let txId;
         let index = id - 1;
-        // index - 1 we must omitt the start node
-        let depth = index % maxDepth; // Math.floor((index - 1) / depthSize);
+        /*
+        *   index = id - 1 we must omitt the startNode
+        /*  In order for it (and its links) to be rendered it needs to be stored in the node array
+        */
+        let depth = index % maxDepth;
         let depthIndex;
         do {
             depthIndex = randomRange(0, depthSize - 1);
         } while (round[depth] && round[depth][depthIndex]);
 
+        /*
+         *  last node should be on it's one level except where the depthSize
+         */
         if (type === "critical") {
             depth = depthSize === 1 ? maxDepth - 1 : maxDepth;
             txId = endId;
         }
 
+        //  globalDepth is use to vertically position the nodes within the global viewport
         let globalDepth = depth;
         if (startNode) {
             globalDepth = startNode.globalDepth + depth + 1;
         }
 
-        // for first startNode
+        // startNode will overlap previous round critical node
         if (type === "start") {
             depth = -1;
             globalDepth = -1;
             txId = startId;
         }
 
+        // depthWidth reprezents the dimention of matrix structure for each level
         const depthWidth = Math.ceil(Math.sqrt(depthSize));
         const depthPos = getPos(depthIndex, depthWidth);
 
@@ -151,7 +167,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             parents: [],
             children: [],
             txId,
-            posOffset: randomRange(-15, 15) / 100
+            posOffset: randomRange(-15, 15) / 100 // add random position offsets to avoid link overlapping
         };
 
         round[depth] = round[depth] || [];
@@ -171,7 +187,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             (round[depth - 1] || []).forEach(parent =>
                 createLink(node, parent)
             );
-            // return node;
         }
 
         return node;
@@ -199,34 +214,57 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     const node = createNode(numTx, "critical");
     nodes.push(node);
 
+    // we wait for all of the nodes to be positioned before we start linking them
     nodes.forEach(node => {
+        // above and beneath nodes are prefered for linking
         let parentIndex = node.depthIndex;
+        let counter = 0;
         let level = 1;
-        let inc = -1;
-        const parentLimit = randomRange(1, 3);
-        while (parentIndex >= 0 && parentIndex < depthSize) {
-            const parent1 = (round[node.depth - level] || [])[parentIndex];
-            const parent2 = (round[node.depth + level] || [])[parentIndex];
+        let inc = 1;
+        const parentLimit = randomRange(1, 2);
 
-            if (!checkParent(node, parent1)) {
-                checkParent(parent2, node);
+        while (
+            counter < depthSize &&
+            (round[node.depth - level] || round[node.depth + level])
+        ) {
+            /*
+             *   starts with possible node located above or bellow the current one
+             *   and goes round the depth matrices to check for posible parent and/or child nodes
+             */
+            const circularIndex = Math.abs(parentIndex % depthSize);
+
+            if (node.parents.length < parentLimit) {
+                const parent = (round[node.depth - level] || [])[circularIndex];
+                checkParent(node, parent);
             }
 
-            if (node.parents.length >= parentLimit) {
+            if (!node.children.length) {
+                const child = (round[node.depth + level] || [])[circularIndex];
+                checkParent(child, node);
+            }
+
+            if (node.parents.length >= parentLimit && node.children.length) {
                 return;
             }
-            parentIndex -= inc;
+
+            parentIndex += inc;
+            counter++;
 
             if (parentIndex < 0 && level <= 4) {
                 level++;
+
+                // we alternate the increment direction so that there a diagonal links on both directions
                 inc = level % 2 === 0 ? -1 : 1;
+                counter = 0;
                 parentIndex = node.depthIndex;
             }
         }
     });
+
     rounds[roundNum] = numTx + 1;
 
     postMessage(
+        //  passing a stringified objects to web workers is considerably faster than JS objects
         JSON.stringify({
             type: "addRound",
             data: {
@@ -236,6 +274,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         })
     );
 };
+
 const createLink = (node, parent) => {
     if (parent.type !== "rejected") {
         parent.children.push({
@@ -251,6 +290,7 @@ const createLink = (node, parent) => {
 
 const pruneRound = (roundNum, numTx) => {
     if (typeof rounds[roundNum] === "undefined") {
+        // we mark the round as pruned and skip it in case addRound is somehow called after
         rounds[roundNum] = -1;
     }
 
@@ -266,5 +306,4 @@ const pruneRound = (roundNum, numTx) => {
 
 const destroy = () => {
     rounds = {};
-    lastCritical = undefined;
 };

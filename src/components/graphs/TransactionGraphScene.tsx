@@ -76,10 +76,15 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
+    /*
+     *   each round will have it's own set of nodes and lines group
+     *   the first node will always be the start node it overlaps the last node of the previous round
+     */
     public renderNodes(nodes: INode[], roundNum: number) {
         this.rounds[roundNum] = {};
         this.rounds[roundNum].nodes = nodes;
 
+        // nodes.length - 1 - we must ommit the startNode
         console.log("New Round Graph Nodes #", nodes.length - 1);
 
         let count = 0;
@@ -174,6 +179,9 @@ export class TransactionGraphScene {
 
         const [x, y, z] = this.getPos(node);
 
+        /*
+         *   camera and target need to be moved together
+         */
         const positionTween = new TWEEN.Tween(position)
             .to({ x, y, z }, 1800)
             .delay(200)
@@ -182,7 +190,7 @@ export class TransactionGraphScene {
                 this.camera.position.set(
                     newPosition.x,
                     newPosition.y,
-                    newPosition.z + 15
+                    newPosition.z + 15 // maintains a distance between camera and where it's pointing at
                 );
             })
             .start();
@@ -242,6 +250,8 @@ export class TransactionGraphScene {
         roundNum: number
     ) {
         const lineGeometry = new THREE.BufferGeometry();
+
+        // dash line is slighly transparent line, used for connecting rejected nodes
         const dashGeometry = new THREE.BufferGeometry();
 
         const verticles = new THREE.BufferAttribute(positions, 3);
