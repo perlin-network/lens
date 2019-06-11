@@ -116,7 +116,7 @@ class Perlin {
     public onConsensusPrune: (round: number, numTx: number) => void;
 
     private keys: nacl.SignKeyPair;
-    private transactionDebounceIntv: number = 2000;
+    private transactionDebounceIntv: number = 2200;
     private peerPollIntv: number = 10000;
 
     private constructor() {
@@ -417,8 +417,12 @@ class Perlin {
         const ws = new ReconnectingWebSocket(url.toString());
 
         const pushTransactions = _.debounce(
-            tx => {
-                this.transactions.recent = [tx, ...this.transactions.recent];
+            transactions => {
+                this.transactions.recent = [
+                    ...transactions,
+                    ...lastTransactions
+                ].slice(0, 50);
+                lastTransactions = this.transactions.recent;
             },
             this.transactionDebounceIntv,
             {
@@ -426,38 +430,42 @@ class Perlin {
             }
         );
 
+        let lastTransactions: ITransaction[] = this.transactions.recent;
         ws.onmessage = async ({ data }) => {
             if (!data) {
                 return;
             }
-            data = JSON.parse(data);
+            const logs = JSON.parse(data);
+            const transactions: ITransaction[] = [];
+            console.log("new tx logs", logs.length);
+            logs.forEach((item: any) => {
+                const tx: ITransaction = {
+                    id: item.tx_id,
+                    sender: item.sender_id,
+                    creator: item.creator_id,
+                    parents: item.parents,
+                    nonce: item.nonce,
+                    depth: item.depth,
+                    confidence: item.confidence,
+                    tag: item.tag,
+                    payload: item.payload,
+                    status: item.event
+                };
 
-            const tx: ITransaction = {
-                id: data.tx_id,
-                sender: data.sender_id,
-                creator: data.creator_id,
-                parents: data.parents,
-                nonce: data.nonce,
-                depth: data.depth,
-                confidence: data.confidence,
-                tag: data.tag,
-                payload: data.payload,
-                status: data.event
-            };
+                switch (item.event) {
+                    case "new":
+                    case "applied":
+                        const parsedTx = Perlin.parseWiredTransaction(
+                            tx,
+                            this.transactions.recent.length
+                        );
+                        transactions.unshift(parsedTx);
+                        pushTransactions(transactions);
 
-            console.log(data.event, tx.id);
-            switch (data.event) {
-                case "new":
-                case "applied":
-                    const parsedTx = Perlin.parseWiredTransaction(
-                        tx,
-                        this.transactions.recent.length
-                    );
-                    pushTransactions(parsedTx);
-                    break;
-                case "failed":
-                    console.log(data.error);
-            }
+                        // this.transactions.recent.unshift(parsedTx);
+                        break;
+                }
+            });
         };
     }
 
@@ -468,37 +476,33 @@ class Perlin {
         const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
-            data = JSON.parse(data);
-            switch (data.event) {
-                case "prune":
-                    console.log("Prunning #", data.pruned_round_id);
+            const logs = JSON.parse(data);
 
-                    if (this.onConsensusPrune) {
-                        this.onConsensusPrune(
-                            data.pruned_round_id,
-                            data.num_tx
-                        );
-                    }
-                    break;
-                case "round_end":
-                    console.log(
-                        "Round end {num_tx, rejected_tx, round_depth, round_num}",
-                        data.num_applied_tx,
-                        data.num_rejected_tx,
-                        data.round_depth,
-                        data.new_round
-                    );
-                    if (this.onConsensusRound) {
-                        this.onConsensusRound(
-                            data.num_applied_tx,
-                            data.num_rejected_tx,
-                            data.round_depth,
-                            data.new_round,
-                            data.old_root,
-                            data.new_root
-                        );
-                    }
-            }
+            logs.forEach((item: any) => {
+                switch (item.event) {
+                    case "prune":
+                        console.log("Prunning #", item.pruned_round_id);
+
+                        if (this.onConsensusPrune) {
+                            this.onConsensusPrune(
+                                item.pruned_round_id,
+                                item.num_tx
+                            );
+                        }
+                        break;
+                    case "round_end":
+                        if (this.onConsensusRound) {
+                            this.onConsensusRound(
+                                item.num_applied_tx,
+                                item.num_rejected_tx,
+                                item.round_depth,
+                                item.new_round,
+                                item.old_root,
+                                item.new_root
+                            );
+                        }
+                }
+            });
         };
     }
 
@@ -509,10 +513,12 @@ class Perlin {
         const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
-            data = JSON.parse(data);
+            const logs = JSON.parse(data);
 
-            this.metrics.acceptedMean = data["tps.accepted"];
-            this.metrics.receivedMean = data["tps.received"];
+            logs.forEach((item: any) => {
+                this.metrics.acceptedMean = item["tps.accepted"];
+                this.metrics.receivedMean = item["tps.received"];
+            });
         };
     }
 
@@ -533,21 +539,24 @@ class Perlin {
             if (!data) {
                 return;
             }
-            data = JSONbig.parse(data);
 
-            if (data.account_id === id) {
-                // TODO(kenta): temp fix
-                switch (data.event) {
-                    case "balance_updated":
-                        this.account.balance = data.balance.toString();
-                        break;
-                    case "stake_updated":
-                        this.account.stake = data.stake;
-                        break;
-                    case "num_pages_updated":
-                        this.account.num_mem_pages = data.num_pages;
+            const logs = JSONbig.parse(data);
+
+            logs.forEach((item: any) => {
+                if (item.account_id === id) {
+                    // TODO(kenta): temp fix
+                    switch (item.event) {
+                        case "balance_updated":
+                            this.account.balance = item.balance.toString();
+                            break;
+                        case "stake_updated":
+                            this.account.stake = item.stake;
+                            break;
+                        case "num_pages_updated":
+                            this.account.num_mem_pages = item.num_pages;
+                    }
                 }
-            }
+            });
         };
     }
 
