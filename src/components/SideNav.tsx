@@ -60,8 +60,7 @@ const items: INavItem[] = [
     { title: "Network", link: "/network", icon: NetworkIcon },
     { title: "Validator", link: "/validator", icon: ValidatorIcon },
     { title: "Developer", link: "/contracts", icon: DeveloperIcon },
-    { title: "Settings", link: "/settings", icon: SettingsIcon },
-    { title: "Logout", link: "/logout", icon: LogoutIcon }
+    { title: "Settings", link: "/settings", icon: SettingsIcon }
 ];
 
 const LogoWrapper = styled.img`
@@ -70,35 +69,37 @@ const LogoWrapper = styled.img`
     margin-bottom: 2em;
 `;
 
-class SideNav extends React.Component<RouteComponentProps, {}> {
-    public render() {
-        const { pathname } = this.props.history.location;
+const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
+    const { pathname } = props.history.location;
 
-        return (
-            <>
-                <LogoWrapper src={perlinLogo} />
-
-                {items.map(item => (
-                    <NavItem
-                        key={item.title}
-                        onClick={
-                            item.link ? this.navigateTo(item.link) : undefined
-                        }
-                        active={pathname === item.link}
-                    >
-                        <NavIcon
-                            src={item.icon}
-                            active={pathname === item.link}
-                        />
-                        {item.title}
-                    </NavItem>
-                ))}
-            </>
-        );
-    }
-    private navigateTo = (link: string) => () => {
-        this.props.history.push(link);
+    const navigateTo = (link: string) => () => {
+        props.history.push(link);
     };
-}
+    const logout = () => () => {
+        console.log("logout...");
+    };
+
+    return (
+        <>
+            <LogoWrapper src={perlinLogo} />
+
+            {items.map(item => (
+                <NavItem
+                    key={item.title}
+                    onClick={item.link ? navigateTo(item.link) : undefined}
+                    active={pathname === item.link}
+                >
+                    <NavIcon src={item.icon} active={pathname === item.link} />
+                    {item.title}
+                </NavItem>
+            ))}
+
+            <NavItem onClick={logout()}>
+                <NavIcon src={LogoutIcon} />
+                Logout
+            </NavItem>
+        </>
+    );
+};
 
 export default withRouter(SideNav);
