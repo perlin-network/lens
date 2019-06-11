@@ -64,20 +64,19 @@ const items: INavItem[] = [
     { title: "Logout", link: "/logout", icon: LogoutIcon }
 ];
 
+const LogoWrapper = styled.img`
+    max-width: 150px;
+    padding: 20px;
+    margin-bottom: 2em;
+`;
+
 class SideNav extends React.Component<RouteComponentProps, {}> {
     public render() {
         const { pathname } = this.props.history.location;
 
         return (
             <>
-                <img
-                    src={perlinLogo}
-                    style={{
-                        maxWidth: "150px",
-                        padding: "20px",
-                        marginBottom: "2em"
-                    }}
-                />
+                <LogoWrapper src={perlinLogo} />
 
                 {items.map(item => (
                     <NavItem
