@@ -71,6 +71,8 @@ class Perlin {
         token: ""
     };
 
+    @observable public isLogged: boolean = false;
+
     @observable public ledger = {
         public_key: "",
         address: "",
@@ -104,15 +106,36 @@ class Perlin {
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2000;
     private peerPollIntv: number = 5000;
+    private interval: any;
 
     private constructor() {
+        const secret = storage.getSecretKey();
+
+        if (secret) {
+            this.setSecretKey(secret);
+        }
+    }
+
+    @action.bound
+    public async setSecretKey(hexString: string): Promise<any> {
         this.keys = nacl.sign.keyPair.fromSecretKey(
-            Buffer.from(
-                "87a6813c3b4cf534b6ae82db9b1409fa7dbd5c13dba5858970b56084c4a930eb400056ee68a7cc2695222df05ea76875bc27ec6e61e8e62317c336157019c405",
-                "hex"
-            )
+            Buffer.from(hexString, "hex")
         );
-        this.init().catch(err => console.error(err));
+        try {
+            this.isLogged = true;
+            await this.init();
+            storage.setSecretKey(hexString);
+            return Promise.resolve();
+        } catch (err) {
+            return Promise.reject(err);
+        }
+    }
+
+    @action.bound
+    public removeSecretKey() {
+        this.isLogged = false;
+        storage.removeSecretKey();
+        clearInterval(this.interval);
     }
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {
@@ -242,7 +265,7 @@ class Perlin {
 
     private async init() {
         try {
-            await this.startSession();
+            // await this.startSession();
             await this.initLedger();
             await this.initPeers();
 
@@ -252,7 +275,7 @@ class Perlin {
 
             storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
-            console.error(err);
+            throw new Error(err);
         }
     }
 
@@ -342,7 +365,7 @@ class Perlin {
     }
 
     private async initPeers() {
-        setInterval(async () => {
+        this.interval = setInterval(async () => {
             // only update peers
             const ledger = await this.getLedger();
             this.peers = ledger.peers;
@@ -462,11 +485,14 @@ class Perlin {
 
         ws.onmessage = ({ data }) => {
             data = JSON.parse(data);
-
-            this.metrics.acceptedMean =
-                data.metrics["tx.accepted"]["mean.rate"];
-            this.metrics.receivedMean =
-                data.metrics["tx.received"]["mean.rate"];
+            try {
+                this.metrics.acceptedMean =
+                    data.metrics["tx.accepted"]["mean.rate"];
+                this.metrics.receivedMean =
+                    data.metrics["tx.received"]["mean.rate"];
+            } catch (e) {
+                console.error(e);
+            }
         };
     }
 
