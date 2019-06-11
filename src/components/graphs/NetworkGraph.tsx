@@ -45,6 +45,8 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
             // @ts-ignore
             this.renderer.resize(parent.clientWidth, parent.clientHeight);
+
+            this.renderer.render(this.stage);
         }
     }
 
