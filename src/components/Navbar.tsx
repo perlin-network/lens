@@ -55,34 +55,40 @@ const Item = styled.div`
 const perlin = Perlin.getInstance();
 
 const Navbar: React.FunctionComponent<{}> = () => {
+    const isLoggedIn = perlin.isLogged;
+
     const balance = perlin.account.balance;
     const pubKey = perlin.publicKeyHex;
     const stake = perlin.account.stake;
 
-    return (
-        <Header>
-            <Container>
-                <Item>
-                    My Address
-                    <Address width={100} value={pubKey} />
-                </Item>
-                <Item>
-                    My Balance
-                    <span>{balance ? balance : "0"}&nbsp;PERLs</span>
-                </Item>
-                <Item>
-                    My Stake
-                    <span>{stake ? stake : "0"}&nbsp;PERLs</span>
-                </Item>
-                <QRCodeWidget
-                    publicKeyHex={pubKey}
-                    clickable={true}
-                    width={50}
-                    height={50}
-                />
-            </Container>
-        </Header>
-    );
+    const LoggedBar = () => {
+        return (
+            <Header>
+                <Container>
+                    <Item>
+                        My Address
+                        <Address width={100} value={pubKey} />
+                    </Item>
+                    <Item>
+                        My Balance
+                        <span>{balance ? balance : "0"}&nbsp;PERLs</span>
+                    </Item>
+                    <Item>
+                        My Stake
+                        <span>{stake ? stake : "0"}&nbsp;PERLs</span>
+                    </Item>
+                    <QRCodeWidget
+                        publicKeyHex={pubKey}
+                        clickable={true}
+                        width={50}
+                        height={50}
+                    />
+                </Container>
+            </Header>
+        );
+    };
+
+    return isLoggedIn ? <LoggedBar /> : <Header />;
 };
 
 export default observer(Navbar);

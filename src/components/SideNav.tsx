@@ -8,6 +8,8 @@ import DeveloperIcon from "../assets/svg/navbar-developer.svg";
 import SettingsIcon from "../assets/svg/navbar-settings.svg";
 import LogoutIcon from "../assets/svg/navbar-logout.svg";
 import perlinLogo from "../assets/svg/perlin-logo.svg";
+import { Perlin } from "../Perlin";
+import { observer } from "mobx-react-lite";
 
 const NavIcon = styled.img<INavItemProps>`
     height: 16px;
@@ -69,37 +71,62 @@ const LogoWrapper = styled.img`
     margin-bottom: 2em;
 `;
 
+const perlin = Perlin.getInstance();
+
 const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
     const { pathname } = props.history.location;
+    const isLoggedIn = perlin.isLogged;
 
     const navigateTo = (link: string) => () => {
         props.history.push(link);
     };
     const logout = () => () => {
-        console.log("logout...");
+        perlin.removeSecretKey();
+    };
+
+    const login = () => () => {
+        props.history.push("/login");
     };
 
     return (
         <>
             <LogoWrapper src={perlinLogo} />
-
-            {items.map(item => (
-                <NavItem
-                    key={item.title}
-                    onClick={item.link ? navigateTo(item.link) : undefined}
-                    active={pathname === item.link}
-                >
-                    <NavIcon src={item.icon} active={pathname === item.link} />
-                    {item.title}
-                </NavItem>
-            ))}
-
-            <NavItem onClick={logout()}>
-                <NavIcon src={LogoutIcon} />
-                Logout
-            </NavItem>
+            {isLoggedIn ? (
+                <>
+                    {items.map(item => (
+                        <NavItem
+                            key={item.title}
+                            onClick={
+                                item.link ? navigateTo(item.link) : undefined
+                            }
+                            active={pathname === item.link}
+                        >
+                            <NavIcon
+                                src={item.icon}
+                                active={pathname === item.link}
+                            />
+                            {item.title}
+                        </NavItem>
+                    ))}
+                    <NavItem onClick={logout()}>
+                        <NavIcon src={LogoutIcon} />
+                        Logout
+                    </NavItem>
+                </>
+            ) : (
+                <>
+                    <NavItem onClick={login()}>
+                        <NavIcon src={LogoutIcon} />
+                        Login&nbsp;using&nbsp;a&nbsp;private&nbsp;key
+                    </NavItem>
+                    <NavItem onClick={navigateTo("/settings")}>
+                        <NavIcon src={SettingsIcon} />
+                        Settings
+                    </NavItem>
+                </>
+            )}
         </>
     );
 };
 
-export default withRouter(SideNav);
+export default withRouter(observer(SideNav));
