@@ -89,7 +89,8 @@ class Perlin {
     @observable public transactions = {
         recent: [] as ITransaction[],
         loading: true,
-        hasMore: true
+        hasMore: true,
+        page: 0
     };
 
     @observable public peers: string[] = [];
@@ -270,7 +271,8 @@ class Perlin {
                 ...this.transactions,
                 recent: [...this.transactions.recent, ...transactions],
                 hasMore: !!transactions.length,
-                loading: false
+                loading: false,
+                page: this.transactions.page + 1
             };
         } catch (err) {
             console.log(err);
@@ -422,6 +424,9 @@ class Perlin {
                     ...transactions,
                     ...lastTransactions
                 ].slice(0, 50);
+
+                this.transactions.page = 1;
+                this.transactions.hasMore = true;
                 lastTransactions = this.transactions.recent;
             },
             this.transactionDebounceIntv,

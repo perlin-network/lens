@@ -1,13 +1,13 @@
-import * as React from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import LoadingSpinner from "./common/loadingSpinner";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import styled from "styled-components";
 import ReactTable, { FinalState } from "react-table";
 import "react-table/react-table.css";
 import { Link } from "react-router-dom";
-import Dropdown, { Option } from "react-dropdown";
+import * as _ from "lodash";
 import InfiniteScroll from "react-infinite-scroller";
 
 const perlin = Perlin.getInstance();
@@ -150,43 +150,50 @@ const CustomNoDataComponent: (
     return <div className="rt-noData">No transactions found</div>;
 };
 
-@observer
-export default class TransactionsTable extends React.Component<{}, {}> {
-    public loadFunc = async (page: any) => {
-        perlin.getTableTransactions((page - 1) * 50, 50);
-    };
-    public render() {
-        const data: any[] = perlin.transactions.recent;
-        const hasMore = perlin.transactions.hasMore;
-        const loading = perlin.transactions.loading;
+const TransactionsTable: React.FunctionComponent = () => {
+    const data: any[] = perlin.transactions.recent;
+    const hasMore = perlin.transactions.hasMore;
+    const loading = perlin.transactions.loading;
 
-        console.log("Transactions #", data.length);
+    useEffect(() => {
+        perlin.transactions.page = 0;
+    }, []);
+    const loadFunc = useCallback(
+        _.debounce(async () => {
+            await perlin.getTableTransactions(
+                perlin.transactions.page * 50,
+                50
+            );
+        }, 500),
+        [perlin.transactions.page]
+    );
 
-        return (
-            <Wrapper>
-                <InfiniteScroll
-                    pageStart={0}
-                    loadMore={this.loadFunc}
-                    hasMore={hasMore}
-                    loader={<LoadingSpinner key={0} />}
-                    useWindow={false}
-                >
-                    <ReactTable
-                        key={1}
-                        minRows={0}
-                        data={data}
-                        pageSize={data.length}
-                        columns={columns}
-                        resizable={false}
-                        sortable={false}
-                        showPagination={false}
-                        NoDataComponent={CustomNoDataComponent(loading)}
-                    />
-                </InfiniteScroll>
-            </Wrapper>
-        );
-    }
-}
+    console.log("Transactions #", data.length);
+
+    return (
+        <Wrapper>
+            <InfiniteScroll
+                pageStart={0}
+                loadMore={loadFunc}
+                hasMore={hasMore}
+                loader={<LoadingSpinner key={0} />}
+                useWindow={false}
+            >
+                <ReactTable
+                    key={1}
+                    minRows={0}
+                    data={data}
+                    pageSize={data.length}
+                    columns={columns}
+                    resizable={false}
+                    sortable={false}
+                    showPagination={false}
+                    NoDataComponent={CustomNoDataComponent(loading)}
+                />
+            </InfiniteScroll>
+        </Wrapper>
+    );
+};
 
 function getTag(tx: ITransaction) {
     switch (tx.tag) {
@@ -202,3 +209,5 @@ function getTag(tx: ITransaction) {
             return "batch";
     }
 }
+
+export default observer(TransactionsTable);
