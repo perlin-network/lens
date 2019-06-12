@@ -520,10 +520,8 @@ class Perlin {
         ws.onmessage = ({ data }) => {
             const logs = JSON.parse(data);
 
-            logs.forEach((item: any) => {
-                this.metrics.acceptedMean = item["tps.accepted"];
-                this.metrics.receivedMean = item["tps.received"];
-            });
+            this.metrics.acceptedMean = logs["tps.accepted"];
+            this.metrics.receivedMean = logs["tps.received"];
         };
     }
 
