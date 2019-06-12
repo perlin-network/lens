@@ -58,8 +58,8 @@ const Navbar: React.FunctionComponent<{}> = () => {
     const isLoggedIn = perlin.isLogged;
 
     const balance = perlin.account.balance;
-    const pubKey = perlin.publicKeyHex;
     const stake = perlin.account.stake;
+    const pubKey = isLoggedIn ? perlin.publicKeyHex : undefined;
 
     const LoggedBar = () => {
         return (
@@ -67,7 +67,7 @@ const Navbar: React.FunctionComponent<{}> = () => {
                 <Container>
                     <Item>
                         My Address
-                        <Address width={100} value={pubKey} />
+                        <Address width={100} value={pubKey ? pubKey : "N/A"} />
                     </Item>
                     <Item>
                         My Balance
@@ -78,7 +78,7 @@ const Navbar: React.FunctionComponent<{}> = () => {
                         <span>{stake ? stake : "0"}&nbsp;PERLs</span>
                     </Item>
                     <QRCodeWidget
-                        publicKeyHex={pubKey}
+                        publicKeyHex={pubKey ? pubKey : "N/A"}
                         clickable={true}
                         width={50}
                         height={50}
