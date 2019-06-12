@@ -27,6 +27,7 @@ const Button = styled.button`
     font-size: 16px;
     font-weight: 600;
     color: #151b35;
+    margin-right: 10px;
     background-color: #fff;
     cursor: pointer;
     &:active {
@@ -62,6 +63,29 @@ const Input = styled.textarea`
     }
 `;
 
+const FileInputWrapper = styled.div`
+    width: 200px;
+    height: 40px;
+    overflow: hidden;
+    position: relative;
+`;
+
+const FileButton = styled(Button)`
+    display: inline-block;
+    font-color: black;
+`;
+
+const FileInput = styled.input.attrs({
+    type: "file"
+})`
+    font-size: 200px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    cursor: pointer;
+`;
+
 const Alert = styled.p`
     color: red;
 `;
@@ -85,6 +109,32 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
 
     const handleChange = useCallback((e: any) => {
         setSecretKey(e.target.value);
+    }, []);
+
+    const handleFileChange = useCallback((e: any) => {
+        try {
+            if (e.target.files[0]) {
+                const file = e.target.files[0];
+                if (file.type !== "text/plain") {
+                    throw new Error(`File Type ${file.type} is not support.`);
+                } else {
+                    const fileReader = new FileReader();
+                    fileReader.onloadend = (readerEvent: any) => {
+                        if (typeof fileReader.result === "string") {
+                            setSecretKey(fileReader.result);
+                        } else {
+                            throw new Error(
+                                `Can't parse string from the file.`
+                            );
+                        }
+                    };
+                    fileReader.readAsText(file);
+                }
+                setAlert("");
+            }
+        } catch (err) {
+            setAlert(`${err}`);
+        }
     }, []);
 
     const login = async () => {
@@ -136,8 +186,21 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                         }}
                                     />
                                 </div>
-                                <div className="input-row2">
-                                    <Button onClick={login}>Import</Button>
+                                <div
+                                    className="input-row2"
+                                    style={{ display: "flex" }}
+                                >
+                                    <Button onClick={login}>Login</Button>
+                                    <FileInputWrapper
+                                        style={{ justifyContent: "flex-end" }}
+                                    >
+                                        <FileButton>
+                                            Import from a file
+                                        </FileButton>
+                                        <FileInput
+                                            onChange={handleFileChange}
+                                        />
+                                    </FileInputWrapper>
                                 </div>
                                 <div style={{ paddingTop: "20px" }}>
                                     {alert && <Alert>{alert}</Alert>}
