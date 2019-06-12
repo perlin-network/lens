@@ -122,8 +122,8 @@ class Perlin {
             Buffer.from(hexString, "hex")
         );
         try {
-            this.isLogged = true;
             await this.init();
+            this.isLogged = true;
             storage.setSecretKey(hexString);
             return Promise.resolve();
         } catch (err) {
