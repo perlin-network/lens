@@ -81,10 +81,10 @@ const statusTypes = {
         display: "block",
         text: "Critical"
     },
-    failed: {
-        color: "#940f1f",
+    rejected: {
+        color: "#ff4422",
         display: "block",
-        text: "Failed"
+        text: "Rejected"
     }
 };
 

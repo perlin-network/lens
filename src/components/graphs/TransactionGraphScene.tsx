@@ -5,16 +5,18 @@ import * as _ from "lodash";
 import { INode } from "./GraphStore";
 
 const texIndicesMap = {
-    rejected: 2,
     accepted: 0,
-    critical: 0,
-    start: 0
+    start: 1,
+    critical: 1,
+    applied: 1,
+    rejected: 2
 };
 const sizeMap = {
-    rejected: 3,
     accepted: 3,
+    start: 5,
     critical: 5,
-    start: 5
+    applied: 3,
+    rejected: 3
 };
 
 export class TransactionGraphScene {
@@ -26,16 +28,21 @@ export class TransactionGraphScene {
     private renderer: any;
     private raycaster: any;
     private pointCamera = _.throttle(
-        // @ts-ignore
-        (...args) => this.fastPointCamera(...args),
-        2200,
-        { leading: true }
+        (node: INode, cb?: () => void) => {
+            // @ts-ignore
+            this.fastPointCamera(node);
+        },
+        2400,
+        { trailing: true }
     );
 
     private controls: any;
     private dotTexture: any;
-    private dotSecondaryTexture: any;
+    private dotAppliedTexture: any;
+    private dotRejectedTexture: any;
+    private dotRejectedHoverTexture: any;
     private dotHoverTexture: any;
+    private dotAppliedHoverTexture: any;
     private setTooltipHander: (newValue: any) => void;
     private clickHandler: (id: string) => void;
     private width: number;
@@ -50,13 +57,32 @@ export class TransactionGraphScene {
         clickHandler: (id: string) => void
     ) {
         this.el = container;
-        this.dotTexture = this.createDotTexture("#4A41D1", "#0C122B");
+        this.dotTexture = this.createDotTexture(
+            "rgba(107, 106, 131, 0.8)",
+            "#0C122B"
+        );
         this.dotHoverTexture = this.createDotTexture(
+            "rgba(107, 106, 131, 1)",
+            "#FFFFFF",
+            "#6B6A83"
+        );
+
+        this.dotAppliedTexture = this.createDotTexture("#4A41D1", "#0C122B");
+        this.dotAppliedHoverTexture = this.createDotTexture(
             "#4A41D1",
             "#FFFFFF",
-            true
+            "#3326ff"
         );
-        this.dotSecondaryTexture = this.createDotTexture("#2c2781", "#0C122B");
+
+        this.dotRejectedTexture = this.createDotTexture(
+            "rgba(49, 54, 71, 0.6)",
+            "rgba(49, 54, 71, 0.6)"
+        );
+        this.dotRejectedHoverTexture = this.createDotTexture(
+            "rgba(49, 54, 71, 1)",
+            "rgba(49, 54, 71, 1)"
+        );
+
         this.setTooltipHander = setTooltipHander;
         this.clickHandler = clickHandler;
         this.initScene();
@@ -90,9 +116,9 @@ export class TransactionGraphScene {
         let count = 0;
         const tmpPositions: number[] = [];
         const tmpTexIndices: number[] = [];
-        const tmpLineIndices: number[] = [];
+        const lineIndices: number[] = [];
+        const dashIndices: number[] = [];
         const tmpSizes: number[] = [];
-        const tmpDashIndices: number[] = [];
 
         nodes.forEach(node => {
             const position = this.getPos(node);
@@ -101,34 +127,71 @@ export class TransactionGraphScene {
             tmpPositions[count++] = position[2];
 
             tmpSizes.push(sizeMap[node.type]);
-            tmpTexIndices.push(texIndicesMap[node.type]);
+            tmpTexIndices.push(
+                node.type === "accepted"
+                    ? texIndicesMap.applied
+                    : texIndicesMap[node.type]
+            );
 
-            node.children.forEach((child: any) => {
-                if (node.type === "rejected" || child.type === "rejected") {
-                    tmpDashIndices.push(node.id);
-                    tmpDashIndices.push(child.id);
+            node.parents.forEach((parent: any) => {
+                if (
+                    node.type === "accepted" ||
+                    parent.type === "accepted" ||
+                    node.type === "rejected" ||
+                    parent.type === "rejected"
+                ) {
+                    dashIndices.push(parent.id);
+                    dashIndices.push(node.id);
                 } else {
-                    tmpLineIndices.push(node.id);
-                    tmpLineIndices.push(child.id);
+                    lineIndices.push(parent.id);
+                    lineIndices.push(node.id);
                 }
             });
         });
 
-        const lineIndices = new Uint32Array(tmpLineIndices);
-        const dashIndices = new Uint32Array(tmpDashIndices);
-
         const positions = new Float32Array(tmpPositions);
         const sizes = new Uint8Array(tmpSizes);
         const texIndices = new Uint8Array(tmpTexIndices);
+        const verticles = new THREE.BufferAttribute(positions, 3);
 
-        this.addDots(positions, sizes, texIndices, roundNum);
-        this.addLines(positions, lineIndices, dashIndices, roundNum);
+        const { dots } = this.addDots(verticles, sizes, texIndices, roundNum);
+        const { dashes, lines } = this.addLines(
+            verticles,
+            lineIndices,
+            dashIndices,
+            roundNum
+        );
         const lastNodeIndex = nodes.length - 1;
         if (nodes[lastNodeIndex]) {
             this.pointCamera(nodes[lastNodeIndex]);
+            setTimeout(() => {
+                this.renderQueryPhaze(nodes, dots, lines, dashes);
+            }, 1200);
         }
     }
 
+    public renderQueryPhaze(
+        nodes: INode[],
+        dots: THREE.Points,
+        lines: THREE.LineSegments,
+        dashes: THREE.LineSegments
+    ) {
+        // @ts-ignore
+        const texIndicesAttr = dots.geometry.attributes.texIndex;
+        for (let i = 0; i < texIndicesAttr.count; i++) {
+            texIndicesAttr.array[i] = texIndicesMap[nodes[i].type];
+        }
+        texIndicesAttr.needsUpdate = true;
+
+        // @ts-ignore
+        dashes.material = new THREE.LineBasicMaterial({
+            color: 0x414554,
+            opacity: 0.4,
+            transparent: true,
+            depthTest: false
+        });
+        dashes.material.needsUpdate = true;
+    }
     public removeNodes(roundNum: number) {
         if (!this.rounds[roundNum]) {
             return;
@@ -182,8 +245,8 @@ export class TransactionGraphScene {
         /*
          *   camera and target need to be moved together
          */
-        const positionTween = new TWEEN.Tween(position)
-            .to({ x, y, z }, 1800)
+        new TWEEN.Tween(position)
+            .to({ x, y, z }, 2200)
             .delay(200)
             .easing(TWEEN.Easing.Cubic.InOut)
             .on("update", (newPosition: any) => {
@@ -196,9 +259,9 @@ export class TransactionGraphScene {
             .start();
 
         const targetPosition = this.controls.target.clone();
-        const targetTween = new TWEEN.Tween(targetPosition)
-            .to({ x, y, z }, 1800)
-            .easing(TWEEN.Easing.Quadratic.Out)
+        new TWEEN.Tween(targetPosition)
+            .to({ x, y, z }, 2200)
+            .easing(TWEEN.Easing.Cubic.InOut)
             .on("update", (newPosition: any) => {
                 this.controls.target.set(
                     newPosition.x,
@@ -209,7 +272,7 @@ export class TransactionGraphScene {
             .start();
     };
     private addDots(
-        positions: Float32Array,
+        verticles: THREE.BufferAttribute,
         sizes: Uint8Array,
         texIndices: Uint8Array,
         roundNum: number
@@ -217,7 +280,6 @@ export class TransactionGraphScene {
         const dotsGeometry = new THREE.BufferGeometry();
         const material = this.getDotMaterial();
 
-        const verticles = new THREE.BufferAttribute(positions, 3);
         const sizesAttr = new THREE.BufferAttribute(sizes, 1);
         const texIndicesAttr = new THREE.BufferAttribute(texIndices, 1);
 
@@ -232,21 +294,23 @@ export class TransactionGraphScene {
 
         this.scene.add(dots);
         this.rounds[roundNum].dots = dots;
+
+        return { dots };
     }
 
     private getPos(node: INode) {
-        const step = 0.75;
+        const step = 1;
         return [
             step * node.depthPos[0] + node.posOffset,
-            step * 1.2 * node.globalDepth,
+            step * 1.2 * (node.globalDepth - node.posOffset),
             step * node.depthPos[1] - node.posOffset
         ];
     }
 
     private addLines(
-        positions: Float32Array,
-        lineIndices: Uint32Array,
-        dashIndices: Uint32Array,
+        verticles: THREE.BufferAttribute,
+        lineIndices: number[],
+        dashIndices: number[],
         roundNum: number
     ) {
         const lineGeometry = new THREE.BufferGeometry();
@@ -254,12 +318,10 @@ export class TransactionGraphScene {
         // dash line is slighly transparent line, used for connecting rejected nodes
         const dashGeometry = new THREE.BufferGeometry();
 
-        const verticles = new THREE.BufferAttribute(positions, 3);
-
         lineGeometry.addAttribute("position", verticles);
         dashGeometry.addAttribute("position", verticles);
-        lineGeometry.setIndex(new THREE.BufferAttribute(lineIndices, 1));
-        dashGeometry.setIndex(new THREE.BufferAttribute(dashIndices, 1));
+        lineGeometry.setIndex(lineIndices);
+        dashGeometry.setIndex(dashIndices);
 
         lineGeometry.computeBoundingSphere();
         dashGeometry.computeBoundingSphere();
@@ -274,15 +336,7 @@ export class TransactionGraphScene {
             })
         );
 
-        const dashes = new THREE.LineSegments(
-            dashGeometry,
-            new THREE.LineBasicMaterial({
-                color: 0x4a41d1,
-                opacity: 0.4,
-                transparent: true,
-                depthTest: false
-            })
-        );
+        const dashes = new THREE.LineSegments(dashGeometry, lines.material);
 
         lines.renderOrder = 0;
         dashes.renderOrder = 0;
@@ -292,6 +346,8 @@ export class TransactionGraphScene {
 
         this.rounds[roundNum].lines = lines;
         this.rounds[roundNum].dashes = dashes;
+
+        return { lines, dashes };
     }
 
     private initMouseEvents() {
@@ -408,7 +464,7 @@ export class TransactionGraphScene {
                     if (node && intersect.distanceToRay < 0.2) {
                         const pos = this.getPos(node);
 
-                        dots.geometry.attributes.texIndex.array[index] = 1.0;
+                        dots.geometry.attributes.texIndex.array[index] += 3.0;
                         dots.geometry.attributes.texIndex.needsUpdate = true;
 
                         const vec = new THREE.Vector3(...pos);
@@ -424,7 +480,7 @@ export class TransactionGraphScene {
                             x,
                             y: y - 10,
                             title: "Transaction",
-                            text: `round: ${node.round}`,
+                            text: `id: ${node.id}`,
                             status: node.type,
                             visible: true
                         };
@@ -484,7 +540,7 @@ export class TransactionGraphScene {
     private createDotTexture(
         fillColor: string,
         strokeColor: string,
-        glow = false
+        glow?: string
     ) {
         const size = 512;
 
@@ -512,7 +568,7 @@ export class TransactionGraphScene {
             matContext.fillStyle = fillColor;
             if (glow) {
                 matContext.shadowBlur = size / 4;
-                matContext.shadowColor = "#3326ff";
+                matContext.shadowColor = glow;
             }
             matContext.fill();
             matContext.shadowColor = "transparent";
@@ -529,9 +585,13 @@ export class TransactionGraphScene {
             textures: {
                 type: "tv",
                 value: [
-                    this.dotTexture, // normal
-                    this.dotHoverTexture, // has glow
-                    this.dotSecondaryTexture // slightly transparent
+                    this.dotTexture,
+                    this.dotAppliedTexture,
+                    this.dotRejectedTexture,
+
+                    this.dotHoverTexture,
+                    this.dotAppliedHoverTexture,
+                    this.dotRejectedHoverTexture
                 ]
             },
             color: { type: "c", value: new THREE.Color(0xffffff) },
@@ -600,7 +660,7 @@ export class TransactionGraphScene {
 }
 
 const fragmentShader = `
-    uniform sampler2D textures[3];
+    uniform sampler2D textures[6];
     uniform vec3 color;
     uniform vec3 fogColor;
     uniform float fogNear;
@@ -617,6 +677,12 @@ const fragmentShader = `
             finalColor = texture2D(textures[1], gl_PointCoord);
         } else if (vTexIndex == 2.0) {
             finalColor = texture2D(textures[2], gl_PointCoord);
+        } else if (vTexIndex == 3.0) {
+            finalColor = texture2D(textures[3], gl_PointCoord);
+        } else if (vTexIndex == 4.0) {
+            finalColor = texture2D(textures[4], gl_PointCoord);
+        } else if (vTexIndex == 5.0) {
+            finalColor = texture2D(textures[5], gl_PointCoord);
         }
     
         #ifdef ALPHATEST

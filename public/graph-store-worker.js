@@ -77,7 +77,6 @@ const uniqueRandomRange = (min, max) => {
  *   and the end (critical) node of the previous round
  */
 let startNode;
-
 const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     if (rounds[roundNum]) {
         return;
@@ -113,8 +112,8 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
                 (!parent.children.length && diff <= 1)
             ) {
                 createLink(node, parent);
+                return true;
             }
-            return true;
         }
         return false;
     };
@@ -166,8 +165,9 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             depthIndex,
             parents: [],
             children: [],
+            applied: false,
             txId,
-            posOffset: randomRange(-15, 15) / 100 // add random position offsets to avoid link overlapping
+            posOffset: randomRange(-30, 30) / 100 // add random position offsets to avoid link overlapping
         };
 
         round[depth] = round[depth] || [];
@@ -183,7 +183,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         }
 
         if (node.type === "critical") {
-            startNode = node;
             (round[depth - 1] || []).forEach(parent =>
                 createLink(node, parent)
             );
@@ -197,6 +196,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     if (startNode) {
         startNode = {
             ...startNode,
+            parents: [],
             id: index,
             type: "start",
             depth: -1
@@ -212,6 +212,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     }
 
     const node = createNode(numTx, "critical");
+    startNode = node;
     nodes.push(node);
 
     // we wait for all of the nodes to be positioned before we start linking them
@@ -219,6 +220,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         if (node.type === "critical" || node.type === "start") {
             return;
         }
+
         // above and beneath nodes are prefered for linking
         let parentIndex = node.depthIndex;
         let counter = 0;
@@ -247,7 +249,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             }
 
             if (node.parents.length >= parentLimit && node.children.length) {
-                return;
+                break;
             }
 
             parentIndex += inc;
@@ -263,6 +265,29 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             }
         }
     });
+
+    let lastVisit = startNode;
+    // starting from critical node we go through all first parents to apply nodes
+    const visit = (node, level = 0) => {
+        // we needed to avoid breaching the call stack limit
+        if (level > 1000) {
+            return node;
+        }
+        if (!node) {
+            return;
+        }
+        node.type = node.type === "accepted" ? "applied" : node.type;
+
+        const parent = node.parents[node.parents.length - 1];
+        if (parent && parent.type !== "start") {
+            parent.type = parent.type === "accepted" ? "applied" : parent.type;
+            visit(nodes[parent.id], level + 1);
+        }
+    };
+
+    do {
+        lastVisit = visit(lastVisit);
+    } while (lastVisit);
 
     rounds[roundNum] = numTx + 1;
 
