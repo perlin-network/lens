@@ -88,52 +88,12 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     // depthSize represents the maximum number of nodes which can be on depth level
     const depthSize = Math.ceil(numTx / maxDepth);
 
-    const { random: uniqueRandom, extract, info } = uniqueRandomRange(
-        1,
-        accepted - 1
-    );
-
     // random indices will be assigned rejected status
-    const typeMap = {};
-    let count = 0;
-    let count2 = 0;
-    let startIndex = uniqueRandom();
+    const nodeMap = getRejectedIndices(accepted, rejected, depthSize);
 
-    // creates a vertically districbuted set of rejected node indices
-    while (count < rejected && !info.done) {
-        const i = startIndex + count2 * depthSize;
-        if (i < numTx) {
-            typeMap[i] = "rejected";
-            extract(i); // uniqueRandom shouldn't extract this index anymore
-            count++;
-            count2 += depthSize;
-        } else {
-            startIndex = uniqueRandom();
-            count2 = 0;
-        }
-    }
-
-    const round = {};
+    const round = {}; // will be a nodes per level structure, needed for node link resolve
     const nodes = [];
 
-    const checkParent = (node, parent) => {
-        if (parent && node) {
-            // diff of node positions assures that there a no cris-crossing links
-            const diffY = Math.abs(parent.depthPos[0] - node.depthPos[0]);
-            const diffX = Math.abs(parent.depthPos[1] - node.depthPos[1]);
-            const diff = (diffX + diffY) / 2;
-            if (
-                node.type === "critical" ||
-                parent.type === "start" ||
-                (!node.parents.filter(nonRejected).length && diff <= 1) ||
-                (!parent.children.filter(nonRejected).length && diff <= 1)
-            ) {
-                createLink(node, parent);
-                return true;
-            }
-        }
-        return false;
-    };
     const createNode = (id, type) => {
         let txId;
         let index = id - 1;
@@ -173,17 +133,16 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         const depthPos = getPos(depthIndex, depthWidth);
 
         const node = {
-            id,
+            id, // generated as a per round id
             type,
             depth,
             round: roundNum,
-            globalDepth,
-            depthPos,
-            depthIndex,
+            globalDepth, // needed to determine vertical coordinate
+            depthPos, // will be used to multiple a given step value to determine horizontal coordinates
+            depthIndex, // every depth is an array, and depthIndex is the index within that
             parents: [],
             children: [],
-            applied: false,
-            txId,
+            txId, // start and end nodes receive id's from the server; use to access detail page on node click
             posOffset: [randomRange(-30, 30) / 100, randomRange(-30, 30) / 100] // add random position offsets to avoid link overlapping
         };
 
@@ -194,11 +153,13 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             return node;
         }
 
+        // all nodes next to start node should connect to it
         if (node.depth === 0) {
             createLink(node, startNode);
             return node;
         }
 
+        // all nodes (except rejected) next to critical should conenct to it
         if (node.type === "critical") {
             (round[depth - 1] || []).forEach(parent =>
                 createLink(node, parent)
@@ -210,6 +171,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
 
     let index = 0;
 
+    // will create a clone of the last rounds' critical node and call it start node
     if (startNode) {
         startNode = {
             ...startNode,
@@ -224,7 +186,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     nodes.push(startNode);
 
     while (++index < numTx) {
-        const node = createNode(index, typeMap[index] || "applied");
+        const node = createNode(index, nodeMap[index] || "applied");
         nodes.push(node);
     }
 
@@ -232,8 +194,75 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
     startNode = node;
     nodes.push(node);
 
-    // we wait for all of the nodes to be positioned before we start linking them
-    nodes.forEach((node, i, nodes) => {
+    // we wait for all of the nodes to be positioned before we resolve node links
+    resolveNodeLinks(nodes, round, depthSize);
+
+    rounds[roundNum] = numTx + 1; // we added  extra start node
+
+    postMessage(
+        //  passing a stringified objects to web workers is considerably faster than JS objects
+        JSON.stringify({
+            type: "addRound",
+            data: {
+                roundNum,
+                nodes
+            }
+        })
+    );
+};
+
+const getRejectedIndices = (accepted, rejected, depthSize) => {
+    const nodeMap = {};
+    let addCount = 0;
+    let depthCount = 0;
+
+    const { random: uniqueRandom, extract, info } = uniqueRandomRange(
+        1, // skip 0 as it's start node
+        accepted - 1
+    );
+
+    let startIndex = uniqueRandom();
+
+    // creates a vertically districbuted set of rejected node indices
+    while (addCount < rejected && !info.done) {
+        const i = startIndex + depthCount * depthSize;
+
+        if (i < numTx) {
+            nodeMap[i] = "rejected";
+            extract(i); // uniqueRandom shouldn't extract this index anymore
+            addCount++;
+
+            depthCount += depthSize;
+        } else {
+            startIndex = uniqueRandom();
+            depthCount = 0;
+        }
+    }
+
+    return nodeMap;
+};
+
+const checkParent = (node, parent) => {
+    if (parent && node) {
+        // diff of node positions assures that there a no cris-crossing links
+        const diffY = Math.abs(parent.depthPos[0] - node.depthPos[0]);
+        const diffX = Math.abs(parent.depthPos[1] - node.depthPos[1]);
+        const diff = (diffX + diffY) / 2;
+        if (
+            node.type === "critical" ||
+            parent.type === "start" ||
+            (!node.parents.filter(nonRejected).length && diff <= 1) ||
+            (!parent.children.filter(nonRejected).length && diff <= 1)
+        ) {
+            createLink(node, parent);
+            return true;
+        }
+    }
+    return false;
+};
+
+const resolveNodeLinks = (nodes, round, depthSize) => {
+    nodes.forEach((node, i) => {
         // above and beneath nodes are prefered for linking
         let parentIndex = node.depthIndex;
         let counter = 0;
@@ -284,18 +313,6 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             }
         }
     });
-    rounds[roundNum] = numTx + 1;
-
-    postMessage(
-        //  passing a stringified objects to web workers is considerably faster than JS objects
-        JSON.stringify({
-            type: "addRound",
-            data: {
-                roundNum,
-                nodes
-            }
-        })
-    );
 };
 
 const createLink = (node, parent) => {
