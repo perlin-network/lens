@@ -483,31 +483,29 @@ class Perlin {
         ws.onmessage = ({ data }) => {
             const logs = JSON.parse(data);
 
-            logs.forEach((item: any) => {
-                switch (item.event) {
-                    case "prune":
-                        console.log("Prunning #", item.pruned_round_id);
+            switch (logs.event) {
+                case "prune":
+                    console.log("Prunning #", logs.pruned_round_id);
 
-                        if (this.onConsensusPrune) {
-                            this.onConsensusPrune(
-                                item.pruned_round_id,
-                                item.num_tx
-                            );
-                        }
-                        break;
-                    case "round_end":
-                        if (this.onConsensusRound) {
-                            this.onConsensusRound(
-                                item.num_applied_tx,
-                                item.num_rejected_tx,
-                                item.round_depth,
-                                item.new_round,
-                                item.old_root,
-                                item.new_root
-                            );
-                        }
-                }
-            });
+                    if (this.onConsensusPrune) {
+                        this.onConsensusPrune(
+                            logs.pruned_round_id,
+                            logs.num_tx
+                        );
+                    }
+                    break;
+                case "round_end":
+                    if (this.onConsensusRound) {
+                        this.onConsensusRound(
+                            logs.num_applied_tx,
+                            logs.num_rejected_tx,
+                            logs.round_depth,
+                            logs.new_round,
+                            logs.old_root,
+                            logs.new_root
+                        );
+                    }
+            }
         };
     }
 
