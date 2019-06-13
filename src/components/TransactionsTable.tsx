@@ -142,27 +142,37 @@ const columns = [
 ];
 
 const CustomNoDataComponent: (
-    loading: boolean
-) => React.FunctionComponent<FinalState> = (loading: boolean) => props => {
-    if (loading) {
-        return null;
+    dataLength: number,
+    loading: boolean,
+    hasMore: boolean
+) => React.FunctionComponent<FinalState> = (
+    dataLength,
+    loading,
+    hasMore
+) => () => {
+    if (!dataLength && !loading && !hasMore) {
+        return <div className="rt-noData">No transactions found</div>;
     }
-    return <div className="rt-noData">No transactions found</div>;
+    return null;
 };
 
 const TransactionsTable: React.FunctionComponent = () => {
+    const [firsLoad, setFirstLoad] = useState(false);
     const data: any[] = perlin.transactions.recent;
     const hasMore = perlin.transactions.hasMore;
     const loading = perlin.transactions.loading;
 
     useEffect(() => {
-        perlin.transactions.page = 0;
+        (async () => {
+            await perlin.getTableTransactions(0, perlin.transactions.pageSize);
+            setFirstLoad(true);
+        })();
     }, []);
     const loadFunc = useCallback(
         _.debounce(async () => {
             await perlin.getTableTransactions(
-                perlin.transactions.page * 50,
-                50
+                perlin.transactions.page * perlin.transactions.pageSize,
+                perlin.transactions.pageSize
             );
         }, 500),
         [perlin.transactions.page]
@@ -172,25 +182,30 @@ const TransactionsTable: React.FunctionComponent = () => {
 
     return (
         <Wrapper>
-            <InfiniteScroll
-                pageStart={0}
-                loadMore={loadFunc}
-                hasMore={hasMore}
-                loader={<LoadingSpinner key={0} />}
-                useWindow={false}
-            >
-                <ReactTable
-                    key={1}
-                    minRows={0}
-                    data={data}
-                    pageSize={data.length}
-                    columns={columns}
-                    resizable={false}
-                    sortable={false}
-                    showPagination={false}
-                    NoDataComponent={CustomNoDataComponent(loading)}
-                />
-            </InfiniteScroll>
+            {firsLoad && (
+                <InfiniteScroll
+                    loadMore={loadFunc}
+                    hasMore={hasMore}
+                    loader={<LoadingSpinner key={0} />}
+                    useWindow={false}
+                >
+                    <ReactTable
+                        key={1}
+                        minRows={0}
+                        data={data}
+                        pageSize={data.length}
+                        columns={columns}
+                        resizable={false}
+                        sortable={false}
+                        showPagination={false}
+                        NoDataComponent={CustomNoDataComponent(
+                            data.length,
+                            loading,
+                            hasMore
+                        )}
+                    />
+                </InfiniteScroll>
+            )}
         </Wrapper>
     );
 };

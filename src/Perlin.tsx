@@ -90,7 +90,8 @@ class Perlin {
         recent: [] as ITransaction[],
         loading: true,
         hasMore: true,
-        page: 0
+        page: 0,
+        pageSize: 200
     };
 
     @observable public peers: string[] = [];
@@ -262,16 +263,19 @@ class Perlin {
 
     public async getTableTransactions(offset: number, limit: number) {
         try {
-            let transactions = await this.requestRecentTransactions(
+            this.transactions.loading = true;
+            const transactions = await this.requestRecentTransactions(
                 offset,
                 limit
             );
 
-            transactions = transactions.filter(tx => tx.status === "applied");
+            const appliedTransactions = transactions.filter(
+                tx => tx.status === "applied"
+            );
 
             this.transactions = {
                 ...this.transactions,
-                recent: [...this.transactions.recent, ...transactions],
+                recent: [...this.transactions.recent, ...appliedTransactions],
                 hasMore: !!transactions.length,
                 loading: false,
                 page: this.transactions.page + 1
@@ -425,7 +429,7 @@ class Perlin {
                 this.transactions.recent = [
                     ...transactions,
                     ...lastTransactions
-                ].slice(0, 50);
+                ].slice(0, this.transactions.pageSize);
 
                 this.transactions.page = 1;
                 this.transactions.hasMore = true;
