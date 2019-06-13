@@ -465,10 +465,6 @@ export class TransactionGraphScene {
                             visible: true
                         };
 
-                        if (node.txId) {
-                            tooltip.text = `id: ${node.txId}`;
-                        }
-
                         this.setTooltipHander(tooltip);
                         hoveredNode = node;
                         return true;

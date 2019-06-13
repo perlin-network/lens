@@ -64,27 +64,22 @@ const statusTypes = {
     applied: {
         color: "#7668cb",
         display: "block",
-        text: "Applied"
-    },
-    accepted: {
-        color: "#6bad1d",
-        display: "block",
-        text: "Accepted"
+        text: "applied"
     },
     critical: {
         color: "#4788f1",
         display: "block",
-        text: "Critical"
+        text: "critical"
     },
     start: {
         color: "#4788f1",
         display: "block",
-        text: "Critical"
+        text: "critical"
     },
     rejected: {
         color: "#ff4422",
         display: "block",
-        text: "Rejected"
+        text: "rejected"
     }
 };
 
