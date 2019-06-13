@@ -5,14 +5,12 @@ import * as _ from "lodash";
 import { INode } from "./GraphStore";
 
 const texIndicesMap = {
-    accepted: 0,
-    start: 1,
-    critical: 1,
-    applied: 1,
-    rejected: 2
+    start: 0,
+    critical: 0,
+    applied: 0,
+    rejected: 1
 };
 const sizeMap = {
-    accepted: 3,
     start: 5,
     critical: 5,
     applied: 3,
@@ -37,11 +35,9 @@ export class TransactionGraphScene {
     );
 
     private controls: any;
-    private dotTexture: any;
     private dotAppliedTexture: any;
     private dotRejectedTexture: any;
     private dotRejectedHoverTexture: any;
-    private dotHoverTexture: any;
     private dotAppliedHoverTexture: any;
     private setTooltipHander: (newValue: any) => void;
     private clickHandler: (id: string) => void;
@@ -57,16 +53,6 @@ export class TransactionGraphScene {
         clickHandler: (id: string) => void
     ) {
         this.el = container;
-        this.dotTexture = this.createDotTexture(
-            "rgba(107, 106, 131, 0.8)",
-            "#0C122B"
-        );
-        this.dotHoverTexture = this.createDotTexture(
-            "rgba(107, 106, 131, 1)",
-            "#FFFFFF",
-            "#6B6A83"
-        );
-
         this.dotAppliedTexture = this.createDotTexture("#4A41D1", "#0C122B");
         this.dotAppliedHoverTexture = this.createDotTexture(
             "#4A41D1",
@@ -75,8 +61,8 @@ export class TransactionGraphScene {
         );
 
         this.dotRejectedTexture = this.createDotTexture(
-            "rgba(49, 54, 71, 0.6)",
-            "rgba(49, 54, 71, 0.6)"
+            "rgba(49, 54, 71, 0.8)",
+            "rgba(49, 54, 71, 0.8)"
         );
         this.dotRejectedHoverTexture = this.createDotTexture(
             "rgba(49, 54, 71, 1)",
@@ -128,18 +114,13 @@ export class TransactionGraphScene {
 
             tmpSizes.push(sizeMap[node.type]);
             tmpTexIndices.push(
-                node.type === "accepted"
+                node.type === "rejected"
                     ? texIndicesMap.applied
                     : texIndicesMap[node.type]
             );
 
             node.parents.forEach((parent: any) => {
-                if (
-                    node.type === "accepted" ||
-                    parent.type === "accepted" ||
-                    node.type === "rejected" ||
-                    parent.type === "rejected"
-                ) {
+                if (node.type === "rejected" || parent.type === "rejected") {
                     dashIndices.push(parent.id);
                     dashIndices.push(node.id);
                 } else {
@@ -186,7 +167,7 @@ export class TransactionGraphScene {
         // @ts-ignore
         dashes.material = new THREE.LineBasicMaterial({
             color: 0x414554,
-            opacity: 0.4,
+            opacity: 0.6,
             transparent: true,
             depthTest: false
         });
@@ -301,9 +282,9 @@ export class TransactionGraphScene {
     private getPos(node: INode) {
         const step = 1;
         return [
-            step * node.depthPos[0] + node.posOffset,
-            step * 1.2 * (node.globalDepth - node.posOffset),
-            step * node.depthPos[1] - node.posOffset
+            step * node.depthPos[0] + node.posOffset[0],
+            step * 1.2 * (node.globalDepth - node.posOffset[0]),
+            step * node.depthPos[1] + node.posOffset[1]
         ];
     }
 
@@ -464,7 +445,7 @@ export class TransactionGraphScene {
                     if (node && intersect.distanceToRay < 0.2) {
                         const pos = this.getPos(node);
 
-                        dots.geometry.attributes.texIndex.array[index] += 3.0;
+                        dots.geometry.attributes.texIndex.array[index] += 2.0; // switches to hover version material
                         dots.geometry.attributes.texIndex.needsUpdate = true;
 
                         const vec = new THREE.Vector3(...pos);
@@ -476,14 +457,17 @@ export class TransactionGraphScene {
                         const x = out.x * widthHalf + widthHalf;
                         const y = -(out.y * heightHalf) + heightHalf;
 
-                        const tooltip = {
+                        const tooltip: any = {
                             x,
                             y: y - 10,
                             title: "Transaction",
-                            text: `id: ${node.id}`,
                             status: node.type,
                             visible: true
                         };
+
+                        if (node.txId) {
+                            tooltip.text = `id: ${node.txId}`;
+                        }
 
                         this.setTooltipHander(tooltip);
                         hoveredNode = node;
@@ -585,11 +569,8 @@ export class TransactionGraphScene {
             textures: {
                 type: "tv",
                 value: [
-                    this.dotTexture,
                     this.dotAppliedTexture,
                     this.dotRejectedTexture,
-
-                    this.dotHoverTexture,
                     this.dotAppliedHoverTexture,
                     this.dotRejectedHoverTexture
                 ]
@@ -660,7 +641,7 @@ export class TransactionGraphScene {
 }
 
 const fragmentShader = `
-    uniform sampler2D textures[6];
+    uniform sampler2D textures[4];
     uniform vec3 color;
     uniform vec3 fogColor;
     uniform float fogNear;
@@ -679,10 +660,6 @@ const fragmentShader = `
             finalColor = texture2D(textures[2], gl_PointCoord);
         } else if (vTexIndex == 3.0) {
             finalColor = texture2D(textures[3], gl_PointCoord);
-        } else if (vTexIndex == 4.0) {
-            finalColor = texture2D(textures[4], gl_PointCoord);
-        } else if (vTexIndex == 5.0) {
-            finalColor = texture2D(textures[5], gl_PointCoord);
         }
     
         #ifdef ALPHATEST
