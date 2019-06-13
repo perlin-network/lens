@@ -43,9 +43,9 @@ export class GraphStore {
         };
 
         // @ts-ignore
-        perlin.onConsensusRound = window.addRound = this.addRound;
+        perlin.onConsensusRound = this.addRound;
         // @ts-ignore
-        perlin.onConsensusPrune = window.pruneRound = this.pruneRound;
+        perlin.onConsensusPrune = this.pruneRound;
     }
 
     public subscribe(type: string, fn: any) {
