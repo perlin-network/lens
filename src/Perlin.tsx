@@ -262,10 +262,12 @@ class Perlin {
 
     public async getTableTransactions(offset: number, limit: number) {
         try {
-            const transactions = await this.requestRecentTransactions(
+            let transactions = await this.requestRecentTransactions(
                 offset,
                 limit
             );
+
+            transactions = transactions.filter(tx => tx.status === "applied");
 
             this.transactions = {
                 ...this.transactions,
