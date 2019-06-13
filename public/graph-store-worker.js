@@ -79,10 +79,11 @@ const uniqueRandomRange = (min, max) => {
  */
 let startNode;
 const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
-    if (rounds[roundNum]) {
+    let numTx = accepted + rejected;
+
+    if (rounds[roundNum] || !numTx) {
         return;
     }
-    let numTx = accepted + rejected;
 
     // depthSize represents the maximum number of nodes which can be on depth level
     const depthSize = Math.ceil(numTx / maxDepth);
