@@ -91,12 +91,13 @@ const StyledButton = styled(RawButton).attrs({ hideOverflow: true })`
         background-color: #d4d5da;
     }
 `;
+
 const Loader = styled.div`
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    top: -20px;
+    bottom: -20px;
+    left: -20px;
+    right: -20px;
     display: flex;
     align-items: center;
     justify-content: center;
