@@ -227,7 +227,7 @@ const getRejectedIndices = (accepted, rejected, depthSize) => {
     while (addCount < rejected && !info.done) {
         const i = startIndex + depthCount * depthSize;
 
-        if (i < numTx) {
+        if (i < accepted + rejected) {
             nodeMap[i] = "rejected";
             extract(i); // uniqueRandom shouldn't extract this index anymore
             addCount++;
