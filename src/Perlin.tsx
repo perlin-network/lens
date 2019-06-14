@@ -314,8 +314,6 @@ class Perlin {
         return await fetch(url.toString(), {
             method: "get",
             headers: {
-                "X-Session-Token": this.api.token,
-                "Content-Type": "application/json",
                 ...headers
             }
         });
@@ -365,8 +363,6 @@ class Perlin {
         const response = await fetch(`http://${this.api.host}${endpoint}`, {
             method: "post",
             headers: {
-                "X-Session-Token": this.api.token,
-                "Content-Type": "application/json",
                 ...headers
             },
             body: JSON.stringify(body)
