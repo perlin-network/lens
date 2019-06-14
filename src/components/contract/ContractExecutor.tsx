@@ -41,7 +41,7 @@ const useContractFunctions = () => {
 const useParams = () => {
     const getEmptyParam = () => ({
         id: nanoid(),
-        type: ParamType.Bytes,
+        type: ParamType.String,
         value: ""
     });
     const [paramsList, setParamsList] = useState<IParamItem[]>([
@@ -183,14 +183,10 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
             }
             break;
         case ParamType.Bytes:
-            if (isHexString(value) || isBase64String(value)) {
-                valid = true;
-            }
+            valid = true;
             break;
         case ParamType.Byte:
-            if (isHexString(value) || isBase64String(value)) {
-                valid = true;
-            }
+            valid = true;
             break;
     }
     return valid;
@@ -313,12 +309,14 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
         }
     };
 
-    const callFunction = async () => {
+    const onCall = async () => {
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
         );
+
         setWasmResult("");
         setErrorMessage("");
+
         if (!emptyItem) {
             const buf = writeToBuffer(paramsList, true);
             try {
@@ -396,7 +394,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                         </Box>
                     </Flex>
 
-                    <Button fontSize="14px" onClick={callFunction}>
+                    <Button fontSize="14px" onClick={onCall}>
                         Call Function
                     </Button>
                     {wasmResult !== "" && (
