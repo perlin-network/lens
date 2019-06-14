@@ -194,11 +194,18 @@ class Perlin {
     public async getContractPage(
         contractId: string,
         pageIndex: number
-    ): Promise<string> {
-        return await this.getText(
-            `/contract/${contractId}/page/${pageIndex}`,
-            {}
-        );
+    ): Promise<any> {
+        try {
+            return new Uint8Array(
+                await this.getBuffer(
+                    `/contract/${contractId}/page/${pageIndex}`,
+                    {}
+                )
+            );
+        } catch (err) {
+            console.log("getContractPage Error : ", err);
+            return [];
+        }
     }
 
     public async invokeContractFunction(
@@ -242,7 +249,7 @@ class Perlin {
 
     private async init() {
         try {
-            await this.startSession();
+            // await this.startSession();
             await this.initLedger();
             await this.initPeers();
 
@@ -462,11 +469,16 @@ class Perlin {
 
         ws.onmessage = ({ data }) => {
             data = JSON.parse(data);
-
-            this.metrics.acceptedMean =
-                data.metrics["tx.accepted"]["mean.rate"];
-            this.metrics.receivedMean =
-                data.metrics["tx.received"]["mean.rate"];
+            /*
+            try {
+                this.metrics.acceptedMean =
+                    data.metrics["tx.accepted"]["mean.rate"];
+                this.metrics.receivedMean =
+                    data.metrics["tx.received"]["mean.rate"];
+            } catch (e) {
+                console.error(e);
+            }
+            */
         };
     }
 
