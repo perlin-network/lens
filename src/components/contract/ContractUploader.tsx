@@ -152,34 +152,15 @@ const createSmartContract = async (file: File) => {
     }
 };
 
-const loadContract = async (contractId: string) => {
+const loadContractFromNetwork = async (contractId: string): Promise<number> => {
     try {
         const account = await perlin.getAccount(contractId);
 
-        /*
         if (!account.is_contract) {
-            contractStore.contract.errorMessage = "Account is not a contract.";
-            console.log("Account is not a contract.");
-            return;
-        } 
-        */
-
-        contractStore.contract.errorMessage = "";
-        contractStore.contract.transactionId = "";
-
-        const pages = [];
-
-        for (let i = 0; i < account.num_mem_pages; i++) {
-            try {
-                pages.push(await perlin.getContractPage(contractId, i));
-            } catch (err) {
-                pages.push([]);
-            }
+            throw new Error(`Address is not a contract.`);
         }
 
-        console.log(pages);
-
-        // todo: import memory page to local wasm instance
+        const numPages = account.num_mem_pages || 0;
 
         const hexContent = await perlin.getContractCode(contractId);
 
@@ -198,27 +179,35 @@ const loadContract = async (contractId: string) => {
             inlineExport: false
         });
         contractStore.contract.errorMessage = "";
+
+        return numPages;
     } catch (err) {
-        contractStore.contract.errorMessage = err.message;
+        contractStore.contract.errorMessage = `Error : ${err.message}`;
+        return 0;
     }
 };
 
-const ContractUploader: React.SFC<{}> = () => {
+const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [contractAddress, setContractAddress] = useState("");
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setContractAddress(e.target.value);
     };
+
     const handleLoadClick = useCallback(async () => {
+        setLoading(true);
         try {
-            await loadContract(contractAddress);
+            const totalMemoryPages = await loadContractFromNetwork(
+                contractAddress
+            );
 
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract();
-                // load state here
+                await contractStore.onLoadContract(totalMemoryPages);
             }
         } catch (err) {
-            console.error(err);
+            contractStore.contract.errorMessage = `${err}`;
+        } finally {
+            setLoading(false);
         }
     }, [contractAddress]);
 
@@ -244,7 +233,9 @@ const ContractUploader: React.SFC<{}> = () => {
     });
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
-            <Button fontSize="14px" width="100%" {...getRootProps()}>
+            {/*
+                todo : temporarily disabled due to the issue in Wavelet
+            <Button disabled={true} fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
             </Button>
@@ -253,6 +244,7 @@ const ContractUploader: React.SFC<{}> = () => {
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
+            */}
             <InputWrapper>
                 <StyledInput
                     value={contractAddress}
@@ -265,7 +257,13 @@ const ContractUploader: React.SFC<{}> = () => {
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
             {contractStore.contract.errorMessage !== "" && (
-                <div style={{ marginTop: "25px", color: "red" }}>
+                <div
+                    style={{
+                        textAlign: "center",
+                        marginTop: "25px",
+                        color: "red"
+                    }}
+                >
                     {contractStore.contract.errorMessage}
                 </div>
             )}
