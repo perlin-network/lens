@@ -16,21 +16,23 @@ const sizeMap = {
     applied: 3,
     rejected: 3
 };
-
+const cameraSpeed = 4200;
 export class TransactionGraphScene {
     private focusedNode: INode;
     private el: any;
     private scene: any;
     private camera: any;
     private mouse: any;
+    private time: number;
     private renderer: any;
     private raycaster: any;
+    private dotMaterial: any;
     private pointCamera = _.throttle(
         (node: INode, cb?: () => void) => {
             // @ts-ignore
             this.fastPointCamera(node);
         },
-        2400,
+        cameraSpeed + 200,
         { trailing: true }
     );
 
@@ -71,8 +73,9 @@ export class TransactionGraphScene {
 
         this.setTooltipHander = setTooltipHander;
         this.clickHandler = clickHandler;
-        this.initScene();
 
+        this.initScene();
+        this.dotMaterial = this.getDotMaterial();
         this.initRenderer();
 
         this.initControls();
@@ -92,6 +95,7 @@ export class TransactionGraphScene {
      *   each round will have it's own set of nodes and lines group
      *   the first node will always be the start node it overlaps the last node of the previous round
      */
+
     public renderNodes(nodes: INode[], roundNum: number) {
         this.rounds[roundNum] = {};
         this.rounds[roundNum].nodes = nodes;
@@ -105,12 +109,26 @@ export class TransactionGraphScene {
         const lineIndices: number[] = [];
         const dashIndices: number[] = [];
         const tmpSizes: number[] = [];
+        const tmpShowTimes: number[] = [];
 
-        nodes.forEach(node => {
+        const maxDepth = nodes[nodes.length - 1].depth;
+        const step = cameraSpeed / maxDepth;
+        const time = this.time;
+        nodes.forEach((node: INode, index: number) => {
             const position = this.getPos(node);
             tmpPositions[count++] = position[0];
             tmpPositions[count++] = position[1];
             tmpPositions[count++] = position[2];
+
+            tmpShowTimes.push(
+                time +
+                    Math.max(
+                        step * 2,
+                        TWEEN.Easing.Sinusoidal.InOut(
+                            (node.depth - 1) / maxDepth
+                        ) * cameraSpeed
+                    )
+            );
 
             tmpSizes.push(sizeMap[node.type]);
             tmpTexIndices.push(
@@ -132,14 +150,25 @@ export class TransactionGraphScene {
 
         const positions = new Float32Array(tmpPositions);
         const sizes = new Uint8Array(tmpSizes);
+        const showTimes = new THREE.BufferAttribute(
+            new Float32Array(tmpShowTimes),
+            1
+        );
         const texIndices = new Uint8Array(tmpTexIndices);
         const verticles = new THREE.BufferAttribute(positions, 3);
 
-        const { dots } = this.addDots(verticles, sizes, texIndices, roundNum);
+        const { dots } = this.addDots(
+            verticles,
+            sizes,
+            texIndices,
+            showTimes,
+            roundNum
+        );
         const { dashes, lines } = this.addLines(
             verticles,
             lineIndices,
             dashIndices,
+            showTimes,
             roundNum
         );
         const lastNodeIndex = nodes.length - 1;
@@ -147,7 +176,7 @@ export class TransactionGraphScene {
             this.pointCamera(nodes[lastNodeIndex]);
             setTimeout(() => {
                 this.renderQueryPhaze(nodes, dots, lines, dashes);
-            }, 1200);
+            }, cameraSpeed / 2);
         }
     }
 
@@ -218,7 +247,7 @@ export class TransactionGraphScene {
     private fastPointCamera = (node: INode) => {
         const position = this.camera.position.clone();
 
-        position.z -= 15;
+        position.z -= 25;
         this.focusedNode = node;
 
         const [x, y, z] = this.getPos(node);
@@ -227,22 +256,22 @@ export class TransactionGraphScene {
          *   camera and target need to be moved together
          */
         new TWEEN.Tween(position)
-            .to({ x, y, z }, 2200)
+            .to({ x, y, z }, cameraSpeed)
             .delay(200)
-            .easing(TWEEN.Easing.Cubic.InOut)
+            .easing(TWEEN.Easing.Sinusoidal.InOut)
             .on("update", (newPosition: any) => {
                 this.camera.position.set(
                     newPosition.x,
                     newPosition.y,
-                    newPosition.z + 15 // maintains a distance between camera and where it's pointing at
+                    newPosition.z + 25 // maintains a distance between camera and where it's pointing at
                 );
             })
             .start();
 
         const targetPosition = this.controls.target.clone();
         new TWEEN.Tween(targetPosition)
-            .to({ x, y, z }, 2200)
-            .easing(TWEEN.Easing.Cubic.InOut)
+            .to({ x, y, z }, cameraSpeed)
+            .easing(TWEEN.Easing.Sinusoidal.InOut)
             .on("update", (newPosition: any) => {
                 this.controls.target.set(
                     newPosition.x,
@@ -256,10 +285,10 @@ export class TransactionGraphScene {
         verticles: THREE.BufferAttribute,
         sizes: Uint8Array,
         texIndices: Uint8Array,
+        showTimes: THREE.BufferAttribute,
         roundNum: number
     ) {
         const dotsGeometry = new THREE.BufferGeometry();
-        const material = this.getDotMaterial();
 
         const sizesAttr = new THREE.BufferAttribute(sizes, 1);
         const texIndicesAttr = new THREE.BufferAttribute(texIndices, 1);
@@ -267,10 +296,11 @@ export class TransactionGraphScene {
         dotsGeometry.addAttribute("position", verticles);
         dotsGeometry.addAttribute("size", sizesAttr);
         dotsGeometry.addAttribute("texIndex", texIndicesAttr);
+        dotsGeometry.addAttribute("showTime", showTimes);
 
         dotsGeometry.computeBoundingSphere();
 
-        const dots = new THREE.Points(dotsGeometry, material);
+        const dots = new THREE.Points(dotsGeometry, this.dotMaterial);
         dots.renderOrder = 1;
 
         this.scene.add(dots);
@@ -292,6 +322,7 @@ export class TransactionGraphScene {
         verticles: THREE.BufferAttribute,
         lineIndices: number[],
         dashIndices: number[],
+        showTimes: THREE.BufferAttribute,
         roundNum: number
     ) {
         const lineGeometry = new THREE.BufferGeometry();
@@ -300,7 +331,11 @@ export class TransactionGraphScene {
         const dashGeometry = new THREE.BufferGeometry();
 
         lineGeometry.addAttribute("position", verticles);
+        lineGeometry.addAttribute("showTime", showTimes);
+
         dashGeometry.addAttribute("position", verticles);
+        dashGeometry.addAttribute("showTime", showTimes);
+
         lineGeometry.setIndex(lineIndices);
         dashGeometry.setIndex(dashIndices);
 
@@ -512,7 +547,7 @@ export class TransactionGraphScene {
         controls.panSpeed = 0.9;
         controls.noZoom = false;
         controls.noPan = false;
-        controls.staticMoving = false;
+        controls.staticMoving = true;
         controls.dynamicDampingFactor = 0.3;
         controls.keys = [65, 17, 16];
         this.controls = controls;
@@ -571,6 +606,7 @@ export class TransactionGraphScene {
                     this.dotRejectedHoverTexture
                 ]
             },
+            time: { value: 0 },
             color: { type: "c", value: new THREE.Color(0xffffff) },
             fogColor: { type: "c", value: fog.color },
             fogNear: { type: "f", value: fog.near },
@@ -621,7 +657,7 @@ export class TransactionGraphScene {
         this.scene.fog.far = length * 2;
         this.raycaster.far = length * 2.2;
         this.controls.update();
-
+        this.dotMaterial.uniforms.time.value = this.time;
         TWEEN.update();
     }
 
@@ -629,7 +665,8 @@ export class TransactionGraphScene {
         this.renderer.render(this.scene, this.camera);
     }
 
-    private animate() {
+    private animate(time: number = 0) {
+        this.time = time;
         this.animationId = window.requestAnimationFrame(this.animate);
         this.update();
         this.render();
@@ -679,13 +716,24 @@ const fragmentShader = `
 `;
 
 const vertexShader = `
+    #define TIMESCALE 0.25;
+    uniform float time;
     attribute float size;
     attribute float texIndex;
+    attribute float showTime;
     varying float vTexIndex;
+
     void main() {
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-        gl_PointSize = size * ( 90.0 / length( mvPosition.xyz ) );
+        if (showTime < time) {
+            gl_PointSize = size * ( 90.0 / length( mvPosition.xyz ) );
+        } else {
+            gl_PointSize = 0.0;
+        }
+        
+        
         vTexIndex = texIndex;
+        
         gl_Position = projectionMatrix * mvPosition;
     }
 `;
