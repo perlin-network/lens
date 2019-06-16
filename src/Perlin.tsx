@@ -41,21 +41,6 @@ class Perlin {
         tx: ITransaction,
         index: number
     ): ITransaction {
-        tx = _.extend(tx, { index });
-
-        switch (tx.tag) {
-            case Tag.TagContract:
-                delete tx.payload;
-                break;
-            case Tag.TagTransfer:
-                const payload = Perlin.parseTransferTransaction(
-                    Buffer.from(tx.payload, "base64")
-                );
-
-                tx.payload = payload;
-                break;
-        }
-
         // By default, a transactions status is labeled as "new".
         if (tx.status === undefined) {
             tx.status = "new";
@@ -444,32 +429,22 @@ class Perlin {
             }
             const logs = JSON.parse(data);
             const transactions: ITransaction[] = [];
-            console.log("new tx logs", logs.length);
+
             logs.forEach((item: any) => {
                 const tx: ITransaction = {
                     id: item.tx_id,
                     sender: item.sender_id,
                     creator: item.creator_id,
-                    parents: item.parents,
-                    nonce: item.nonce,
                     depth: item.depth,
-                    confidence: item.confidence,
                     tag: item.tag,
-                    payload: item.payload,
-                    status: item.event
+                    status: item.event || "new"
                 };
 
                 switch (item.event) {
                     case "new":
                     case "applied":
-                        const parsedTx = Perlin.parseWiredTransaction(
-                            tx,
-                            this.transactions.recent.length
-                        );
-                        transactions.unshift(parsedTx);
+                        transactions.unshift(tx);
                         pushTransactions(transactions);
-
-                        // this.transactions.recent.unshift(parsedTx);
                         break;
                 }
             });
