@@ -11,20 +11,11 @@ interface ITransaction {
 
     creator: string;
     sender: string;
-
-    parents: string[];
-
-    nonce: number;
     depth: number;
-    confidence: number;
 
     tag: Tag;
-    payload?: any;
 
     status: string;
-
-    creator_signature?: string;
-    sender_signature?: string;
 }
 
 export { ITransaction };
