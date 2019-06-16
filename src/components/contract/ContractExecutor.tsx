@@ -320,10 +320,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
         if (!emptyItem) {
             const buf = writeToBuffer(paramsList, true);
             try {
-                const result: any = await contractStore.localInvoke(
-                    currFunc,
-                    buf
-                );
+                const result: any = await contractStore.call(currFunc, buf);
                 const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
 
                 setWasmResult(
@@ -352,6 +349,8 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
             setErrorMessage(`Error : Item can't be empty.`);
         }
     };
+
+    const logMessages = contractStore.contract.logs;
 
     return (
         <>
@@ -421,6 +420,21 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                             {errorMessage}
                         </div>
                     )}
+                    {logMessages.map((item: any, index: number) => {
+                        return (
+                            <div
+                                key={index}
+                                style={{
+                                    textAlign: "center",
+                                    marginTop: "25px",
+                                    marginBottom: "10px",
+                                    color: "#4A41D1"
+                                }}
+                            >
+                                {item}
+                            </div>
+                        );
+                    })}
                 </ParamsBody>
             </Card>
         </>
