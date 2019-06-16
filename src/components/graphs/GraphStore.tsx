@@ -9,6 +9,7 @@ export interface INode {
     parents: number[];
     children: number[];
     globalDepth: number;
+    depthIndex: number;
     depthPos: number[];
     posOffset: number;
     txId?: string;
@@ -43,9 +44,9 @@ export class GraphStore {
         };
 
         // @ts-ignore
-        perlin.onConsensusRound = this.addRound;
+        perlin.onConsensusRound = window.addRound = this.addRound;
         // @ts-ignore
-        perlin.onConsensusPrune = this.pruneRound;
+        perlin.onConsensusPrune = window.pruneRound = this.pruneRound;
     }
 
     public subscribe(type: string, fn: any) {
