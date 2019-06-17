@@ -23,7 +23,7 @@ export class GraphStore {
 
     private static singleton: GraphStore;
 
-    public cameraSpeed = 2200;
+    public cameraSpeed = 1700;
 
     private subscriptions: any = [];
     private worker: Worker;
