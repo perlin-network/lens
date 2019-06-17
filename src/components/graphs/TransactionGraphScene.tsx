@@ -10,13 +10,6 @@ const texIndicesMap = {
     applied: 0,
     rejected: 1
 };
-const sizeMap = {
-    start: 5,
-    critical: 5,
-    applied: 3,
-    rejected: 3
-};
-const cameraSpeed = 4200;
 export class TransactionGraphScene {
     private focusedNode: INode;
     private el: any;
@@ -27,17 +20,10 @@ export class TransactionGraphScene {
     private renderer: any;
     private raycaster: any;
     private dotMaterial: any;
+    private cameraSpeed: number;
     private lineMaterial: any;
     private dashMaterial: any;
-    private lastTime: any = Date.now();
-    private pointCamera = _.throttle(
-        (node: INode, cb?: () => void) => {
-            // @ts-ignore
-            this.fastPointCamera(node);
-        },
-        cameraSpeed + 200,
-        { trailing: true }
-    );
+    private pointRound: (node: INode, roundNum: number) => void;
 
     private controls: any;
     private dotAppliedTexture: any;
@@ -55,8 +41,12 @@ export class TransactionGraphScene {
     constructor(
         container: any,
         setTooltipHander: (newValue: any) => void,
-        clickHandler: (id: string) => void
+        clickHandler: (id: string) => void,
+        cameraSpeed: number
     ) {
+        this.cameraSpeed = cameraSpeed;
+
+        this.initRoundPointer();
         this.el = container;
         this.dotAppliedTexture = this.createDotTexture("#4A41D1", "#0C122B");
         this.dotAppliedHoverTexture = this.createDotTexture(
@@ -96,60 +86,26 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
-    public renderNodes(nodes: INode[], roundNum: number) {
+    public renderNodes(info: any, roundNum: number) {
+        const nodes = info.nodes;
         this.rounds[roundNum] = {};
         this.rounds[roundNum].nodes = nodes;
 
         // nodes.length - 1 - we must ommit the startNode
         console.log("New Round Graph Nodes #", nodes.length - 1);
 
-        let count = 0;
-        const tmpPositions: number[] = [];
-        const tmpTexIndices: number[] = [];
-        const lineIndices: number[] = [];
-        const dashIndices: number[] = [];
-        const tmpSizes: number[] = [];
-        const tmpShowTimes: number[] = [];
-
-        const maxDepth = nodes[nodes.length - 1].depth;
-        const step = cameraSpeed / maxDepth;
-
-        nodes.forEach((node: INode, index: number) => {
-            const position = this.getPos(node);
-            tmpPositions[count++] = position[0];
-            tmpPositions[count++] = position[1];
-            tmpPositions[count++] = position[2];
-
-            const delay = ((node.depth + 1) / maxDepth) * cameraSpeed;
-
-            tmpShowTimes.push(this.time + delay);
-
-            tmpSizes.push(sizeMap[node.type]);
-            tmpTexIndices.push(
-                node.type === "rejected"
-                    ? texIndicesMap.applied
-                    : texIndicesMap[node.type]
-            );
-
-            node.parents.forEach((parent: any) => {
-                if (node.type === "rejected" || parent.type === "rejected") {
-                    dashIndices.push(parent.id);
-                    dashIndices.push(node.id);
-                } else {
-                    lineIndices.push(parent.id);
-                    lineIndices.push(node.id);
-                }
-            });
-        });
-
-        const positions = new Float32Array(tmpPositions);
-        const sizes = new Uint8Array(tmpSizes);
+        const positions = new Float32Array(info.positions);
+        const sizes = new Uint8Array(info.sizes);
         const showTimes = new THREE.BufferAttribute(
-            new Float32Array(tmpShowTimes),
+            new Float32Array(info.showTimes),
             1
         );
 
-        const texIndices = new Uint8Array(tmpTexIndices);
+        const rounds = new THREE.BufferAttribute(
+            new Float32Array(nodes.length).fill(roundNum),
+            1
+        );
+        const texIndices = new Uint8Array(info.texIndices);
         const verticles = new THREE.BufferAttribute(positions, 3);
 
         const { dots } = this.addDots(
@@ -157,21 +113,23 @@ export class TransactionGraphScene {
             sizes,
             texIndices,
             showTimes,
-            roundNum
+            roundNum,
+            rounds
         );
-        const { dashes, lines } = this.addLines(
+        const { dashes } = this.addLines(
             verticles,
-            lineIndices,
-            dashIndices,
+            info.lineIndices,
+            info.dashIndices,
             showTimes,
-            roundNum
+            roundNum,
+            rounds
         );
         const lastNodeIndex = nodes.length - 1;
         if (nodes[lastNodeIndex]) {
-            this.pointCamera(nodes[lastNodeIndex]);
+            this.pointRound(nodes[lastNodeIndex], roundNum);
             setTimeout(() => {
                 this.renderQueryPhaze(nodes, dots, dashes);
-            }, cameraSpeed * 0.75);
+            }, this.cameraSpeed * 0.75);
         }
     }
 
@@ -244,15 +202,15 @@ export class TransactionGraphScene {
         position.z -= 35;
         this.focusedNode = node;
 
-        const [x, y, z] = this.getPos(node);
+        const [x, y, z] = node.position;
 
         /*
          *   camera and target need to be moved together
          */
         new TWEEN.Tween(position)
-            .to({ x, y, z }, cameraSpeed)
-            .delay(100)
-            // .easing(TWEEN.Easing.Quadratic.In)
+            .to({ x, y, z }, this.cameraSpeed)
+            .delay(200) // delaying the camera allows for a breif overview of the upcoming structure
+            .easing(TWEEN.Easing.Sinusoidal.In)
             .on("update", (newPosition: any) => {
                 this.camera.position.set(
                     newPosition.x,
@@ -264,8 +222,8 @@ export class TransactionGraphScene {
 
         const targetPosition = this.controls.target.clone();
         new TWEEN.Tween(targetPosition)
-            .to({ x, y, z }, cameraSpeed)
-            // .easing(TWEEN.Easing.Quadratic.InOut)
+            .to({ x, y, z }, this.cameraSpeed)
+            // .easing(TWEEN.Easing.Quadratic.In)
             .on("update", (newPosition: any) => {
                 this.controls.target.set(
                     newPosition.x,
@@ -275,12 +233,34 @@ export class TransactionGraphScene {
             })
             .start();
     };
+
+    private initRoundPointer() {
+        // after each round the camera will point to the last critical node
+        this.pointRound = _.throttle(
+            (node: INode, roundNum: number) => {
+                this.dotMaterial.uniforms.startTime.value = this.time;
+                this.lineMaterial.uniforms.startTime.value = this.time;
+                this.dashMaterial.uniforms.startTime.value = this.time;
+
+                this.dotMaterial.uniforms.showRound.value = roundNum;
+                this.lineMaterial.uniforms.showRound.value = roundNum;
+                this.dashMaterial.uniforms.showRound.value = roundNum;
+
+                // @ts-ignore
+                this.fastPointCamera(node);
+            },
+            this.cameraSpeed + 500,
+            { leading: true }
+        );
+    }
+
     private addDots(
         verticles: THREE.BufferAttribute,
         sizes: Uint8Array,
         texIndices: Uint8Array,
         showTimes: THREE.BufferAttribute,
-        roundNum: number
+        roundNum: number,
+        rounds: THREE.BufferAttribute
     ) {
         const dotsGeometry = new THREE.BufferGeometry();
 
@@ -291,6 +271,7 @@ export class TransactionGraphScene {
         dotsGeometry.addAttribute("size", sizesAttr);
         dotsGeometry.addAttribute("texIndex", texIndicesAttr);
         dotsGeometry.addAttribute("showTime", showTimes);
+        dotsGeometry.addAttribute("round", rounds);
 
         dotsGeometry.computeBoundingSphere();
 
@@ -303,21 +284,13 @@ export class TransactionGraphScene {
         return { dots };
     }
 
-    private getPos(node: INode) {
-        const step = 0.8;
-        return [
-            step * node.depthPos[0] + node.posOffset[0],
-            step * node.globalDepth - node.posOffset[0],
-            step * node.depthPos[1] + node.posOffset[1]
-        ];
-    }
-
     private addLines(
         verticles: THREE.BufferAttribute,
         lineIndices: number[],
         dashIndices: number[],
         showTimes: THREE.BufferAttribute,
-        roundNum: number
+        roundNum: number,
+        rounds: THREE.BufferAttribute
     ) {
         const lineGeometry = new THREE.BufferGeometry();
 
@@ -326,9 +299,11 @@ export class TransactionGraphScene {
 
         lineGeometry.addAttribute("position", verticles);
         lineGeometry.addAttribute("showTime", showTimes);
+        lineGeometry.addAttribute("round", rounds);
 
         dashGeometry.addAttribute("position", verticles);
         dashGeometry.addAttribute("showTime", showTimes);
+        dashGeometry.addAttribute("round", rounds);
 
         lineGeometry.setIndex(lineIndices);
         dashGeometry.setIndex(dashIndices);
@@ -428,7 +403,7 @@ export class TransactionGraphScene {
             if (this.focusedNode === hoveredNode && hoveredNode.txId) {
                 this.clickHandler(hoveredNode.txId);
             } else {
-                this.pointCamera(hoveredNode);
+                this.fastPointCamera(hoveredNode);
             }
             disableHover();
         };
@@ -463,7 +438,7 @@ export class TransactionGraphScene {
                     const node = nodes[index];
 
                     if (node && intersect.distanceToRay < 0.2) {
-                        const pos = this.getPos(node);
+                        const pos = node.position;
 
                         dots.geometry.attributes.texIndex.array[index] += 2.0; // switches to hover version material
                         dots.geometry.attributes.texIndex.needsUpdate = true;
@@ -592,6 +567,8 @@ export class TransactionGraphScene {
                 ]
             },
             time: { value: 0 },
+            startTime: { value: 0 },
+            showRound: { value: 0 },
             color: { type: "c", value: new THREE.Color(0xffffff) },
             fogColor: { type: "c", value: fog.color },
             fogNear: { type: "f", value: fog.near },
@@ -620,6 +597,8 @@ export class TransactionGraphScene {
 
         const uniforms = {
             time: { value: 0 },
+            startTime: { value: 0 },
+            showRound: { value: 0 },
             color: { type: "c", value: new THREE.Color(color) },
             fog: true,
             fogColor: { type: "c", value: fog.color },
@@ -663,9 +642,9 @@ export class TransactionGraphScene {
     }
 
     private update() {
-        const length = Math.max(this.camera.position.length(), 20);
-        this.scene.fog.far = length * 2;
-        this.raycaster.far = length * 2.2;
+        // const length = Math.max(this.camera.position.length(), 20);
+        // this.scene.fog.far = length * 2;
+        // this.raycaster.far = length * 2.2;
         this.controls.update();
         this.dotMaterial.uniforms.time.value = this.time;
         this.lineMaterial.uniforms.time.value = this.time;
@@ -678,12 +657,8 @@ export class TransactionGraphScene {
     }
 
     private animate(time: number = 0) {
-        const newTime = Date.now();
-        const diff = newTime - this.lastTime;
-        this.lastTime = newTime;
-        this.time += diff;
-
         this.animationId = window.requestAnimationFrame(this.animate);
+        this.time = time;
         this.update();
         this.render();
     }
@@ -695,15 +670,21 @@ const lineFragmentShader = `
     uniform float fogNear;
     uniform float time;
     uniform float fogFar;
+    uniform float startTime;
+    uniform float showRound;
     varying float vShowTime;
+    varying float vRound;
 
     void main() {
-        float opacity = 0.8;
+        float opacity = 0.0;
         
-        if (vShowTime >= time) {
-            opacity = 0.0;
+        if (vRound < showRound || (startTime + vShowTime < time)) {
+            opacity = 0.8;
         }
 
+        if (vRound > showRound) {
+            opacity = 0.0;
+        }
         
 
         gl_FragColor = vec4(color, opacity);
@@ -727,12 +708,15 @@ const lineFragmentShader = `
 
 const lineVertexShader = `
     attribute float showTime;
+    attribute float round;
     varying float vShowTime;
+    varying float vRound;
 
     void main() 
     {
         vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
         vShowTime = showTime;
+        vRound = round;
 
         gl_Position = projectionMatrix * modelViewPosition;
     }
@@ -781,19 +765,26 @@ const fragmentShader = `
 
 const vertexShader = `
     uniform float time;
+    uniform float startTime;
+    uniform float showRound;
     attribute float size;
     attribute float texIndex;
     attribute float showTime;
+    attribute float round;
     varying float vTexIndex;
 
     void main() {
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-        if (showTime < time) {
+        
+        if (round < showRound || ( startTime + showTime < time )) {
             gl_PointSize = size * ( 90.0 / length( mvPosition.xyz ) );
         } else {
             gl_PointSize = 0.0;
         }
-        
+
+        if (round > showRound) {
+            gl_PointSize = 0.0;
+        }
         
         vTexIndex = texIndex;
         

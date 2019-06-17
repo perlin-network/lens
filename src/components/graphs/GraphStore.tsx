@@ -6,12 +6,10 @@ export interface INode {
     depth: number;
     type: string;
     round: number;
-    parents: number[];
-    children: number[];
-    globalDepth: number;
+    parents: any[];
+    children: any[];
     depthIndex: number;
-    depthPos: number[];
-    posOffset: number;
+    position: number[];
     txId?: string;
 }
 
@@ -24,6 +22,9 @@ export class GraphStore {
     }
 
     private static singleton: GraphStore;
+
+    public cameraSpeed = 2200;
+
     private subscriptions: any = [];
     private worker: Worker;
     private start: any;
@@ -37,7 +38,7 @@ export class GraphStore {
         this.worker.onmessage = evt => {
             const { type, data } = JSON.parse(evt.data);
             if (type === "addRound") {
-                const done = new Date().getTime();
+                const done = Date.now();
                 console.log("generate nodes time:", done - this.start);
             }
             this.notifySubscribers(type, data);
@@ -66,7 +67,7 @@ export class GraphStore {
         startId?: string,
         endId?: string
     ) => {
-        this.start = new Date().getTime();
+        this.start = Date.now();
         this.worker.postMessage({
             type: "addRound",
             accepted,
@@ -74,7 +75,8 @@ export class GraphStore {
             maxDepth,
             roundNum,
             startId,
-            endId
+            endId,
+            cameraSpeed: this.cameraSpeed
         });
     };
 

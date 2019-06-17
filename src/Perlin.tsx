@@ -375,7 +375,7 @@ class Perlin {
     }
 
     private async startSession() {
-        const time = new Date().getTime();
+        const time = Date.now();
         const auth = nacl.sign.detached(
             new Buffer(`perlin_session_init_${time}`),
             this.keys.secretKey

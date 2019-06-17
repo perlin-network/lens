@@ -8,7 +8,8 @@ onmessage = evt => {
                 data.maxDepth,
                 data.roundNum,
                 data.startId,
-                data.endId
+                data.endId,
+                data.cameraSpeed
             );
             break;
         case "pruneRound":
@@ -21,10 +22,7 @@ onmessage = evt => {
 };
 
 const offset = (index, width) => index - Math.floor(width / 2);
-const getPos = (index, width) => [
-    offset(index % width, width),
-    offset(Math.floor(index / width), width)
-];
+
 const nonRejected = node => node.type !== "rejected";
 let rounds = {};
 
@@ -78,7 +76,16 @@ const uniqueRandomRange = (min, max) => {
  *   and the end (critical) node of the previous round
  */
 let startNode;
-const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
+
+const addRound = (
+    accepted,
+    rejected,
+    maxDepth,
+    roundNum,
+    startId,
+    endId,
+    cameraSpeed
+) => {
     let numTx = accepted + rejected;
 
     if (rounds[roundNum] || !numTx) {
@@ -130,41 +137,22 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
 
         // depthWidth reprezents the dimention of matrix structure for each level
         const depthWidth = Math.ceil(Math.sqrt(depthSize));
-        const depthPos = getPos(depthIndex, depthWidth);
 
         const node = {
             id, // generated as a per round id
             type,
             depth,
+            position: getPos(depthIndex, depthWidth, globalDepth),
             round: roundNum,
-            globalDepth, // needed to determine vertical coordinate
-            depthPos, // will be used to multiple a given step value to determine horizontal coordinates
             depthIndex, // every depth is an array, and depthIndex is the index within that
             parents: [],
             children: [],
-            txId, // start and end nodes receive id's from the server; use to access detail page on node click
-            posOffset: [randomRange(-30, 30) / 100, randomRange(-30, 30) / 100] // add random position offsets to avoid link overlapping
+            globalDepth,
+            txId // start and end nodes receive id's from the server; use to access detail page on node click
         };
 
         round[depth] = round[depth] || [];
         round[depth][depthIndex] = node;
-
-        if (node.type === "start") {
-            return node;
-        }
-
-        // all nodes next to start node should connect to it
-        if (node.depth === 0) {
-            createLink(node, startNode);
-            return node;
-        }
-
-        // all nodes (except rejected) next to critical should conenct to it
-        if (node.type === "critical") {
-            (round[depth - 1] || []).forEach(parent =>
-                createLink(node, parent)
-            );
-        }
 
         return node;
     };
@@ -190,12 +178,20 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
         nodes.push(node);
     }
 
-    const node = createNode(numTx, "critical");
-    startNode = node;
-    nodes.push(node);
+    const lastNode = createNode(numTx, "critical");
+
+    nodes.push(lastNode);
 
     // we wait for all of the nodes to be positioned before we resolve node links
-    resolveNodeLinks(nodes, round, depthSize);
+    const renderInfo = getRenderInfo(
+        nodes,
+        round,
+        depthSize,
+        maxDepth,
+        cameraSpeed
+    );
+
+    startNode = lastNode;
 
     rounds[roundNum] = numTx + 1; // we added  extra start node
 
@@ -205,7 +201,7 @@ const addRound = (accepted, rejected, maxDepth, roundNum, startId, endId) => {
             type: "addRound",
             data: {
                 roundNum,
-                nodes
+                info: renderInfo
             }
         })
     );
@@ -245,30 +241,116 @@ const getRejectedIndices = (accepted, rejected, depthSize) => {
 const checkParent = (node, parent) => {
     if (parent && node) {
         // diff of node positions assures that there a no cris-crossing links
-        const diffY = Math.abs(parent.depthPos[0] - node.depthPos[0]);
-        const diffX = Math.abs(parent.depthPos[1] - node.depthPos[1]);
+        const diffY = Math.abs(parent.position[0] - node.position[0]);
+        const diffX = Math.abs(parent.position[1] - node.position[1]);
         const diff = (diffX + diffY) / 2;
         if (
             node.type === "critical" ||
             parent.type === "start" ||
-            (!node.parents.filter(nonRejected).length && diff <= 1) ||
-            (!parent.children.filter(nonRejected).length && diff <= 1)
+            (!node.parents.filter(nonRejected).length && diff <= 2) ||
+            (!parent.children.filter(nonRejected).length && diff <= 2)
         ) {
-            createLink(node, parent);
-            return true;
+            return createLink(node, parent);
         }
     }
     return false;
 };
+const getPos = (index, width, globalDepth) => {
+    const depthPos = [
+        offset(index % width, width),
+        offset(Math.floor(index / width), width)
+    ];
+    const posOffset = [randomRange(-30, 30) / 100, randomRange(-30, 30) / 100];
 
-const resolveNodeLinks = (nodes, round, depthSize) => {
+    const step = 0.8;
+    return [
+        step * depthPos[0] + posOffset[0],
+        step * globalDepth - posOffset[0],
+        step * depthPos[1] + posOffset[1]
+    ];
+};
+
+const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
+    const addLineIndices = (node, parent) => {
+        if (node.type === "rejected" || parent.type === "rejected") {
+            dashIndices.push(parent.id);
+            dashIndices.push(node.id);
+        } else {
+            lineIndices.push(parent.id);
+            lineIndices.push(node.id);
+        }
+    };
+
+    const positions = [];
+    const sizes = [];
+    const lineIndices = [];
+    const dashIndices = [];
+    const texIndices = [];
+    const nodeInfo = [];
+    const showTimes = [];
+
+    let count = 0;
+
+    const sizeMap = {
+        start: 5,
+        critical: 5,
+        applied: 3,
+        rejected: 3
+    };
+    const texIndicesMap = {
+        start: 0,
+        critical: 0,
+        applied: 0,
+        rejected: 1
+    };
+
     nodes.forEach((node, i) => {
+        const delay = ((node.depth + 1) / maxDepth) * cameraSpeed;
+        showTimes.push(maxDepth * 0.1 + delay);
+
+        nodeInfo.push({
+            id: node.id,
+            type: node.type,
+            txId: node.txId,
+            position: node.position,
+            round: node.round,
+            depth: node.depth
+        });
+        positions[count++] = node.position[0];
+        positions[count++] = node.position[1];
+        positions[count++] = node.position[2];
+
+        sizes.push(sizeMap[node.type]);
+        texIndices.push(
+            node.type === "rejected"
+                ? texIndicesMap.applied
+                : texIndicesMap[node.type]
+        );
+
         // above and beneath nodes are prefered for linking
         let parentIndex = node.depthIndex;
         let counter = 0;
         let level = 1;
         let inc = 1;
         const parentLimit = i % Math.floor(depthSize / 4) === 0 ? 3 : 1; // adds path forks
+
+        if (node.type === "start") {
+            return;
+        }
+        // all nodes (except rejected) next to critical should conenct to it
+        if (node.type === "critical") {
+            (round[node.depth - 1] || []).forEach(parent => {
+                if (createLink(node, parent)) {
+                    addLineIndices(node, parent);
+                }
+            });
+            return;
+        }
+
+        // all nodes next to start node should connect to it
+        if (node.depth === 0 && createLink(node, startNode)) {
+            addLineIndices(node, startNode);
+        }
 
         while (
             counter <= depthSize &&
@@ -285,12 +367,16 @@ const resolveNodeLinks = (nodes, round, depthSize) => {
 
             if (node.parents.length < 3) {
                 const parent = (round[node.depth - level] || [])[circularIndex];
-                checkParent(node, parent);
+                if (checkParent(node, parent)) {
+                    addLineIndices(node, parent);
+                }
             }
 
             if (node.type !== "rejected" && !node.children.length) {
                 const child = (round[node.depth + level] || [])[circularIndex];
-                checkParent(child, node);
+                if (checkParent(child, node)) {
+                    addLineIndices(child, node);
+                }
             }
 
             if (
@@ -313,6 +399,16 @@ const resolveNodeLinks = (nodes, round, depthSize) => {
             }
         }
     });
+
+    return {
+        positions,
+        sizes,
+        lineIndices,
+        dashIndices,
+        texIndices,
+        showTimes,
+        nodes: nodeInfo // trimmed down nodes list to improve WebWorker communication speed
+    };
 };
 
 const createLink = (node, parent) => {
@@ -322,7 +418,7 @@ const createLink = (node, parent) => {
         (parent.type === "applied" &&
             !parent.children.filter(nonRejected).length)
     ) {
-        return;
+        return false;
     }
 
     // rejected nodes should be able to have other rejected nodes as children
@@ -335,7 +431,9 @@ const createLink = (node, parent) => {
             id: parent.id,
             type: parent.type
         });
+        return true;
     }
+    return false;
 };
 
 const pruneRound = roundNum => {

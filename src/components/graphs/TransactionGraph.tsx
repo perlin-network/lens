@@ -61,13 +61,14 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
         const scene = new TransactionGraphScene(
             containerRef.current,
             setTooltip,
-            goToTxDetailPage
+            goToTxDetailPage,
+            graphStore.cameraSpeed
         );
 
         const addRoundDisposer = graphStore.subscribe(
             "addRound",
             (data: any) => {
-                scene.renderNodes(data.nodes, data.roundNum);
+                scene.renderNodes(data.info, data.roundNum);
             }
         );
 
