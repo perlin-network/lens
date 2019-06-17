@@ -305,8 +305,9 @@ const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
     };
 
     nodes.forEach((node, i) => {
-        const delay = ((node.depth + 1) / maxDepth) * cameraSpeed;
-        showTimes.push(maxDepth * 0.1 + delay);
+        const delay = ((node.depth + 2) / maxDepth) * cameraSpeed;
+        const offset = (maxDepth * 0.1 + depthSize * 0.1) / 2;
+        showTimes.push(delay);
 
         nodeInfo.push({
             id: node.id,

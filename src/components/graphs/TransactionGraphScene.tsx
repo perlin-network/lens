@@ -78,7 +78,7 @@ export class TransactionGraphScene {
             this.onWindowResize();
             this.initMouseEvents();
             this.animate();
-        }, 500);
+        }, 200);
 
         this.animate = this.animate.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
@@ -137,7 +137,6 @@ export class TransactionGraphScene {
      *   each round will have it's own set of nodes and lines group
      *   the first node will always be the start node it overlaps the last node of the previous round
      */
-
     public renderQueryPhaze(
         nodes: INode[],
         dots: THREE.Points,
@@ -148,8 +147,8 @@ export class TransactionGraphScene {
         for (let i = 0; i < texIndicesAttr.count; i++) {
             texIndicesAttr.array[i] = texIndicesMap[nodes[i].type];
         }
-        texIndicesAttr.needsUpdate = true;
 
+        texIndicesAttr.needsUpdate = true;
         dashes.material = this.dashMaterial;
         // @ts-ignore
         dashes.material.needsUpdate = true;
@@ -187,8 +186,8 @@ export class TransactionGraphScene {
 
         this.scene.dispose();
         this.renderer.dispose();
-        window.cancelAnimationFrame(this.animationId);
 
+        window.cancelAnimationFrame(this.animationId);
         window.removeEventListener("resize", this.onWindowResize);
 
         if (this.disposeMouseEvents) {
@@ -198,8 +197,6 @@ export class TransactionGraphScene {
 
     private fastPointCamera = (node: INode) => {
         const position = this.camera.position.clone();
-
-        position.z -= 35;
         this.focusedNode = node;
 
         const [x, y, z] = node.position;
@@ -208,14 +205,14 @@ export class TransactionGraphScene {
          *   camera and target need to be moved together
          */
         new TWEEN.Tween(position)
-            .to({ x, y, z }, this.cameraSpeed)
+            .to({ x, y, z: z + 35 }, this.cameraSpeed)
             .delay(200) // delaying the camera allows for a breif overview of the upcoming structure
-            .easing(TWEEN.Easing.Sinusoidal.In)
+            // .easing(TWEEN.Easing.Sinusoidal.In)
             .on("update", (newPosition: any) => {
                 this.camera.position.set(
                     newPosition.x,
                     newPosition.y,
-                    newPosition.z + 35 // maintains a distance between camera and where it's pointing at
+                    newPosition.z
                 );
             })
             .start();
@@ -238,10 +235,12 @@ export class TransactionGraphScene {
         // after each round the camera will point to the last critical node
         this.pointRound = _.throttle(
             (node: INode, roundNum: number) => {
+                // each node should start appearing at startTime + node delay
                 this.dotMaterial.uniforms.startTime.value = this.time;
                 this.lineMaterial.uniforms.startTime.value = this.time;
                 this.dashMaterial.uniforms.startTime.value = this.time;
 
+                // using showRound we can kepp previous round nodes visible
                 this.dotMaterial.uniforms.showRound.value = roundNum;
                 this.lineMaterial.uniforms.showRound.value = roundNum;
                 this.dashMaterial.uniforms.showRound.value = roundNum;
@@ -254,6 +253,7 @@ export class TransactionGraphScene {
         );
     }
 
+    // addDots - adds visual representation of nodes
     private addDots(
         verticles: THREE.BufferAttribute,
         sizes: Uint8Array,
@@ -270,8 +270,8 @@ export class TransactionGraphScene {
         dotsGeometry.addAttribute("position", verticles);
         dotsGeometry.addAttribute("size", sizesAttr);
         dotsGeometry.addAttribute("texIndex", texIndicesAttr);
-        dotsGeometry.addAttribute("showTime", showTimes);
-        dotsGeometry.addAttribute("round", rounds);
+        dotsGeometry.addAttribute("showTime", showTimes); // delay at which the node will appear
+        dotsGeometry.addAttribute("round", rounds); // used to keep previous round nodes visible
 
         dotsGeometry.computeBoundingSphere();
 
@@ -284,6 +284,7 @@ export class TransactionGraphScene {
         return { dots };
     }
 
+    // addLines - adds visual representation of node relationships
     private addLines(
         verticles: THREE.BufferAttribute,
         lineIndices: number[],
@@ -298,20 +299,21 @@ export class TransactionGraphScene {
         const dashGeometry = new THREE.BufferGeometry();
 
         lineGeometry.addAttribute("position", verticles);
-        lineGeometry.addAttribute("showTime", showTimes);
-        lineGeometry.addAttribute("round", rounds);
+        lineGeometry.addAttribute("showTime", showTimes); // delay at which the line will appear
+        lineGeometry.addAttribute("round", rounds); // used to keep previous lines nodes visible
 
+        // lines which connect rejected nodes
         dashGeometry.addAttribute("position", verticles);
-        dashGeometry.addAttribute("showTime", showTimes);
-        dashGeometry.addAttribute("round", rounds);
+        dashGeometry.addAttribute("showTime", showTimes); // delay at which the line will appear
+        dashGeometry.addAttribute("round", rounds); // used to keep previous lines nodes visible
 
         lineGeometry.setIndex(lineIndices);
         dashGeometry.setIndex(dashIndices);
 
         lineGeometry.computeBoundingSphere();
         dashGeometry.computeBoundingSphere();
-        const lines = new THREE.LineSegments(lineGeometry, this.lineMaterial);
 
+        const lines = new THREE.LineSegments(lineGeometry, this.lineMaterial);
         const dashes = new THREE.LineSegments(dashGeometry, this.lineMaterial);
 
         lines.renderOrder = 0;
@@ -350,6 +352,7 @@ export class TransactionGraphScene {
             }
         };
 
+        // onKeyDown - scrolls to next/previous critical node
         const onKeyDown = (event: any) => {
             let round;
             let node;
@@ -421,6 +424,7 @@ export class TransactionGraphScene {
             this.mouse.x = (clientX / this.width) * 2 - 1;
             this.mouse.y = -(clientY / this.height) * 2 + 1;
 
+            // sends a ray to intersect node beneath the mouse pointer
             this.raycaster.setFromCamera(this.mouse, this.camera);
 
             const checkDots = (dots: any, nodes: INode[]) => {
@@ -449,6 +453,7 @@ export class TransactionGraphScene {
                         const widthHalf = this.width / 2;
                         const heightHalf = this.height / 2;
 
+                        // projects 3D position onto 2D to be sent to the external tooltip element
                         const x = out.x * widthHalf + widthHalf;
                         const y = -(out.y * heightHalf) + heightHalf;
 
@@ -512,10 +517,12 @@ export class TransactionGraphScene {
         controls.keys = [65, 17, 16];
         this.controls = controls;
     }
+
+    // createDotTexture - draws a 2D canvas image to be used as dot texture
     private createDotTexture(
         fillColor: string,
         strokeColor: string,
-        glow?: string
+        glow?: string // a glow appears on node hover
     ) {
         const size = 512;
 
@@ -554,6 +561,8 @@ export class TransactionGraphScene {
 
         return texture;
     }
+
+    // getDotMaterial - generates a shader material in order to gradually show dots
     private getDotMaterial() {
         const fog = this.scene.fog || {};
         const uniforms = {
@@ -566,9 +575,9 @@ export class TransactionGraphScene {
                     this.dotRejectedHoverTexture
                 ]
             },
-            time: { value: 0 },
-            startTime: { value: 0 },
-            showRound: { value: 0 },
+            time: { value: 0 }, // shader's timestamp
+            startTime: { value: 0 }, // repesentes the base time on which each node delay added
+            showRound: { value: 0 }, // indicates which round is being revealed
             color: { type: "c", value: new THREE.Color(0xffffff) },
             fogColor: { type: "c", value: fog.color },
             fogNear: { type: "f", value: fog.near },
@@ -592,13 +601,14 @@ export class TransactionGraphScene {
         return material;
     }
 
+    // getLineMaterial - generates a shader material in order to gradually show lines
     private getLineMaterial(color: number, opacity: number) {
         const fog = this.scene.fog || {};
 
         const uniforms = {
-            time: { value: 0 },
-            startTime: { value: 0 },
-            showRound: { value: 0 },
+            time: { value: 0 }, // shader's timestamp
+            startTime: { value: 0 }, // updates at every pointRound
+            showRound: { value: 0 }, // indicates which round is being revealed
             color: { type: "c", value: new THREE.Color(color) },
             fog: true,
             fogColor: { type: "c", value: fog.color },
@@ -642,10 +652,9 @@ export class TransactionGraphScene {
     }
 
     private update() {
-        // const length = Math.max(this.camera.position.length(), 20);
-        // this.scene.fog.far = length * 2;
-        // this.raycaster.far = length * 2.2;
         this.controls.update();
+
+        // updates the current timestamp inside the shader
         this.dotMaterial.uniforms.time.value = this.time;
         this.lineMaterial.uniforms.time.value = this.time;
         this.dashMaterial.uniforms.time.value = this.time;
