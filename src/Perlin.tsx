@@ -180,6 +180,17 @@ class Perlin {
         );
     }
 
+    public async withdrawReward(amount: number): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeByte(2);
+        payload.writeUint64(Long.fromNumber(amount, true));
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+        );
+    }
+
     public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
         const payload = new PayloadWriter();
         payload.writeBuffer(Buffer.from(bytes));
