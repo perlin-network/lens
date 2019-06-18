@@ -404,7 +404,6 @@ class Perlin {
         const url = new URL(
             `ws://${this.api.host}/poll/tx?sender=${this.publicKeyHex}`
         );
-        url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -456,7 +455,6 @@ class Perlin {
 
     private pollConsensusUpdates() {
         const url = new URL(`ws://${this.api.host}/poll/consensus`);
-        url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -488,7 +486,6 @@ class Perlin {
 
     private pollMetricsUpdates() {
         const url = new URL(`ws://${this.api.host}/poll/metrics`);
-        url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -507,10 +504,7 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(
-            `ws://${this.api.host}/poll/accounts?id=${this.publicKeyHex}`
-        );
-        url.searchParams.append("token", this.api.token);
+        const url = new URL(`ws://${this.api.host}/poll/accounts`);
         url.searchParams.append("id", id);
 
         const ws = new ReconnectingWebSocket(url.toString());
@@ -531,6 +525,9 @@ class Perlin {
                             break;
                         case "stake_updated":
                             this.account.stake = item.stake;
+                            break;
+                        case "reward_updated":
+                            this.account.reward = item.reward;
                             break;
                         case "num_pages_updated":
                             this.account.num_mem_pages = item.num_pages;

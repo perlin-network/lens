@@ -43,7 +43,7 @@ const useLineChart = (ref: any) => {
 
         while (counter--) {
             dataSet.current.push({
-                time: now - counter * 1000,
+                time: now - (counter + 1) * 1000,
                 value: 0
             });
         }
