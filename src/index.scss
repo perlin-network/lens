@@ -116,7 +116,14 @@ svg {
     background-color: #1f2137 !important;
     border-radius: 1em;
 }
+.nowrap {
+    white-space: nowrap;
+}
 
+.truncate {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 .statuses {
     display: flex;
     flex-direction: row;

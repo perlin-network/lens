@@ -7,7 +7,7 @@
         "@blueprintjs/select": "^3.6.0",
         "@rebass/grid": "^6.0.0-7",
         "@types/animejs": "^2.0.2",
-        "@types/react-js-pagination": "^3.0.2",
+        "@types/react-infinite-scroller": "^1.2.1",
         "@types/react-table": "^6.8.0",
         "@types/react-transition-group": "^2.0.16",
         "@types/three": "^0.103.2",
@@ -15,6 +15,7 @@
         "autoprefixer": "7.1.6",
         "babel-jest": "^22.1.0",
         "babel-loader": "^7.1.2",
+        "babel-plugin-styled-components": "^1.10.0",
         "babel-preset-react-app": "^3.1.1",
         "case-sensitive-paths-webpack-plugin": "2.1.1",
         "chalk": "1.1.3",
@@ -56,7 +57,7 @@
         "react-dom": "16.8.3",
         "react-dropdown": "^1.6.4",
         "react-dropzone": "^10.0.0",
-        "react-js-pagination": "^3.0.2",
+        "react-infinite-scroller": "^1.2.4",
         "react-qr-code": "^0.1.3",
         "react-qr-svg": "^2.2.1",
         "react-router-dom": "^4.3.1",
@@ -85,7 +86,6 @@
         "url-loader": "0.6.2",
         "vis": "^4.21.0",
         "wabt": "^1.0.10",
-        "webcola": "^3.3.8",
         "webpack": "3.8.1",
         "webpack-dev-server": "3.0.0",
         "webpack-manifest-plugin": "1.3.2",
@@ -111,7 +111,6 @@
         "@types/store": "^2.0.1",
         "@types/styled-components": "4.1.8",
         "@types/vis": "^4.21.7",
-        "@types/webcola": "^3.2.0",
         "@types/webpack": "^4.4.24",
         "husky": "^1.3.1",
         "lint-staged": "^8.1.3",
@@ -176,6 +175,9 @@
     "babel": {
         "presets": [
             "react-app"
+        ],
+        "plugins": [
+            "babel-plugin-styled-components"
         ]
     }
 }

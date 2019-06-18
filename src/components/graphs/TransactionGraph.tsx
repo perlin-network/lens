@@ -1,13 +1,15 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, memo } from "react";
 import { when } from "mobx";
 import { Perlin } from "../../Perlin";
-
+import { INode } from "./GraphStore";
 import styled from "styled-components";
 import { TransactionGraphScene } from "./TransactionGraphScene";
 import Tooltip from "./Tooltip";
 import { withRouter, RouteComponentProps } from "react-router";
+import { GraphStore } from "./GraphStore";
 
 const perlin = Perlin.getInstance();
+const graphStore = GraphStore.getInstance();
 
 const Wrapper = styled.div<{
     isHovered: boolean;
@@ -59,29 +61,44 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
         const scene = new TransactionGraphScene(
             containerRef.current,
             setTooltip,
-            goToTxDetailPage
+            goToTxDetailPage,
+            graphStore.cameraSpeed
         );
 
-        perlin.onTransactionsRemoved = () => {
-            const nodes = perlin.transactions.recent;
-            scene.renderNodes(nodes);
-        };
+        const addRoundDisposer = graphStore.subscribe(
+            "addRound",
+            (data: any, cb?: (params?: any) => void) => {
+                scene.renderNodes(data.info, data.roundNum, cb);
+            }
+        );
 
-        perlin.onTransactionsCreated = () => {
-            const nodes = perlin.transactions.recent;
-            scene.renderNodes(nodes);
-        };
+        const pruneRoundDisposer = graphStore.subscribe(
+            "pruneRound",
+            (roundNum: number) => {
+                scene.removeNodes(roundNum);
+            }
+        );
 
         when(
-            () => perlin.transactions.recent.length > 0,
+            () => perlin.initRound,
             () => {
-                const nodes = perlin.transactions.recent;
-                scene.renderNodes(nodes);
+                const round = perlin.initRound;
+                graphStore.addRound(
+                    round.applied,
+                    round.rejected || 0,
+                    round.depth,
+                    0,
+                    round.start_id,
+                    round.end_id
+                );
             }
         );
 
         return () => {
             scene.destroy();
+            graphStore.destroy();
+            addRoundDisposer();
+            pruneRoundDisposer();
         };
     }, []);
 
@@ -93,4 +110,4 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
     );
 };
 
-export default withRouter(TransactionGraph);
+export default withRouter(memo(TransactionGraph));

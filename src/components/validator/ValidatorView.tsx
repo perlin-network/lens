@@ -7,7 +7,6 @@ import { Perlin } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import { ValidatorChart } from "./ValidatorChart";
 import { SectionTitle } from "../common/typography";
-import TransactionsTable from "../TransactionsTable";
 
 import { StakeCard } from "./StakeCard";
 

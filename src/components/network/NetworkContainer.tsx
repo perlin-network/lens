@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
-// import { TransactionGraphPixi } from "../graphs/TransactionGraphPixi";
 import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import { SectionTitle } from "../common/typography";
@@ -28,16 +27,20 @@ export default class NetworkContainer extends React.Component<{}, {}> {
                     </Box>
                 </Row>
                 <Row>
-                    <GraphBox width={1 / 2}>
-                        <CardHeadings>Network Graph</CardHeadings>
-                        <Divider />
-                        <NetworkGraph />
-                    </GraphBox>
-                    <GraphBox width={1 / 2} style={{ marginLeft: "40px" }}>
-                        <CardHeadings>Transaction Graph</CardHeadings>
-                        <Divider />
-                        <TransactionGraph />
-                    </GraphBox>
+                    <Box width={1 / 2} pr={3}>
+                        <GraphBox>
+                            <CardHeadings>Network Graph</CardHeadings>
+                            <Divider />
+                            <NetworkGraph />
+                        </GraphBox>
+                    </Box>
+                    <Box width={1 / 2} pl={3}>
+                        <GraphBox>
+                            <CardHeadings>Transaction Graph</CardHeadings>
+                            <Divider />
+                            <TransactionGraph />
+                        </GraphBox>
+                    </Box>
                 </Row>
                 <Row>
                     <Box width={1 / 1}>

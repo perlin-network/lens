@@ -13,29 +13,35 @@ const Header = styled(Flex)`
     border: 0;
     border-radius: 0;
 `;
+const Value = styled.div`
+    white-space: nowrap;
+    margin-top: 5px;
 
-const Container = styled.div`
+    .truncate {
+        display: inline-block;
+        max-width: calc(100% - 30px);
+        vertical-align: top;
+    }
+`;
+const Container = styled(Flex)`
     width: 100%;
-    height: 50px;
-    display: flex;
     margin-bottom: 16px;
     margin-right: 16px;
     justify-content: flex-end;
+
+    ${CopyIcon} {
+        margin-right: 10px;
+    }
 `;
 
-const Item = styled.div`
+const Item = styled(Box)`
     padding: 16px 16px 16px 16px;
     text-align: right;
     font-weight: 600;
     font-size: 14px;
     font-family: HKGrotesk;
-    & > span {
-        color: #717985;
-        display: block;
-        font-weight: 400;
-        font-size: 14px;
-        margin-top: 3px;
-    }
+    overflow: hidden;
+
     & > div {
         color: #717985;
         display: block;
@@ -53,7 +59,7 @@ const Item = styled.div`
 
 const perlin = Perlin.getInstance();
 
-const Navbar: React.SFC<{}> = observer(() => {
+const Navbar: React.FunctionComponent<{}> = observer(() => {
     const balance = perlin.account.balance;
     const pubKey = perlin.publicKeyHex;
     const stake = perlin.account.stake;
@@ -77,18 +83,22 @@ const Navbar: React.SFC<{}> = observer(() => {
             <Container>
                 <Item>
                     My Address
-                    <div onClick={copyPubkeyToClipboard}>
+                    <Value title={pubKey} onClick={copyPubkeyToClipboard}>
                         <CopyIcon />
-                        &nbsp;&nbsp;{pubKey}
-                    </div>
+                        <span className="truncate">{pubKey}</span>
+                    </Value>
                 </Item>
                 <Item>
                     My Balance
-                    <span>{balance ? balance : "0"}&nbsp;PERLs</span>
+                    <Value title={balance}>
+                        <span className="truncate">{balance || 0}</span> PERLs
+                    </Value>
                 </Item>
-                <Item>
-                    My Stake
-                    <span>{stake ? stake : "0"}&nbsp;PERLs</span>
+                <Item flex="0 0 auto">
+                    <span className="nowrap">My Stake</span>
+                    <Value title={stake + ""}>
+                        <span className="truncate">{stake || 0}</span> PERLs
+                    </Value>
                 </Item>
                 <QRCodeWidget
                     publicKeyHex={pubKey}

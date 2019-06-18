@@ -68,20 +68,24 @@ const renderTagBadge = (tagId: number) => {
     // todo : use enum for color
     let color = "#242582";
     switch (tagId) {
-        case Tag.NOP:
+        case Tag.TagNop:
             tag = "nop";
             color = "#242582";
             break;
-        case Tag.TRANSFER:
+        case Tag.TagTransfer:
             tag = "transfer";
             color = "#553D67";
             break;
-        case Tag.CONTRACT:
+        case Tag.TagContract:
             tag = "contract";
             color = "#F64C72";
             break;
-        case Tag.STAKE:
+        case Tag.TagStake:
             tag = "stake";
+            color = "#99738E";
+            break;
+        case Tag.TagBatch:
+            tag = "batch";
             color = "#99738E";
             break;
         default:
