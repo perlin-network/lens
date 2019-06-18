@@ -1,13 +1,25 @@
 import React, { useEffect, memo, useRef } from "react";
 import * as d3 from "d3";
 import styled from "styled-components";
-import { randomRange } from "../common/core";
 
 const Wrapper = styled.div`
     position: relative;
-    border-radius: 5px;
     border: solid 1px #34374a;
-    height: 120px;
+    border-left: none;
+    height: 100px;
+    width: 33px;
+    flex: 1;
+    min-width: 0;
+
+    &:first-child {
+        border-left: solid 1px #34374a;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+    &:last-child {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
 
     svg {
         background: none;

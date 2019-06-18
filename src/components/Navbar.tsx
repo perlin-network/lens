@@ -1,6 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
-
+import {
+    WalletIcon,
+    StakeIcon,
+    NetworkIcon,
+    EarningsIcon
+} from "./common/typography";
 import "../index.scss";
 import { Flex, Box } from "@rebass/grid";
 import { Perlin } from "../Perlin";
@@ -42,6 +47,11 @@ const Item = styled(Box)`
     font-family: HKGrotesk;
     overflow: hidden;
 
+    .icon {
+        width: 12px;
+        margin-right: 10px;
+    }
+
     & > div {
         color: #717985;
         display: block;
@@ -63,6 +73,7 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
     const balance = perlin.account.balance;
     const pubKey = perlin.publicKeyHex;
     const stake = perlin.account.stake;
+    const reward = perlin.account.reward;
 
     const copyPubkeyToClipboard = () => {
         const el = document.createElement("textarea");
@@ -82,22 +93,37 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
         <Header>
             <Container>
                 <Item>
-                    My Address
+                    <span className="nowrap">Your Wallet Address</span>
                     <Value title={pubKey} onClick={copyPubkeyToClipboard}>
                         <CopyIcon />
                         <span className="truncate">{pubKey}</span>
                     </Value>
                 </Item>
                 <Item>
-                    My Balance
+                    <span className="nowrap">
+                        <WalletIcon className="icon" />
+                        Your Balance
+                    </span>
                     <Value title={balance}>
                         <span className="truncate">{balance || 0}</span> PERLs
                     </Value>
                 </Item>
                 <Item flex="0 0 auto">
-                    <span className="nowrap">My Stake</span>
+                    <span className="nowrap">
+                        <StakeIcon className="icon" />
+                        Your Stake
+                    </span>
                     <Value title={stake + ""}>
                         <span className="truncate">{stake || 0}</span> PERLs
+                    </Value>
+                </Item>
+                <Item flex="0 0 auto">
+                    <span className="nowrap">
+                        <EarningsIcon className="icon" />
+                        Available Rewards
+                    </span>
+                    <Value title={reward + ""}>
+                        <span className="truncate">{reward || 0}</span> PERLs
                     </Value>
                 </Item>
                 <QRCodeWidget

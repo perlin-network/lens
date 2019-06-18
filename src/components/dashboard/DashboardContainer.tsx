@@ -17,8 +17,9 @@ const perlin = Perlin.getInstance();
 const Wrapper = styled.div`
     .card-cell {
         flex: 1;
-        width: 34%;
-        margin: 0 20px 20px 0;
+        width: 33%;
+        margin: 0;
+        min-width: 0;
         &:last-child {
             margin-right: 0;
         }
@@ -40,7 +41,7 @@ export const CardHeadings = styled.h2`
 
 export const GraphBox = styled.div`
     background-color: #151b35;
-    border-radius: 4px;
+    /* border-radius: 4px; */
     padding: 1px;
 `;
 
@@ -62,7 +63,7 @@ export default class DashboardContainer extends React.Component {
                         <QuickSend />
                     </Box>
                 </Row>
-                <Flex>
+                {/* <Flex>
                     <div className="card-cell">
                         <DataCard
                             heading="Wallet Balance"
@@ -72,7 +73,7 @@ export default class DashboardContainer extends React.Component {
                     </div>
                     <div className="card-cell">
                         <DataCard
-                            heading="Your Reward"
+                            heading="Your Available Rewards"
                             value={(perlin.account.reward || 0) + ""}
                             unit="PERLs"
                         />
@@ -84,32 +85,22 @@ export default class DashboardContainer extends React.Component {
                             unit="PERLs"
                         />
                     </div>
-                </Flex>
+                </Flex> */}
                 <Row>
-                    <div className="card-cell">
-                        <DataChart
-                            value={perlin.metrics.accepted}
-                            title="Accepted TPS"
-                        />
-                    </div>
-                    <div className="card-cell">
-                        <DataChart
-                            value={perlin.metrics.received}
-                            title="Received TPS"
-                        />
-                    </div>
-                    <div className="card-cell">
-                        <DataChart
-                            value={perlin.metrics.gossiped}
-                            title="Gossiped TPS"
-                        />
-                    </div>
-                    <div className="card-cell">
-                        <DataChart
-                            value={perlin.metrics.downloaded}
-                            title="Downloaded TPS"
-                        />
-                    </div>
+                    <DataChart
+                        value={perlin.metrics.accepted}
+                        title="Accepted TPS"
+                    />
+
+                    <DataChart
+                        value={perlin.metrics.gossiped}
+                        title="Relayed TPS"
+                    />
+
+                    <DataChart
+                        value={perlin.metrics.downloaded}
+                        title="Downloaded TPS"
+                    />
                 </Row>
                 <Row>
                     <Box width={1 / 2} pr={3}>
