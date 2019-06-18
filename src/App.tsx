@@ -17,14 +17,11 @@ import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
-import MainBackgroundSVG from "./assets/svg/main-background.svg";
 import TransactionDetail from "./components/transactions/TransactionDetail";
 
 const ContentWrapper = styled(Flex)`
     margin: 0px;
     padding: 0px;
-    background-color: #0c112b;
-    background-image: url(${MainBackgroundSVG});
     background-size: 100% auto;
     min-height: 100vh;
     background-repeat: no-repeat;
@@ -33,16 +30,17 @@ const SideWrapper = styled(Box)`
     background-color: #0c112b;
     margin: 0px;
     padding: 0px;
-    width: 150px;
+    width: 160px;
 `;
 const Content = styled(Box).attrs({
     flex: 1
 })`
     margin: 0px;
-    padding-left: 2em;
-    padding-right: 2em;
-    max-width: 1500px;
-    width: calc(100% - 150px);
+    padding-left: 25px;
+    padding-right: 25px;
+    max-width: 1240px;
+    min-width: 900px;
+    width: calc(100% - 160px);
 `;
 
 const routes = [

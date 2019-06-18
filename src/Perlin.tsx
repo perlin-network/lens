@@ -66,6 +66,7 @@ class Perlin {
     @observable public account: IAccount = {
         public_key: "",
         balance: "0",
+        reward: 0,
         stake: 0,
         is_contract: false,
         num_mem_pages: 0
@@ -84,8 +85,10 @@ class Perlin {
     @observable public initRound: any;
 
     @observable public metrics = {
-        acceptedMean: 0,
-        receivedMean: 0
+        accepted: undefined,
+        downloaded: undefined,
+        gossiped: undefined,
+        received: undefined
     };
 
     public onTransactionsCreated: (txs: ITransaction[]) => void;
@@ -235,7 +238,7 @@ class Perlin {
 
             balance: data.balance.toString(),
             stake: data.stake,
-
+            reward: data.reward,
             is_contract: data.is_contract,
             num_mem_pages: data.num_mem_pages
         };
@@ -401,7 +404,6 @@ class Perlin {
         const url = new URL(
             `ws://${this.api.host}/poll/tx?sender=${this.publicKeyHex}`
         );
-        url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -453,7 +455,6 @@ class Perlin {
 
     private pollConsensusUpdates() {
         const url = new URL(`ws://${this.api.host}/poll/consensus`);
-        url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -485,15 +486,16 @@ class Perlin {
 
     private pollMetricsUpdates() {
         const url = new URL(`ws://${this.api.host}/poll/metrics`);
-        url.searchParams.append("token", this.api.token);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
         ws.onmessage = ({ data }) => {
             const logs = JSON.parse(data);
 
-            this.metrics.acceptedMean = logs["tps.accepted"];
-            this.metrics.receivedMean = logs["tps.received"];
+            this.metrics.accepted = logs["tps.accepted"];
+            this.metrics.received = logs["tps.received"];
+            this.metrics.gossiped = logs["tps.gossiped"];
+            this.metrics.downloaded = logs["tps.downloaded"];
         };
     }
 
@@ -502,10 +504,7 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(
-            `ws://${this.api.host}/poll/accounts?id=${this.publicKeyHex}`
-        );
-        url.searchParams.append("token", this.api.token);
+        const url = new URL(`ws://${this.api.host}/poll/accounts`);
         url.searchParams.append("id", id);
 
         const ws = new ReconnectingWebSocket(url.toString());
@@ -526,6 +525,9 @@ class Perlin {
                             break;
                         case "stake_updated":
                             this.account.stake = item.stake;
+                            break;
+                        case "reward_updated":
+                            this.account.reward = item.reward;
                             break;
                         case "num_pages_updated":
                             this.account.num_mem_pages = item.num_pages;
