@@ -43,7 +43,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
     const handleShowAmountBox = useCallback(() => {
         setAmount(reward);
         setShowAmountBox(!showAmountBox);
-    }, [amount, reward]);
+    }, [showAmountBox, reward]);
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
