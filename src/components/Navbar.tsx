@@ -21,11 +21,30 @@ const Header = styled(Flex)`
 const Value = styled.div`
     white-space: nowrap;
     margin-top: 5px;
+    color: #717985;
+    display: block;
+    font-weight: 400;
+    font-size: 14px;
 
     .truncate {
         display: inline-block;
         max-width: calc(100% - 30px);
         vertical-align: top;
+    }
+`;
+const LinkValue = styled(Value).attrs({
+    as: "a"
+})`
+    .bp3-dark & {
+        color: #717985;
+
+        &:focus {
+            outline: none;
+        }
+        &:hover {
+            opacity: 0.8;
+            color: #717985;
+        }
     }
 `;
 const Container = styled(Flex)`
@@ -50,20 +69,6 @@ const Item = styled(Box)`
     .icon {
         width: 12px;
         margin-right: 10px;
-    }
-
-    & > div {
-        color: #717985;
-        display: block;
-        font-weight: 400;
-        font-size: 14px;
-        cursor: pointer;
-        &:focus {
-            outline: none;
-        }
-        &:hover {
-            opacity: 0.8;
-        }
     }
 `;
 
@@ -94,10 +99,10 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
             <Container>
                 <Item>
                     <span className="nowrap">Your Wallet Address</span>
-                    <Value title={pubKey} onClick={copyPubkeyToClipboard}>
+                    <LinkValue title={pubKey} onClick={copyPubkeyToClipboard}>
                         <CopyIcon />
                         <span className="truncate">{pubKey}</span>
-                    </Value>
+                    </LinkValue>
                 </Item>
                 <Item>
                     <span className="nowrap">
