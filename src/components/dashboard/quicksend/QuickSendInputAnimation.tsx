@@ -25,18 +25,11 @@ const QuickSendInputAnimation: React.SFC<IAnimationProps> = ({
     const [defaultStyle] = usePopIn(state, ref, { duration, easing });
 
     return (
-        <Transition in={inProp} timeout={duration}>
-            {(transitionState: string) => {
-                setState(transitionState);
-                return (
-                    <Wrapper>
-                        <div style={defaultStyle} ref={ref}>
-                            {children}
-                        </div>
-                    </Wrapper>
-                );
-            }}
-        </Transition>
+        <Wrapper>
+            <div style={defaultStyle} ref={ref}>
+                {children}
+            </div>
+        </Wrapper>
     );
 };
 

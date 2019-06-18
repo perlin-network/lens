@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="12px" height="17px" viewBox="0 0 12 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>user</title>
+    <desc>Created with Sketch.</desc>
+    <g id="🖥-Desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.3">
+        <g id="Dashboard-" transform="translate(-780.000000, -665.000000)" fill="#FFFFFF" fill-rule="nonzero">
+            <g id="user" transform="translate(780.000000, 665.000000)">
+                <path d="M11,5 C11,3.619 10.44,2.369 9.536,1.465 C8.632,0.561 7.381,0 6,0 C4.619,0 3.369,0.56 2.464,1.465 C1.56,2.369 1,3.619 1,5 C1,6.381 1.56,7.631 2.464,8.535 C3.369,9.44 4.619,10 6,10 C7.381,10 8.631,9.44 9.536,8.535 C10.44,7.631 11,6.381 11,5 Z" id="Path"></path>
+                <path d="M0,15 C0,16 2.25,17 6,17 C9.518,17 12,16 12,15 C12,13 9.646,11 6,11 C2.25,11 0,13 0,15 Z" id="Path"></path>
+            </g>
+        </g>
+    </g>
+</svg>

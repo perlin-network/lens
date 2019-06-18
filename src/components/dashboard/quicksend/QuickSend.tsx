@@ -8,7 +8,7 @@ import SendFailAnimation from "./SendFailAnimation";
 import { Perlin } from "../../../Perlin";
 import TxDetectedAnimation from "./TxDetectedAnimation";
 import TxDetected from "./TxDetected";
-import InputIconSVG from "../../../assets/svg/text-icon.svg";
+import InputIconSVG from "../../../assets/svg/lens-icon.svg";
 
 const QuickSendHeading = styled.p`
     font-family: Montserrat;
@@ -28,7 +28,12 @@ const QuickSendInput = styled.input`
     padding: 15px;
     margin-top: 10px;
     margin-bottom: 10px;
-    padding-left: 36px;
+    padding-left: 45px;
+    font-size: 20px;
+
+    &::placeholder {
+        font-size: 20px;
+    }
     &:hover {
         cursor: text;
         border: 1px solid #4a41d1;
@@ -53,8 +58,8 @@ const InputIcon = styled.img.attrs({ src: InputIconSVG })`
     -webkit-transform: translateY(-45%);
     -ms-transform: translateY(-45%);
     transform: translateY(-45%);
-    width: 14px;
-    height: 14px;
+    width: 20px;
+    height: 20px;
 `;
 
 const StyledTag = styled.span`
@@ -104,16 +109,10 @@ export default class QuickSend extends React.Component<{}, IState> {
     public render() {
         return (
             <Wrapper>
-                <QuickSendHeading>Quick Send</QuickSendHeading>
-                <p style={{ opacity: 0.6 }} className="break-word-normal">
-                    Input a contract/transaction ID or address to view
-                    interaction options.
-                </p>
-
                 <QuickSendInputAnimation in={this.state.sendInputFocused}>
                     <InputIcon />
                     <QuickSendInput
-                        placeholder="Enter an account ID, Contract ID or Transaction ID"
+                        placeholder="Wallet Address / Smart Contract Address / Transaction ID"
                         value={this.state.inputID}
                         onChange={this.updateinputID}
                         onKeyDown={this.onKeyDown}

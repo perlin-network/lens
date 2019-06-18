@@ -8,8 +8,8 @@ import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import { observer } from "mobx-react";
 import NetworkLoad from "./NetworkLoad";
+import NetworkPeers from "./NetworkPeers";
 import { Card, CardHeader, CardTitle } from "../common/card";
-import DataCard from "./DataCard";
 import DataChart from "./DataChart";
 
 const perlin = Perlin.getInstance();
@@ -105,7 +105,10 @@ export default class DashboardContainer extends React.Component {
                 <Row>
                     <Box width={1 / 2} pr={3}>
                         <GraphBox>
-                            <CardHeadings>Network</CardHeadings>
+                            <CardHeadings>
+                                Network
+                                <NetworkPeers peers={perlin.peers.length + 1} />
+                            </CardHeadings>
                             <Divider />
                             <NetworkGraph />
                         </GraphBox>

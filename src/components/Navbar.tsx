@@ -25,10 +25,11 @@ const Value = styled.div`
     display: block;
     font-weight: 400;
     font-size: 14px;
+    min-width: 0;
 
     .truncate {
         display: inline-block;
-        max-width: calc(100% - 30px);
+        max-width: 100%;
         vertical-align: top;
     }
 `;
@@ -70,8 +71,17 @@ const Item = styled(Box)`
         width: 12px;
         margin-right: 10px;
     }
+
+    &.align-left {
+        text-align: left;
+    }
 `;
 
+const WalletItem = styled(Item)`
+    flex: 1;
+    text-align: left;
+    padding-left: 0;
+`;
 const perlin = Perlin.getInstance();
 
 const Navbar: React.FunctionComponent<{}> = observer(() => {
@@ -97,13 +107,13 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
     return (
         <Header>
             <Container>
-                <Item>
+                <WalletItem>
                     <span className="nowrap">Your Wallet Address</span>
                     <LinkValue title={pubKey} onClick={copyPubkeyToClipboard}>
                         <CopyIcon />
                         <span className="truncate">{pubKey}</span>
                     </LinkValue>
-                </Item>
+                </WalletItem>
                 <Item>
                     <span className="nowrap">
                         <WalletIcon className="icon" />

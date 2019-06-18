@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>search</title>
+    <desc>Created with Sketch.</desc>
+    <g id="🖥-Desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.3">
+        <g id="Dashboard-" transform="translate(-312.000000, -248.000000)" fill="#FFFFFF">
+            <g id="search" transform="translate(312.000000, 248.000000)">
+                <path d="M10.5,21 C4.71,21 0,16.29 0,10.5 C0,4.71 4.71,0 10.5,0 C16.29,0 21,4.71 21,10.5 C21,16.29 16.29,21 10.5,21 Z M10.5,3 C6.3645,3 3,6.3645 3,10.5 C3,14.6355 6.3645,18 10.5,18 C14.6355,18 18,14.6355 18,10.5 C18,6.3645 14.6355,3 10.5,3 Z" id="Shape"></path>
+                <path d="M23.5708798,21.5019512 L20.0691421,18 C19.4677154,18.7741463 18.7740991,19.4678049 18,20.0692683 L21.5017377,23.5712195 C21.7870862,23.8565854 22.1616975,24 22.5363088,24 C22.9109201,24 23.2855314,23.8565854 23.5708798,23.5712195 C24.1430401,22.9990244 24.1430401,22.0741463 23.5708798,21.5019512 Z" id="Path"></path>
+            </g>
+        </g>
+    </g>
+</svg>
