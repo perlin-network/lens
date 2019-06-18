@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, memo } from "react";
 import { when } from "mobx";
 import { Perlin } from "../../Perlin";
 import { INode } from "./GraphStore";
@@ -67,8 +67,8 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
 
         const addRoundDisposer = graphStore.subscribe(
             "addRound",
-            (data: any) => {
-                scene.renderNodes(data.info, data.roundNum);
+            (data: any, cb?: (params?: any) => void) => {
+                scene.renderNodes(data.info, data.roundNum, cb);
             }
         );
 
@@ -110,4 +110,4 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
     );
 };
 
-export default withRouter(TransactionGraph);
+export default withRouter(memo(TransactionGraph));

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, memo } from "react";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
 import LoadingSpinner from "./common/loadingSpinner";
@@ -174,7 +174,7 @@ const TransactionsTable: React.FunctionComponent = () => {
                 perlin.transactions.page * perlin.transactions.pageSize,
                 perlin.transactions.pageSize
             );
-        }, 500),
+        }, 100),
         [perlin.transactions.page]
     );
 
@@ -225,4 +225,4 @@ function getTag(tx: ITransaction) {
     }
 }
 
-export default observer(TransactionsTable);
+export default memo(observer(TransactionsTable));

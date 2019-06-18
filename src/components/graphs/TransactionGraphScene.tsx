@@ -86,7 +86,11 @@ export class TransactionGraphScene {
         window.addEventListener("resize", this.onWindowResize, false);
     }
 
-    public renderNodes(info: any, roundNum: number) {
+    public async renderNodes(
+        info: any,
+        roundNum: number,
+        cb?: (params?: any) => void
+    ) {
         const nodes = info.nodes;
         this.rounds[roundNum] = {};
         this.rounds[roundNum].nodes = nodes;
@@ -126,10 +130,13 @@ export class TransactionGraphScene {
         );
         const lastNodeIndex = nodes.length - 1;
         if (nodes[lastNodeIndex]) {
-            this.pointRound(nodes[lastNodeIndex], roundNum);
             setTimeout(() => {
                 this.renderQueryPhaze(nodes, dots, dashes);
             }, this.cameraSpeed * 0.75);
+            await this.pointRound(nodes[lastNodeIndex], roundNum);
+            if (cb) {
+                cb();
+            }
         }
     }
 
@@ -196,61 +203,63 @@ export class TransactionGraphScene {
     }
 
     private fastPointCamera = (node: INode) => {
-        const position = this.camera.position.clone();
-        this.focusedNode = node;
+        return new Promise(resolve => {
+            const position = this.camera.position.clone();
+            this.focusedNode = node;
 
-        const [x, y, z] = node.position;
+            const cameraSpeed = this.cameraSpeed;
+            const [x, y, z] = node.position;
 
-        /*
-         *   camera and target need to be moved together
-         */
-        new TWEEN.Tween(position)
-            .to({ x, y, z: z + 35 }, this.cameraSpeed)
-            .delay(200) // delaying the camera allows for a breif overview of the upcoming structure
-            // .easing(TWEEN.Easing.Sinusoidal.In)
-            .on("update", (newPosition: any) => {
-                this.camera.position.set(
-                    newPosition.x,
-                    newPosition.y,
-                    newPosition.z
-                );
-            })
-            .start();
+            /*
+             *   camera and target need to be moved together
+             */
+            new TWEEN.Tween(position)
+                .to({ x, y, z: z + 35 }, cameraSpeed)
+                .delay(cameraSpeed * 0.2) // delaying the camera allows for a breif overview of the upcoming structure
+                // .easing(TWEEN.Easing.Sinusoidal.In)
+                .on("update", (newPosition: any) => {
+                    this.camera.position.set(
+                        newPosition.x,
+                        newPosition.y,
+                        newPosition.z
+                    );
+                })
+                .on("complete", () => {
+                    setTimeout(resolve, 300);
+                })
+                .start();
 
-        const targetPosition = this.controls.target.clone();
-        new TWEEN.Tween(targetPosition)
-            .to({ x, y, z }, this.cameraSpeed)
-            // .easing(TWEEN.Easing.Quadratic.In)
-            .on("update", (newPosition: any) => {
-                this.controls.target.set(
-                    newPosition.x,
-                    newPosition.y,
-                    newPosition.z
-                );
-            })
-            .start();
+            const targetPosition = this.controls.target.clone();
+            new TWEEN.Tween(targetPosition)
+                .to({ x, y, z }, cameraSpeed)
+                // .easing(TWEEN.Easing.Quadratic.In)
+                .on("update", (newPosition: any) => {
+                    this.controls.target.set(
+                        newPosition.x,
+                        newPosition.y,
+                        newPosition.z
+                    );
+                })
+                .start();
+        });
     };
 
     private initRoundPointer() {
         // after each round the camera will point to the last critical node
-        this.pointRound = _.throttle(
-            (node: INode, roundNum: number) => {
-                // each node should start appearing at startTime + node delay
-                this.dotMaterial.uniforms.startTime.value = this.time;
-                this.lineMaterial.uniforms.startTime.value = this.time;
-                this.dashMaterial.uniforms.startTime.value = this.time;
+        this.pointRound = (node: INode, roundNum: number) => {
+            // each node should start appearing at startTime + node delay
+            this.dotMaterial.uniforms.startTime.value = this.time;
+            this.lineMaterial.uniforms.startTime.value = this.time;
+            this.dashMaterial.uniforms.startTime.value = this.time;
 
-                // using showRound we can kepp previous round nodes visible
-                this.dotMaterial.uniforms.showRound.value = roundNum;
-                this.lineMaterial.uniforms.showRound.value = roundNum;
-                this.dashMaterial.uniforms.showRound.value = roundNum;
+            // using showRound we can kepp previous round nodes visible
+            this.dotMaterial.uniforms.showRound.value = roundNum;
+            this.lineMaterial.uniforms.showRound.value = roundNum;
+            this.dashMaterial.uniforms.showRound.value = roundNum;
 
-                // @ts-ignore
-                this.fastPointCamera(node);
-            },
-            this.cameraSpeed + 500,
-            { leading: true }
-        );
+            // @ts-ignore
+            return this.fastPointCamera(node);
+        };
     }
 
     // addDots - adds visual representation of nodes
@@ -362,6 +371,9 @@ export class TransactionGraphScene {
             }
             const focusedRound = this.rounds[this.focusedNode.round];
 
+            if (!focusedRound) {
+                return;
+            }
             if (event.key === "ArrowDown") {
                 event.preventDefault();
                 round = this.rounds[this.focusedNode.round - 1];
@@ -370,7 +382,7 @@ export class TransactionGraphScene {
 
             if (event.key === "ArrowUp") {
                 event.preventDefault();
-                if (this.focusedNode.depth !== -1) {
+                if (this.focusedNode.type !== "start") {
                     round = this.rounds[this.focusedNode.round + 1];
                 }
 

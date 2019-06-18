@@ -100,7 +100,7 @@ class Perlin {
         startId?: string,
         endId?: string
     ) => void;
-    public onConsensusPrune: (round: number, numTx: number) => void;
+    public onConsensusPrune: (round: number) => void;
 
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2200;
@@ -465,10 +465,7 @@ class Perlin {
                     console.log("Prunning #", logs.pruned_round_id);
 
                     if (this.onConsensusPrune) {
-                        this.onConsensusPrune(
-                            logs.pruned_round_id,
-                            logs.num_tx
-                        );
+                        this.onConsensusPrune(logs.pruned_round_id);
                     }
                     break;
                 case "round_end":

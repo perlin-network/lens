@@ -2,7 +2,7 @@ import { Perlin } from "../../Perlin";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { withSize } from "react-sizeme";
-import * as React from "react";
+import React from "react";
 import { createRef } from "react";
 import { when, intercept, Lambda } from "mobx";
 import Tooltip from "./Tooltip";
@@ -28,7 +28,7 @@ const Wrapper = styled.div`
     }
 `;
 
-class NGraph extends React.Component<{ size: any }, {}> {
+class NGraph extends React.PureComponent<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
 

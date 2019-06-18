@@ -25,9 +25,13 @@ export class GraphStore {
 
     public cameraSpeed = 1000;
 
+    // renderQueue is ued to queue up render requeues
+    private renderQueue: any[] = [];
+    private renderLock = false;
     private subscriptions: any = [];
     private worker: Worker;
     private start: any;
+    private prunnedRounds = {};
 
     constructor() {
         this.worker = new Worker(
@@ -37,11 +41,22 @@ export class GraphStore {
         // Receive messages from postMessage() calls in the Worker
         this.worker.onmessage = evt => {
             const { type, data } = JSON.parse(evt.data);
+
             if (type === "addRound") {
                 const done = Date.now();
                 console.log("generate nodes time:", done - this.start);
+                if (this.prunnedRounds[data.roundNum]) {
+                    return;
+                }
+                if (this.renderQueue.length || this.renderLock) {
+                    this.renderQueue.push(data);
+                    return;
+                }
+
+                this.notifySubscribers(type, data, this.renderFromQueue);
+            } else {
+                this.notifySubscribers(type, data);
             }
-            this.notifySubscribers(type, data);
         };
 
         // @ts-ignore
@@ -86,12 +101,28 @@ export class GraphStore {
         });
     }
 
-    public pruneRound = (roundNum: number, numTx: number) => {
+    public pruneRound = (roundNum: number) => {
+        this.prunnedRounds[roundNum] = true;
         this.worker.postMessage({ type: "pruneRound", roundNum });
     };
 
-    private notifySubscribers(type: string, data: any) {
+    private renderFromQueue = () => {
+        const queueData = this.renderQueue.shift();
+        this.renderLock = false;
+        if (queueData) {
+            // renderLock is used to prevent render when last item is rendered
+            this.notifySubscribers("addRound", queueData, this.renderFromQueue);
+        }
+    };
+    private notifySubscribers(
+        type: string,
+        data: any,
+        cb?: (params?: any) => void
+    ) {
+        if (type === "addRound") {
+            this.renderLock = true;
+        }
         this.subscriptions[type] = this.subscriptions[type] || [];
-        this.subscriptions[type].forEach((fn: any) => fn(data));
+        this.subscriptions[type].forEach((fn: any) => fn(data, cb));
     }
 }
