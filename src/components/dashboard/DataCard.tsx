@@ -73,7 +73,7 @@ function GetIcon(heading: string) {
             return <WalletIcon style={{ marginRight: "10px" }} />;
         case "Network Load":
             return <NetworkIcon style={{ marginRight: "10px" }} />;
-        case "Your Earnings":
+        case "Your Reward":
             return <EarningsIcon style={{ marginRight: "10px" }} />;
         case "Your Stake":
             return <StakeIcon style={{ marginRight: "10px" }} />;

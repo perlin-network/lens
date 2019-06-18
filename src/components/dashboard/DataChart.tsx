@@ -16,7 +16,7 @@ const Wrapper = styled.div`
         display: inline-block;
         position: absolute;
         width: 100%;
-        height: 45%; /* aspect ratio */
+        height: 33%; /* aspect ratio */
         vertical-align: top;
         overflow: hidden;
         border-radius: 5px;
@@ -42,7 +42,7 @@ const useLineChart = (ref: any) => {
         let counter = 2;
 
         while (counter--) {
-            dataSet.current.unshift({
+            dataSet.current.push({
                 time: now - counter * 1000,
                 value: 0
             });

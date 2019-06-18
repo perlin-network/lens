@@ -66,6 +66,7 @@ class Perlin {
     @observable public account: IAccount = {
         public_key: "",
         balance: "0",
+        reward: 0,
         stake: 0,
         is_contract: false,
         num_mem_pages: 0
@@ -237,7 +238,7 @@ class Perlin {
 
             balance: data.balance.toString(),
             stake: data.stake,
-
+            reward: data.reward,
             is_contract: data.is_contract,
             num_mem_pages: data.num_mem_pages
         };

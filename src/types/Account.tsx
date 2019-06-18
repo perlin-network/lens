@@ -1,6 +1,7 @@
 interface IAccount {
     public_key: string;
 
+    reward: number;
     balance: string;
     stake: number;
 

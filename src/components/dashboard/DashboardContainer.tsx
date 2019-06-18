@@ -72,23 +72,15 @@ export default class DashboardContainer extends React.Component {
                     </div>
                     <div className="card-cell">
                         <DataCard
-                            heading="Your Earnings"
-                            value={
-                                perlin.account.stake === undefined
-                                    ? "0"
-                                    : perlin.account.stake.toString()
-                            }
+                            heading="Your Reward"
+                            value={(perlin.account.reward || 0) + ""}
                             unit="PERLs"
                         />
                     </div>
                     <div className="card-cell">
                         <DataCard
                             heading="Your Stake"
-                            value={
-                                perlin.account.stake === undefined
-                                    ? "0"
-                                    : perlin.account.stake.toString()
-                            }
+                            value={(perlin.account.stake || 0) + ""}
                             unit="PERLs"
                         />
                     </div>
