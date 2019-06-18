@@ -6,13 +6,24 @@ import TransactionGraph from "../graphs/TransactionGraph";
 import { NetworkGraph } from "../graphs/NetworkGraph";
 import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
-import "./dashboard.scss";
 import { observer } from "mobx-react";
 import NetworkLoad from "./NetworkLoad";
 import { Card, CardHeader, CardTitle } from "../common/card";
+import DataCard from "./DataCard";
+import DataChart from "./DataChart";
 
 const perlin = Perlin.getInstance();
 
+const Wrapper = styled.div`
+    .card-cell {
+        flex: 1;
+        width: 34%;
+        margin: 0 20px 20px 0;
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+`;
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
@@ -45,11 +56,68 @@ export const Divider = styled.hr`
 export default class DashboardContainer extends React.Component {
     public render() {
         return (
-            <>
+            <Wrapper>
                 <Row>
                     <Box width={1}>
                         <QuickSend />
                     </Box>
+                </Row>
+                <Flex>
+                    <div className="card-cell">
+                        <DataCard
+                            heading="Wallet Balance"
+                            value={perlin.account.balance.toString()}
+                            unit="PERLs"
+                        />
+                    </div>
+                    <div className="card-cell">
+                        <DataCard
+                            heading="Your Earnings"
+                            value={
+                                perlin.account.stake === undefined
+                                    ? "0"
+                                    : perlin.account.stake.toString()
+                            }
+                            unit="PERLs"
+                        />
+                    </div>
+                    <div className="card-cell">
+                        <DataCard
+                            heading="Your Stake"
+                            value={
+                                perlin.account.stake === undefined
+                                    ? "0"
+                                    : perlin.account.stake.toString()
+                            }
+                            unit="PERLs"
+                        />
+                    </div>
+                </Flex>
+                <Row>
+                    <div className="card-cell">
+                        <DataChart
+                            value={perlin.metrics.accepted}
+                            title="Accepted TPS"
+                        />
+                    </div>
+                    <div className="card-cell">
+                        <DataChart
+                            value={perlin.metrics.received}
+                            title="Received TPS"
+                        />
+                    </div>
+                    <div className="card-cell">
+                        <DataChart
+                            value={perlin.metrics.gossiped}
+                            title="Gossiped TPS"
+                        />
+                    </div>
+                    <div className="card-cell">
+                        <DataChart
+                            value={perlin.metrics.downloaded}
+                            title="Downloaded TPS"
+                        />
+                    </div>
                 </Row>
                 <Row>
                     <Box width={1 / 2} pr={3}>
@@ -63,9 +131,7 @@ export default class DashboardContainer extends React.Component {
                         <GraphBox>
                             <CardHeadings>
                                 Transactions
-                                <NetworkLoad
-                                    tps={perlin.metrics.receivedMean}
-                                />
+                                <NetworkLoad tps={perlin.metrics.accepted} />
                             </CardHeadings>
                             <Divider />
                             <TransactionGraph />
@@ -85,7 +151,7 @@ export default class DashboardContainer extends React.Component {
                     </Box>
                 </Row>
                 <Row />
-            </>
+            </Wrapper>
         );
     }
 }

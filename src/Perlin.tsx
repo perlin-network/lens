@@ -84,8 +84,10 @@ class Perlin {
     @observable public initRound: any;
 
     @observable public metrics = {
-        acceptedMean: 0,
-        receivedMean: 0
+        accepted: undefined,
+        downloaded: undefined,
+        gossiped: undefined,
+        received: undefined
     };
 
     public onTransactionsCreated: (txs: ITransaction[]) => void;
@@ -492,8 +494,10 @@ class Perlin {
         ws.onmessage = ({ data }) => {
             const logs = JSON.parse(data);
 
-            this.metrics.acceptedMean = logs["tps.accepted"];
-            this.metrics.receivedMean = logs["tps.received"];
+            this.metrics.accepted = logs["tps.accepted"];
+            this.metrics.received = logs["tps.received"];
+            this.metrics.gossiped = logs["tps.gossiped"];
+            this.metrics.downloaded = logs["tps.downloaded"];
         };
     }
 
