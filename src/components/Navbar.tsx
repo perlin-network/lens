@@ -56,6 +56,8 @@ const Container = styled(Flex)`
 
     ${CopyIcon} {
         margin-right: 10px;
+        width: 10px;
+        margin-top: 2px;
     }
 `;
 

@@ -20,12 +20,12 @@ const QuickSendHeading = styled.p`
 
 const QuickSendInput = styled.input`
     font-family: HKGrotesk;
-    background-color: #171d39;
+    background-color: #0b122b;
     border-radius: 5px;
-    border: 1px solid #2e345100;
+    border: 1px solid #34374b;
     color: white;
     width: 100%;
-    padding: 15px;
+    padding: 15px 15px 12px;
     margin-top: 10px;
     margin-bottom: 10px;
     padding-left: 45px;
@@ -49,18 +49,13 @@ const Wrapper = styled.div`
     perspective: 60vw;
     perspective-origin: 30% calc(100% - 60px);
     transform-style: preserve-3d;
-    padding: 15px 20px;
-    border: solid 1px #34374b;
-    border-radius: 5px;
 `;
 
 const InputIcon = styled.img.attrs({ src: InputIconSVG })`
     position: fixed;
     left: 16px;
-    top: 45%;
-    -webkit-transform: translateY(-45%);
-    -ms-transform: translateY(-45%);
-    transform: translateY(-45%);
+    top: 50%;
+    transform: translateY(-50%);
     width: 20px;
     height: 20px;
 `;
@@ -70,11 +65,9 @@ const StyledTag = styled.span`
     border: solid 1px #fff;
     padding: 3px 5px;
     border-radius: 3px;
-    right: 16px;
-    top: 45%;
-    -webkit-transform: translateY(-45%);
-    -ms-transform: translateY(-45%);
-    transform: translateY(-45%);
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     opacity: 0.4;
 `;
 
