@@ -139,8 +139,8 @@ export const useSlideDown = (
         },
         fromY: -5,
         toY: 5,
-        fromZ: 0,
-        toZ: 20,
+        fromZ: -10,
+        toZ: 0,
         easing: defaultEasing,
         ...configOverrides
     };

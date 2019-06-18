@@ -80,7 +80,6 @@ const Item = styled(Box)`
 const WalletItem = styled(Item)`
     flex: 1;
     text-align: left;
-    padding-left: 0;
 `;
 const perlin = Perlin.getInstance();
 
@@ -107,6 +106,12 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
     return (
         <Header>
             <Container>
+                <QRCodeWidget
+                    publicKeyHex={pubKey}
+                    clickable={true}
+                    width={50}
+                    height={50}
+                />
                 <WalletItem>
                     <span className="nowrap">Your Wallet Address</span>
                     <LinkValue title={pubKey} onClick={copyPubkeyToClipboard}>
@@ -141,12 +146,6 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
                         <span className="truncate">{reward || 0}</span> PERLs
                     </Value>
                 </Item>
-                <QRCodeWidget
-                    publicKeyHex={pubKey}
-                    clickable={true}
-                    width={50}
-                    height={50}
-                />
             </Container>
         </Header>
     );

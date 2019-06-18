@@ -90,7 +90,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
                     0,
                     round.start_id,
                     round.end_id,
-                    true
+                    true // for rerender of initial round
                 );
             }
         );

@@ -49,6 +49,9 @@ const Wrapper = styled.div`
     perspective: 60vw;
     perspective-origin: 30% calc(100% - 60px);
     transform-style: preserve-3d;
+    padding: 15px 20px;
+    border: solid 1px #34374b;
+    border-radius: 5px;
 `;
 
 const InputIcon = styled.img.attrs({ src: InputIconSVG })`

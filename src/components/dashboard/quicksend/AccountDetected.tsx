@@ -148,6 +148,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         style={{
                             backgroundColor: "#1b213d",
                             paddingBottom: "15px",
+                            marginBottom: "10px",
                             position: "relative"
                         }}
                     >
@@ -321,7 +322,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             border: "1px solid #686C7C",
                             borderRadius: "4px",
                             marginLeft: "20px",
-                            marginRight: "20px"
+                            marginRight: "20px",
+                            marginBottom: "10px"
                         }}
                     >
                         <Box

@@ -73,6 +73,8 @@ export class GraphStore {
     public subscribe(type: string, fn: any) {
         this.subscriptions[type] = this.subscriptions[type] || [];
         this.subscriptions[type].push(fn);
+
+        // any newly subsribed tx-graph should pickup any ququed rounds
         if (type === "addRound") {
             this.renderFromQueue();
         }
