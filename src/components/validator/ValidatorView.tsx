@@ -110,7 +110,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                 />
             </Box>
             */}
-            <Box width={5 / 12}>
+            <Box width={6 / 12}>
                 <StakeCard
                     stake={stake}
                     setAction={setAction}
@@ -123,7 +123,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                     errorMessage={stakeErrorMessage}
                 />
             </Box>
-            <Box width={5 / 12}>
+            <Box width={6 / 12}>
                 <RewardCard
                     reward={reward}
                     onSubmit={handleWithdrawReward}

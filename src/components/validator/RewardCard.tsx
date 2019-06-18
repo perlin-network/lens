@@ -60,7 +60,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
     return (
         <Wrapper>
             <CardHeader>
-                <CardTitle>Available Rewards</CardTitle>
+                <CardTitle>Your Available Rewards</CardTitle>
             </CardHeader>
             <CardBody>
                 <Row>
@@ -73,7 +73,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
                             onClick={handleShowAmountBox}
                             inactive={showAmountBox}
                         >
-                            +
+                            -
                         </RoundButton>
                     </Col>
                 </Row>
