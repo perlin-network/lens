@@ -182,7 +182,7 @@ const TransactionsTable: React.FunctionComponent = () => {
 
     return (
         <Wrapper>
-            {firsLoad && (
+            {firsLoad ? (
                 <InfiniteScroll
                     loadMore={loadFunc}
                     hasMore={hasMore}
@@ -205,6 +205,8 @@ const TransactionsTable: React.FunctionComponent = () => {
                         )}
                     />
                 </InfiniteScroll>
+            ) : (
+                <LoadingSpinner />
             )}
         </Wrapper>
     );
