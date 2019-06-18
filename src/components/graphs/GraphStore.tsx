@@ -44,11 +44,16 @@ export class GraphStore {
 
             if (type === "addRound") {
                 const done = Date.now();
+                const addRoundSubscriptions = this.subscriptions.addRound || [];
                 console.log("generate nodes time:", done - this.start);
                 if (this.prunnedRounds[data.roundNum]) {
                     return;
                 }
-                if (this.renderQueue.length || this.renderLock) {
+                if (
+                    this.renderQueue.length ||
+                    this.renderLock ||
+                    !addRoundSubscriptions.length
+                ) {
                     this.renderQueue.push(data);
                     return;
                 }
@@ -68,6 +73,9 @@ export class GraphStore {
     public subscribe(type: string, fn: any) {
         this.subscriptions[type] = this.subscriptions[type] || [];
         this.subscriptions[type].push(fn);
+        if (type === "addRound") {
+            this.renderFromQueue();
+        }
         return () => {
             this.subscriptions[type] = this.subscriptions[type].filter(
                 (item: any) => item !== fn
@@ -80,7 +88,8 @@ export class GraphStore {
         maxDepth: number,
         roundNum: number,
         startId?: string,
-        endId?: string
+        endId?: string,
+        forced?: boolean
     ) => {
         this.start = Date.now();
         this.worker.postMessage({
@@ -91,7 +100,8 @@ export class GraphStore {
             roundNum,
             startId,
             endId,
-            cameraSpeed: this.cameraSpeed
+            cameraSpeed: this.cameraSpeed,
+            forced
         });
     };
 

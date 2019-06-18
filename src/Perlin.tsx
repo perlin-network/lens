@@ -481,6 +481,13 @@ class Perlin {
                     }
                     break;
                 case "round_end":
+                    this.initRound = {
+                        applied: logs.num_applied_tx,
+                        rejected: logs.num_rejected_tx,
+                        depth: logs.round_depth,
+                        start_id: logs.old_root,
+                        end_id: logs.new_root
+                    };
                     if (this.onConsensusRound) {
                         this.onConsensusRound(
                             logs.num_applied_tx,

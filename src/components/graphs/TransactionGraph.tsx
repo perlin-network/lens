@@ -89,7 +89,8 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
                     round.depth,
                     0,
                     round.start_id,
-                    round.end_id
+                    round.end_id,
+                    true
                 );
             }
         );

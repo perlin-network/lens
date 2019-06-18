@@ -164,7 +164,12 @@ const TransactionsTable: React.FunctionComponent = () => {
 
     useEffect(() => {
         (async () => {
-            await perlin.getTableTransactions(0, perlin.transactions.pageSize);
+            if (!perlin.transactions.recent.length) {
+                await perlin.getTableTransactions(
+                    0,
+                    perlin.transactions.pageSize
+                );
+            }
             setFirstLoad(true);
         })();
     }, []);
