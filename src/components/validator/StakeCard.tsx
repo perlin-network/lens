@@ -1,17 +1,24 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useState } from "react";
+import {
+    WhiteButton,
+    RoundButton,
+    ErrorMessage,
+    LargeInput
+} from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
 import { Box, Flex } from "@rebass/grid";
 
 import { StakeActions } from "./ValidatorView";
 
-interface IStakeProps {
+interface IStakeCardProps {
     stake: number | null;
     action: StakeActions;
     setAction: (action: StakeActions) => void;
     onSubmit: (amount: number) => void;
+    errorMessage: string;
 }
 
 const Row = styled(Flex)`
@@ -23,65 +30,6 @@ const Col = styled(Box)`
     font-weight: 500;
 `;
 
-const Input = styled.input`
-    border: none;
-    outline: none;
-    width: 100%;
-    color: #fff;
-    background-color: #171d39;
-    border-radius: 5px;
-    border: 1px solid #2e345100;
-    padding: 20px;
-    font-size: 16px;
-    font-family: HKGrotesk;
-
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        cursor: text;
-        border: 1px solid #4a41d1;
-        outline: 0;
-    }
-`;
-
-const Button = styled.button`
-    width: 100%;
-    background-color: #fff;
-    cursor: pointer;
-    text-align: center;
-    font-weight: 600;
-    border: none;
-    padding: 20px;
-    text-decoration: none;
-    display: inline-block;
-    color: #151b35;
-    transparenfont-size: 16px;
-`;
-
-interface IButtonProps {
-    inactive?: boolean;
-}
-
-const RoundButton = styled.button`
-    border: none;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 42px;
-    cursor: pointer;
-    height: 48px;
-    width: 48px;
-    margin: 4px 4px;
-    background-color: #171d39;
-    border-radius: 50%;
-    color: ${(props: IButtonProps) => (props.inactive ? "#5D6175" : "#FFFFFF")};
-    &:focus {
-        outline: none;
-    }
-`;
-
 const StakeAmount = styled.h2`
     font-size: 36px;
     font-weight: 400;
@@ -90,12 +38,12 @@ const StakeAmount = styled.h2`
     margin-bottom: 0px;
 `;
 
-const StakeCard: React.SFC<IStakeProps> = ({
+const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
     stake,
     action,
     setAction,
     onSubmit,
-    children
+    errorMessage
 }) => {
     const [amount, setAmount] = useState("");
 
@@ -136,9 +84,11 @@ const StakeCard: React.SFC<IStakeProps> = ({
                 <CardTitle>Your Stake</CardTitle>
             </CardHeader>
             <CardBody>
-                <StakeAmount> {stake ? stake : "0"} </StakeAmount>
                 <Row>
-                    <Col width={1 / 2}>PERLs</Col>
+                    <Col width={1 / 2}>
+                        <StakeAmount> {stake ? stake : "0"} </StakeAmount>
+                        PERLs
+                    </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
                         <RoundButton
                             onClick={handleWithdrawStakeClick}
@@ -158,7 +108,7 @@ const StakeCard: React.SFC<IStakeProps> = ({
                     <div>
                         <Row>
                             <Col width={1}>
-                                <Input
+                                <LargeInput
                                     placeholder="Enter Amount"
                                     value={amount}
                                     onChange={handleAmountChange}
@@ -167,12 +117,14 @@ const StakeCard: React.SFC<IStakeProps> = ({
                         </Row>
                         <Row>
                             <Col width={1}>
-                                <Button onClick={handleSubmit}>{action}</Button>
+                                <WhiteButton onClick={handleSubmit}>
+                                    {action}
+                                </WhiteButton>
                             </Col>
                         </Row>
                     </div>
                 )}
-                {children}
+                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
             </CardBody>
         </Card>
     );

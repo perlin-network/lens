@@ -25,10 +25,11 @@ const Value = styled.div`
     display: block;
     font-weight: 400;
     font-size: 14px;
+    min-width: 0;
 
     .truncate {
         display: inline-block;
-        max-width: calc(100% - 30px);
+        max-width: 100%;
         vertical-align: top;
     }
 `;
@@ -55,6 +56,8 @@ const Container = styled(Flex)`
 
     ${CopyIcon} {
         margin-right: 10px;
+        width: 10px;
+        margin-top: 2px;
     }
 `;
 
@@ -70,8 +73,16 @@ const Item = styled(Box)`
         width: 12px;
         margin-right: 10px;
     }
+
+    &.align-left {
+        text-align: left;
+    }
 `;
 
+const WalletItem = styled(Item)`
+    flex: 1;
+    text-align: left;
+`;
 const perlin = Perlin.getInstance();
 
 const Navbar: React.FunctionComponent<{}> = observer(() => {
@@ -97,13 +108,19 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
     return (
         <Header>
             <Container>
-                <Item>
+                <QRCodeWidget
+                    publicKeyHex={pubKey}
+                    clickable={true}
+                    width={50}
+                    height={50}
+                />
+                <WalletItem>
                     <span className="nowrap">Your Wallet Address</span>
                     <LinkValue title={pubKey} onClick={copyPubkeyToClipboard}>
                         <CopyIcon />
                         <span className="truncate">{pubKey}</span>
                     </LinkValue>
-                </Item>
+                </WalletItem>
                 <Item>
                     <span className="nowrap">
                         <WalletIcon className="icon" />
@@ -131,12 +148,6 @@ const Navbar: React.FunctionComponent<{}> = observer(() => {
                         <span className="truncate">{reward || 0}</span> PERLs
                     </Value>
                 </Item>
-                <QRCodeWidget
-                    publicKeyHex={pubKey}
-                    clickable={true}
-                    width={50}
-                    height={50}
-                />
             </Container>
         </Header>
     );

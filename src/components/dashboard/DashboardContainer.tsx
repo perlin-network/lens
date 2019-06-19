@@ -8,8 +8,8 @@ import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import { observer } from "mobx-react";
 import NetworkLoad from "./NetworkLoad";
+import NetworkPeers from "./NetworkPeers";
 import { Card, CardHeader, CardTitle } from "../common/card";
-import DataCard from "./DataCard";
 import DataChart from "./DataChart";
 
 const perlin = Perlin.getInstance();
@@ -41,7 +41,7 @@ export const CardHeadings = styled.h2`
 
 export const GraphBox = styled.div`
     background-color: #151b35;
-    /* border-radius: 4px; */
+    border-radius: 5px;
     padding: 1px;
 `;
 
@@ -101,11 +101,19 @@ export default class DashboardContainer extends React.Component {
                         value={perlin.metrics.downloaded}
                         title="Downloaded TPS"
                     />
+                    <DataChart
+                        value={perlin.numAccounts}
+                        decimals={0}
+                        title="Total number of accounts"
+                    />
                 </Row>
                 <Row>
                     <Box width={1 / 2} pr={3}>
                         <GraphBox>
-                            <CardHeadings>Network</CardHeadings>
+                            <CardHeadings>
+                                Network
+                                <NetworkPeers peers={perlin.peers.length + 1} />
+                            </CardHeadings>
                             <Divider />
                             <NetworkGraph />
                         </GraphBox>

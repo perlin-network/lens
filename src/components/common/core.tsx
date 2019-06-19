@@ -1,6 +1,10 @@
 import styled from "styled-components";
 import { Flex } from "@rebass/grid";
 
+export const ErrorMessage = styled.div`
+    margin: 10px 0;
+    color: red;
+`;
 interface ICardProps {
     showBoxShadow?: boolean;
 }
@@ -25,6 +29,7 @@ interface IButtonProps {
     fontSize?: string;
     hideOverflow?: boolean;
 }
+
 export const Button = styled.button`
     width: ${(props: IButtonProps) => props.width};
     height: 40px;
@@ -94,6 +99,65 @@ Input.defaultProps = {
     width: "auto",
     fontSize: "14px"
 };
+
+interface IButtonProps {
+    inactive?: boolean;
+}
+
+export const RoundButton = styled.button`
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 42px;
+    cursor: pointer;
+    height: 48px;
+    width: 48px;
+    margin: 4px 4px;
+    background-color: #171d39;
+    border-radius: 50%;
+    color: ${(props: IButtonProps) => (props.inactive ? "#5D6175" : "#FFFFFF")};
+    &:focus {
+        outline: none;
+    }
+`;
+export const WhiteButton = styled.button`
+    width: 100%;
+    background-color: #fff;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 600;
+    border: none;
+    padding: 20px;
+    text-decoration: none;
+    display: inline-block;
+    color: #151b35;
+    font-size: 16px;
+    border-radius: 5px;
+`;
+
+export const LargeInput = styled.input`
+    border: none;
+    outline: none;
+    width: 100%;
+    color: #fff;
+    background-color: #171d39;
+    border-radius: 5px;
+    border: 1px solid #2e345100;
+    padding: 20px;
+    font-size: 16px;
+    font-family: HKGrotesk;
+
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        cursor: text;
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
+`;
 
 export const randomRange = (min: number, max: number) => {
     min = Math.ceil(min);

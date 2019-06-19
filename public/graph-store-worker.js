@@ -84,11 +84,12 @@ const addRound = (
     roundNum,
     startId,
     endId,
-    cameraSpeed
+    cameraSpeed,
+    forced = false
 ) => {
     let numTx = accepted + rejected;
 
-    if (rounds[roundNum] || !numTx) {
+    if ((!forced && rounds[roundNum]) || !numTx) {
         return;
     }
 

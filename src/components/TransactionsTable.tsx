@@ -164,7 +164,12 @@ const TransactionsTable: React.FunctionComponent = () => {
 
     useEffect(() => {
         (async () => {
-            await perlin.getTableTransactions(0, perlin.transactions.pageSize);
+            if (!perlin.transactions.recent.length) {
+                await perlin.getTableTransactions(
+                    0,
+                    perlin.transactions.pageSize
+                );
+            }
             setFirstLoad(true);
         })();
     }, []);
@@ -182,7 +187,7 @@ const TransactionsTable: React.FunctionComponent = () => {
 
     return (
         <Wrapper>
-            {firsLoad && (
+            {firsLoad ? (
                 <InfiniteScroll
                     loadMore={loadFunc}
                     hasMore={hasMore}
@@ -205,6 +210,8 @@ const TransactionsTable: React.FunctionComponent = () => {
                         )}
                     />
                 </InfiniteScroll>
+            ) : (
+                <LoadingSpinner />
             )}
         </Wrapper>
     );

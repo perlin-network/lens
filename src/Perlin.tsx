@@ -60,7 +60,8 @@ class Perlin {
         public_key: "",
         address: "",
         peers: [] as string[],
-        round: {} as any
+        round: {} as any,
+        num_accounts: 0
     };
 
     @observable public account: IAccount = {
@@ -81,7 +82,7 @@ class Perlin {
     };
 
     @observable public peers: string[] = [];
-
+    @observable public numAccounts: number = 0;
     @observable public initRound: any;
 
     @observable public metrics = {
@@ -172,6 +173,17 @@ class Perlin {
     public async withdrawStake(amount: number): Promise<any> {
         const payload = new PayloadWriter();
         payload.writeByte(0);
+        payload.writeUint64(Long.fromNumber(amount, true));
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+        );
+    }
+
+    public async withdrawReward(amount: number): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeByte(2);
         payload.writeUint64(Long.fromNumber(amount, true));
 
         return await this.post(
@@ -361,7 +373,8 @@ class Perlin {
 
     private async initLedger() {
         this.ledger = await this.getLedger();
-        this.peers = this.ledger.peers;
+        this.peers = this.ledger.peers || [];
+        this.numAccounts = this.ledger.num_accounts;
 
         this.initRound = this.ledger.round;
 
@@ -373,7 +386,8 @@ class Perlin {
         setInterval(async () => {
             /// only update peers
             const ledger = await this.getLedger();
-            this.peers = ledger.peers;
+            this.peers = ledger.peers || [];
+            this.numAccounts = ledger.num_accounts;
         }, this.peerPollIntv);
     }
 
@@ -470,6 +484,13 @@ class Perlin {
                     }
                     break;
                 case "round_end":
+                    this.initRound = {
+                        applied: logs.num_applied_tx,
+                        rejected: logs.num_rejected_tx,
+                        depth: logs.round_depth,
+                        start_id: logs.old_root,
+                        end_id: logs.new_root
+                    };
                     if (this.onConsensusRound) {
                         this.onConsensusRound(
                             logs.num_applied_tx,

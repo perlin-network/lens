@@ -1,5 +1,5 @@
-import * as React from "react";
-import { useState } from "react";
+import React, { useCallback, useState } from "react";
+
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
 
@@ -9,6 +9,7 @@ import { ValidatorChart } from "./ValidatorChart";
 import { SectionTitle } from "../common/typography";
 
 import { StakeCard } from "./StakeCard";
+import RewardCard from "./RewardCard";
 
 const perlin = Perlin.getInstance();
 
@@ -43,32 +44,46 @@ const ChartSubtitle = styled.span`
     font-weight: 500;
 `;
 
-const ValidatorView: React.SFC<{}> = observer(() => {
+const ValidatorView: React.FunctionComponent<{}> = () => {
     const stake = useWalletStake();
+    const reward = perlin.account.reward;
 
     const [action, setAction] = useState(StakeActions.None);
-    const [errorMessage, setErrorMessage] = useState("");
+    const [stakeErrorMessage, setStakeErrorMessage] = useState("");
+    const [rewardErrorMessage, setTewardErrorMessage] = useState("");
 
     const handlePlaceStake = async (amount: number) => {
-        setErrorMessage("");
+        setStakeErrorMessage("");
+        setAction(StakeActions.None);
         if (!isNaN(amount)) {
             const results = await perlin.placeStake(amount);
             if (results.error) {
-                setErrorMessage(`${results.error}`);
+                setStakeErrorMessage(`${results.error}`);
             }
         }
         // display error message
     };
     const handleWithdrawStake = async (amount: number) => {
-        setErrorMessage("");
+        setStakeErrorMessage("");
+        setAction(StakeActions.None);
         if (!isNaN(amount)) {
             const results = await perlin.withdrawStake(amount);
             if (results.error) {
-                setErrorMessage(`${results.error}`);
+                setStakeErrorMessage(`${results.error}`);
             }
         }
         // display error message
     };
+
+    const handleWithdrawReward = useCallback(async (amount: number) => {
+        setTewardErrorMessage("");
+        if (!isNaN(amount)) {
+            const results = await perlin.withdrawReward(amount);
+            if (results.error) {
+                setTewardErrorMessage(`${results.error}`);
+            }
+        }
+    }, []);
 
     return (
         <Flex>
@@ -95,7 +110,7 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                 />
             </Box>
             */}
-            <Box width={5 / 12}>
+            <Box width={6 / 12}>
                 <StakeCard
                     stake={stake}
                     setAction={setAction}
@@ -105,21 +120,19 @@ const ValidatorView: React.SFC<{}> = observer(() => {
                             ? handlePlaceStake
                             : handleWithdrawStake
                     }
-                >
-                    <div
-                        style={{
-                            marginTop: "10px",
-                            marginBottom: "10px",
-                            color: "red"
-                        }}
-                    >
-                        {errorMessage}
-                    </div>
-                </StakeCard>
+                    errorMessage={stakeErrorMessage}
+                />
+            </Box>
+            <Box width={6 / 12}>
+                <RewardCard
+                    reward={reward}
+                    onSubmit={handleWithdrawReward}
+                    errorMessage={rewardErrorMessage}
+                />
             </Box>
         </Flex>
     );
-});
+};
 
 const getSampleData = (): string => {
     return `date,temperature
@@ -148,4 +161,4 @@ const useWalletStake = () => {
     return stake;
 };
 
-export default ValidatorView;
+export default observer(ValidatorView);
