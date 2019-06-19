@@ -1,8 +1,7 @@
 import { action, observable } from "mobx";
+import { SmartBuffer } from "smart-buffer";
 import * as Wabt from "wabt";
 import { Perlin } from "../../Perlin";
-import { SmartBuffer } from "smart-buffer";
-import PayloadWriter from "src/payload/PayloadWriter";
 
 declare const WebAssembly: any;
 
@@ -27,75 +26,20 @@ export default class ContractStore {
         name: "",
         transactionId: "",
         textContent: "",
-        errorMessage: "",
-        logs: [] as string[]
+        errorMessage: ""
     };
 
-    @observable public payload: any;
-    @observable public wasmInstance: any;
+    @observable public logs = [] as string[];
 
-    private wasmResolve: any;
-    private wasmReject: any;
+    private memory: any;
 
-    private constructor() {
-        // restrict access to constructor
-    }
-
-    public async onLoadContract(totalMemoryPages?: number) {
-        console.log("deploy...");
-
-        const buf = await this.assembleWasmWithWabt(this.contract.textContent);
-
-        const p = new SmartBuffer();
-        p.writeBuffer(Buffer.from(this.contract.transactionId, "hex"));
-        p.writeBuffer(Buffer.from(perlin.publicKeyHex, "hex"));
-        p.writeInt8(0);
-
-        this.payload = p;
-        const envList = this.fetchEnvironment();
-        const ext = {};
-        for (const env of envList) {
-            switch (env) {
-                case "log":
-                    ext[`_${env}`] = (pointer: any, length: number) => {
-                        const logMessage = this.bytesToString(
-                            this.readPointer(pointer, length)
-                        );
-                        console.log(`Log : ${logMessage}`);
-                        this.contract.logs.push(logMessage);
-                    };
-                    break;
-                case "result":
-                    ext[`_${env}`] = async (pointer: any, length: number) => {
-                        console.log(
-                            `Result : `,
-                            this.readPointer(pointer, length)
-                        );
-                        this.wasmResolve(this.readPointer(pointer, length));
-                    };
-                    break;
-                case "send_transaction":
-                    ext[`_${env}`] = async (
-                        tag: number,
-                        payload: any,
-                        length: number
-                    ) => {
-                        console.log(
-                            this.bytesToString(
-                                this.readPointer(payload, length)
-                            )
-                        );
-                    };
-                    break;
-            }
+    public async load(totalMemoryPages?: number) {
+        if (!this.contract.textContent) {
+            throw new Error("No contract code was available.");
+            return;
         }
-
-        const { instance } = await WebAssembly.instantiate(buf, {
-            env: this.environment(ext)
-        });
-
-        this.wasmInstance = instance;
-
+        await this.convertWabtToWasm(this.contract.textContent);
+        console.log("contract deployed.");
         // load memory from the network
         if (totalMemoryPages && totalMemoryPages > 0) {
             console.log("load memory....");
@@ -116,96 +60,157 @@ export default class ContractStore {
                     memory[WEB_ASSEMBLY_PAGE_SIZE * idx + i] = page[i];
                 }
             }
-            await this.updateWasmState(memory);
+            this.memory = memory;
         }
     }
 
     public async call(method: string, params: Buffer) {
-        this.contract.logs = [];
-        this.payload = params;
+        console.log("call...");
+        this.logs = [];
+        // @ts-ignore
+        const buf = atob(
+            (await perlin.getTransaction(this.contract.transactionId))
+                .payload || ""
+        );
 
-        return new Promise((resolve, reject) => {
-            this.wasmReject = reject;
-            this.wasmResolve = resolve;
-            this.wasmInstance.exports[`_contract_${method}`]();
-        });
-    }
+        if (buf.length === 0) {
+            throw new Error("No contract code was available.");
+        }
 
-    private async updateWasmState(loadedMemory: any) {
+        const payload = new Uint8Array(new ArrayBuffer(buf.length));
+        for (let i = 0; i < buf.length; i++) {
+            payload[i] = buf.charCodeAt(i);
+        }
+
+        const payloadView = new DataView(payload.buffer);
+        const contractSpawnGasLimit = payloadView.getBigUint64(0, true);
+        const contractSpawnPayloadSize = payloadView.getBigUint64(8, true);
+
+        console.log(
+            `To spawn the smart contract, a gas limit of ${contractSpawnGasLimit} PERLs was provided.`
+        );
+        console.log(
+            `To spawn the smart contract, a ${contractSpawnPayloadSize}-byte payload was provided.`
+        );
+
+        const contractCode = new Uint8Array(
+            payload.buffer,
+            8 + 8 + Number(contractSpawnPayloadSize)
+        );
+
+        console.log(
+            `The smart contracts code is ${contractCode.byteLength} bytes.`
+        );
+
+        let memory: any;
+
+        let contractPayload = new Uint8Array(
+            new ArrayBuffer(8 + 32 + 32 + 32 + 8)
+        );
+        const decoder = new TextDecoder();
+
+        const imports = {
+            env: {
+                abort: () => {
+                    console.log("abort called");
+                },
+                // todo: add send_transaction
+                _payload_len: () => {
+                    return contractPayload.length;
+                },
+                _payload: (ptr: any) => {
+                    const plView = new Uint8Array(
+                        memory.buffer,
+                        ptr,
+                        contractPayload.byteLength
+                    );
+                    plView.set(contractPayload);
+                },
+                _result: (pointer: any, len: any) => {
+                    const result = decoder.decode(
+                        new Uint8Array(memory.buffer, pointer, len)
+                    );
+                    console.log("Result:", result);
+                    this.logs.push(result);
+                },
+                _log: (pointer: any, len: any) => {
+                    const logView = new Uint8Array(memory.buffer, pointer, len);
+                    console.log(decoder.decode(logView));
+                    this.logs.push(decoder.decode(logView));
+                },
+                _verify_ed25519: () => {
+                    console.log("_verify_ed25519");
+                },
+                _hash_blake2b_256: () => {
+                    console.log("_hash_blake2b_256");
+                },
+                _hash_sha256: () => {
+                    console.log("_hash_sha256");
+                },
+                _hash_sha512: () => {
+                    console.log("_hash_sha512");
+                }
+            }
+        };
+
+        const vm = await WebAssembly.instantiate(contractCode, imports);
+        memory = vm.instance.exports.memory;
         const numMemoryPages =
-            this.wasmInstance.exports.memory.buffer.byteLength /
-            WEB_ASSEMBLY_PAGE_SIZE;
+            memory.buffer.byteLength / WEB_ASSEMBLY_PAGE_SIZE;
         const numLoadedMemoryPages =
-            loadedMemory.byteLength / WEB_ASSEMBLY_PAGE_SIZE;
+            this.memory.byteLength / WEB_ASSEMBLY_PAGE_SIZE;
 
         if (numMemoryPages < numLoadedMemoryPages) {
-            this.wasmInstance.exports.memory.grow(
-                numLoadedMemoryPages - numMemoryPages
+            memory.grow(numLoadedMemoryPages - numMemoryPages);
+        }
+        const view = new Uint8Array(
+            vm.instance.exports.memory.buffer,
+            0,
+            this.memory.length
+        );
+        view.set(this.memory);
+        // @ts-ignore
+        const hexToBuffer = hex =>
+            new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
+
+        const invoke = (inputs: Buffer) => {
+            // [round_idx, round_id, tx_id, tx_creator, balance, payload...]
+            contractPayload = new Uint8Array(
+                new ArrayBuffer(8 + 32 + 32 + 32 + 8 + 32)
             );
-        }
-    }
 
-    private environment(imports: any) {
-        return {
-            abort: () => {
-                console.log("abort called");
-            },
-            _round_id: (ptr: any, len: any) => {
-                return 0;
-            },
-            _verify_ed25519: () => {
-                console.log("something");
-            },
-            _hash_blake2b_256: () => {
-                console.log("something");
-            },
-            _hash_sha256: () => {
-                console.log("something");
-            },
-            _hash_sha512: () => {
-                console.log("something");
-            },
-            _payload_len: () => this.payload.byteLength,
-            _payload: (pointer: any) => {
-                this.writeMemory(this.payload, pointer);
-            },
-            ...imports
+            const roundIdxView = new Uint8Array(contractPayload.buffer, 0, 8); // Round index.
+            const roundIdView = new Uint8Array(contractPayload.buffer, 8, 32); // Round ID.
+            const transactionIdView = new Uint8Array(
+                contractPayload.buffer,
+                8 + 32,
+                32
+            ); // Transaction ID of contract call.
+            const senderIdView = new Uint8Array(
+                contractPayload.buffer,
+                8 + 32 + 32,
+                32
+            ); // Transaction creators wallet address.
+
+            const balanceView = new Uint8Array(
+                contractPayload.buffer,
+                8 + 32 + 32 + 32,
+                8
+            ); // Amount of money sent to the contract.
+            const contractPayloadView = new Uint8Array(
+                contractPayload.buffer,
+                8 + 32 + 32 + 32 + 8
+            );
+
+            contractPayloadView.set(inputs);
+
+            vm.instance.exports[`_contract_${method}`]();
         };
+
+        invoke(params);
     }
 
-    private writeMemory(buffer: any, offset: number = 0) {
-        const memory = new Uint8Array(
-            this.wasmInstance.exports.memory.buffer,
-            offset,
-            buffer.byteLength
-        );
-        buffer.forEach((value: any, index: any) => (memory[index] = value));
-    }
-
-    private bytesToString(bytes: any) {
-        const buff = SmartBuffer.fromBuffer(new Buffer(bytes), "utf8");
-        return buff.toString();
-    }
-
-    private fetchEnvironment() {
-        const envList = [];
-        let match = watImportRegex.exec(this.contract.textContent);
-        while (match !== null) {
-            envList.push(match[1]);
-            match = watImportRegex.exec(this.contract.textContent);
-        }
-        return envList;
-    }
-
-    private readPointer(pointer: any, length: any) {
-        return new Uint8Array(
-            this.wasmInstance.exports.memory.buffer,
-            pointer,
-            length
-        );
-    }
-
-    private async assembleWasmWithWabt(data: string): Promise<ArrayBuffer> {
+    private async convertWabtToWasm(data: string): Promise<any> {
         const module = wabt.parseWat("", data);
         module.resolveNames();
         module.validate();
