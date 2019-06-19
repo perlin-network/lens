@@ -133,6 +133,7 @@ export const WhiteButton = styled.button`
     display: inline-block;
     color: #151b35;
     font-size: 16px;
+    border-radius: 5px;
 `;
 
 export const LargeInput = styled.input`

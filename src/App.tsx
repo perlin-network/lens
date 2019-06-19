@@ -38,7 +38,7 @@ const Content = styled(Box).attrs({
     margin: 0px;
     padding-left: 25px;
     padding-right: 25px;
-    max-width: 1240px;
+    max-width: 1340px;
     min-width: 900px;
     width: calc(100% - 160px);
 `;

@@ -104,7 +104,7 @@ export default class DashboardContainer extends React.Component {
                     <DataChart
                         value={perlin.numAccounts}
                         decimals={0}
-                        title="Accounts"
+                        title="Total number of accounts"
                     />
                 </Row>
                 <Row>

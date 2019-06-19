@@ -74,7 +74,7 @@ interface IState {
     recipientID: string;
     inputID: string;
     sendInputFocused: boolean;
-    recipientBalance: string;
+    recipient: any;
     validAccount: boolean;
     validContract: boolean;
     validTx: boolean;
@@ -91,7 +91,7 @@ export default class QuickSend extends React.Component<{}, IState> {
             recipientID: "",
             inputID: "",
             sendInputFocused: false,
-            recipientBalance: "0",
+            recipient: {},
             validAccount: false,
             validContract: false,
             validTx: false
@@ -125,8 +125,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                 </QuickSendInputAnimation>
 
                 <AccountDetected
-                    recipientID={this.state.recipientID}
-                    recipientBalance={this.state.recipientBalance}
+                    recipient={this.state.recipient}
                     changeComponent={this.handleRestart}
                     toggleComponent={this.state.toggleComponent}
                 />
@@ -180,16 +179,19 @@ export default class QuickSend extends React.Component<{}, IState> {
                     toggleComponent: "showDetectedTx"
                 });
             } else if (this.validInputID()) {
-                const balance: string = await this.getAccountBalance(
-                    this.state.inputID
-                );
+                try {
+                    const recipient = await perlin.getAccount(
+                        this.state.inputID
+                    );
 
-                this.setState({
-                    toggleComponent: "showDetectedAccount",
-                    recipientBalance: balance,
-                    recipientID: this.state.inputID,
-                    validAccount: true
-                });
+                    this.setState({
+                        toggleComponent: "showDetectedAccount",
+                        recipient,
+                        validAccount: true
+                    });
+                } catch (err) {
+                    console.log(err);
+                }
             } else {
                 this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
             }
@@ -226,16 +228,5 @@ export default class QuickSend extends React.Component<{}, IState> {
         setTimeout(() => {
             this.onSendInputBlur();
         }, 400);
-    }
-
-    private async getAccountBalance(recipientID: string) {
-        let balance = "0";
-        try {
-            const account = await perlin.getAccount(recipientID);
-            balance = account ? account.balance : "0";
-        } catch (error) {
-            console.error(error);
-        }
-        return balance;
     }
 }
