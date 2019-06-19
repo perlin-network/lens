@@ -131,6 +131,7 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
             render();
             this.forceUpdate();
         };
+
         this.disposer = intercept(perlin, "peers", changes => {
             const peers = (changes.newValue || []).slice(0, nodeLimit - 1);
             const isDirty = this.checkPeers(peers, mouseHandleUpdate);
@@ -138,7 +139,6 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
             if (isDirty) {
                 update();
             }
-
             return changes;
         });
 
@@ -157,6 +157,7 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
                 );
                 this.nodes.push(this.localNode);
                 this.stage.addChild(this.localNode.gfx);
+                this.checkPeers(perlin.ledger.peers, mouseHandleUpdate);
 
                 update();
             }
