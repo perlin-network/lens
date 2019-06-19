@@ -41,7 +41,7 @@ export const CardHeadings = styled.h2`
 
 export const GraphBox = styled.div`
     background-color: #151b35;
-    /* border-radius: 4px; */
+    border-radius: 5px;
     padding: 1px;
 `;
 

@@ -144,6 +144,7 @@ const InfoTable = styled.table`
     border-collapse: separate;
     border-spacing: 0;
     margin-top: 10px;
+    border: solid 1px #34374a;
 `;
 
 const InfoLine = styled.tr`
@@ -253,7 +254,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </InputWrapper>
 
                                 <Flex
-                                    mb={2}
                                     alignItems="center"
                                     justifyContent="space-between"
                                 >
