@@ -202,7 +202,7 @@ const ContractUploader: React.FunctionComponent = () => {
             );
 
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract(totalMemoryPages);
+                await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
             contractStore.contract.errorMessage = `${err}`;
@@ -216,9 +216,11 @@ const ContractUploader: React.FunctionComponent = () => {
         setLoading(true);
         try {
             await createSmartContract(file);
+            /*
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract();
+                await contractStore.load();
             }
+            */
         } catch (err) {
             console.log("Error while uploading file: ");
             console.error(err);
@@ -233,9 +235,12 @@ const ContractUploader: React.FunctionComponent = () => {
     });
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
-            {/*
-                todo : temporarily disabled due to the issue in Wavelet
-            <Button disabled={true} fontSize="14px" width="100%" {...getRootProps()}>
+            <Button
+                disabled={true}
+                fontSize="14px"
+                width="100%"
+                {...getRootProps()}
+            >
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
             </Button>
@@ -244,7 +249,6 @@ const ContractUploader: React.FunctionComponent = () => {
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
-            */}
             <InputWrapper>
                 <StyledInput
                     value={contractAddress}
