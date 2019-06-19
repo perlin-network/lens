@@ -26,6 +26,13 @@ interface IState {
     errorMessage: string;
 }
 
+const Wrapper = styled.div`
+    ${CancelCardIcon} {
+        position: absolute;
+        top: 15px;
+    }
+`;
+
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
@@ -89,8 +96,7 @@ const Divider = styled.button`
     width: auto;
     display: inline;
     padding: 0px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px 0;
     border: 0px;
 
     &:focus {
@@ -99,6 +105,11 @@ const Divider = styled.button`
     }
 `;
 
+const AccountDetectedContent = styled.div`
+    position: relative;
+    background-color: #1b213d;
+    padding-bottom: 30px;
+`;
 const SendPerlsButton = styled.button`
     font-family: HKGrotesk;
     font-weight: 600;
@@ -140,28 +151,18 @@ export default class AccountDetected extends React.Component<IProps, IState> {
 
     public render() {
         return (
-            <>
+            <Wrapper>
                 <AccountDetectedAnimation
                     in={this.props.toggleComponent === "showDetectedAccount"}
                 >
-                    <div
-                        style={{
-                            backgroundColor: "#1b213d",
-                            paddingBottom: "15px",
-                            marginBottom: "10px",
-                            position: "relative"
-                        }}
-                    >
-                        <CancelCardIcon
-                            style={{ position: "absolute" }}
-                            onClick={this.cancelSend}
-                        />
+                    <AccountDetectedContent>
+                        <CancelCardIcon onClick={this.cancelSend} />
                         <Row>
                             <Box
                                 width={1}
                                 style={{
                                     backgroundColor: "#171d39",
-                                    padding: "15px"
+                                    padding: "15px 20px"
                                 }}
                             >
                                 <QuickSendSuccessIcon />
@@ -283,17 +284,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </div>
                             </Box>
                         </Row>
-                    </div>
+                    </AccountDetectedContent>
                 </AccountDetectedAnimation>
 
                 <AccountDetectedAnimation
                     in={this.props.toggleComponent === "showSendConfirmation"}
                 >
-                    <CancelCardIcon
-                        style={{ position: "absolute" }}
-                        onClick={this.cancelSend}
-                    />
-                    <Row style={{ padding: "40px 20px 40px 40px" }}>
+                    <CancelCardIcon onClick={this.cancelSend} />
+                    <Row style={{ padding: "40px 20px 25px 40px" }}>
                         <Box width={1 / 7}>
                             <QuickSendThumbsUpIcon />
                         </Box>
@@ -392,7 +390,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         </Box>
                     </Row>
                 </AccountDetectedAnimation>
-            </>
+            </Wrapper>
         );
     }
 

@@ -137,9 +137,9 @@ export const useSlideDown = (
             overflow: "hidden",
             willChange: "height"
         },
-        fromY: -5,
-        toY: 5,
-        fromZ: -10,
+        fromY: -10,
+        toY: 0,
+        fromZ: 0,
         toZ: 0,
         easing: defaultEasing,
         ...configOverrides

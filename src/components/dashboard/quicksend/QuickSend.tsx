@@ -22,25 +22,21 @@ const QuickSendInput = styled.input`
     font-family: HKGrotesk;
     background-color: #0b122b;
     border-radius: 5px;
-    border: 1px solid #34374b;
+    border: none;
     color: white;
     width: 100%;
     padding: 15px 15px 12px;
-    margin-top: 10px;
-    margin-bottom: 10px;
     padding-left: 45px;
     font-size: 20px;
+    transition: all 0.2s ease;
 
     &::placeholder {
         font-size: 20px;
     }
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
+    &:hover,
     &:focus {
         cursor: text;
-        border: 1px solid #4a41d1;
+        box-shadow: 0 0 0 1px #4a41d1;
         outline: 0;
     }
 `;
@@ -49,6 +45,8 @@ const Wrapper = styled.div`
     perspective: 60vw;
     perspective-origin: 30% calc(100% - 60px);
     transform-style: preserve-3d;
+    border: 1px solid #34374b;
+    border-radius: 5px;
 `;
 
 const InputIcon = styled.img.attrs({ src: InputIconSVG })`

@@ -131,25 +131,37 @@ const Content = styled.div`
 interface IDataChartProps {
     value?: number;
     title: string;
+    decimals?: number;
 }
 const DataChart: React.FunctionComponent<IDataChartProps> = ({
     value = null,
-    title
+    title,
+    decimals = 4
 }) => {
     const svgRef = useRef(null);
+    const timeout = useRef<any>();
     const { addValue } = useLineChart(svgRef);
 
     useEffect(() => {
         if (value !== null) {
             addValue(value);
+
+            clearInterval(timeout.current);
+            timeout.current = setInterval(() => {
+                addValue(value);
+            }, 5000);
         }
+
+        return () => {
+            clearInterval(timeout.current);
+        };
     }, [value]);
     const intValue = value || 0;
     return (
         <Wrapper ref={svgRef}>
             <Content>
                 <h4>{title}</h4>
-                <p>{intValue.toFixed(4)}</p>
+                <p>{intValue.toFixed(decimals)}</p>
             </Content>
         </Wrapper>
     );

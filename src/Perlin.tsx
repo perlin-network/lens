@@ -60,7 +60,8 @@ class Perlin {
         public_key: "",
         address: "",
         peers: [] as string[],
-        round: {} as any
+        round: {} as any,
+        num_accounts: 0
     };
 
     @observable public account: IAccount = {
@@ -372,7 +373,7 @@ class Perlin {
 
     private async initLedger() {
         this.ledger = await this.getLedger();
-        this.peers = this.ledger.peers;
+        this.peers = this.ledger.peers || [];
 
         this.initRound = this.ledger.round;
 
@@ -384,7 +385,7 @@ class Perlin {
         setInterval(async () => {
             /// only update peers
             const ledger = await this.getLedger();
-            this.peers = ledger.peers;
+            this.peers = ledger.peers || [];
         }, this.peerPollIntv);
     }
 
