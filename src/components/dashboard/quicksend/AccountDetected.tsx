@@ -215,12 +215,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 <InfoTable>
                                     <tbody>
                                         <InfoLine>
-                                            <td className="label">Address</td>
-                                            <td className="value">
-                                                {recipient.public_key}
-                                            </td>
-                                        </InfoLine>
-                                        <InfoLine>
                                             <td className="label">Balance</td>
                                             <td className="value">
                                                 {recipient.balance}
