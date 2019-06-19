@@ -82,7 +82,7 @@ class Perlin {
     };
 
     @observable public peers: string[] = [];
-
+    @observable public numAccounts: number = 0;
     @observable public initRound: any;
 
     @observable public metrics = {
@@ -374,6 +374,7 @@ class Perlin {
     private async initLedger() {
         this.ledger = await this.getLedger();
         this.peers = this.ledger.peers || [];
+        this.numAccounts = this.ledger.num_accounts;
 
         this.initRound = this.ledger.round;
 
@@ -386,6 +387,7 @@ class Perlin {
             /// only update peers
             const ledger = await this.getLedger();
             this.peers = ledger.peers || [];
+            this.numAccounts = ledger.num_accounts;
         }, this.peerPollIntv);
     }
 

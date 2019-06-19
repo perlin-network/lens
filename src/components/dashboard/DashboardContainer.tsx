@@ -102,9 +102,9 @@ export default class DashboardContainer extends React.Component {
                         title="Downloaded TPS"
                     />
                     <DataChart
-                        value={perlin.peers.length + 1}
+                        value={perlin.numAccounts}
                         decimals={0}
-                        title="Network Nodes"
+                        title="Accounts"
                     />
                 </Row>
                 <Row>
