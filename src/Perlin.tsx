@@ -173,6 +173,13 @@ class Perlin {
 
     public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
         const payload = new PayloadWriter();
+        // set gas fee
+        payload.writeUint64(Long.fromNumber(100000000, true));
+        // payload size
+        payload.writeUint64(
+            Long.fromNumber(payload.toBuffer().byteLength, true)
+        );
+        // source code
         payload.writeBuffer(Buffer.from(bytes));
 
         return await this.post(
