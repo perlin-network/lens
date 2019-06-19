@@ -41,7 +41,7 @@ const useContractFunctions = () => {
 const useParams = () => {
     const getEmptyParam = () => ({
         id: nanoid(),
-        type: ParamType.String,
+        type: ParamType.Bytes,
         value: ""
     });
     const [paramsList, setParamsList] = useState<IParamItem[]>([
@@ -192,22 +192,23 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     return valid;
 };
 
-const writeToBuffer = (
-    paramsList: IParamItem[],
-    headers: boolean = false
-): Buffer => {
-    const writer = new PayloadWriter();
-
-    // put mandatory params
-
-    if (headers) {
-        writer.writeBuffer(
-            Buffer.from(contractStore.contract.transactionId, "hex")
-        );
-        writer.writeBuffer(Buffer.from(perlin.account.public_key, "hex"));
-        writer.writeUint64(Long.fromNumber(0, true));
+const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
+    const payload = new SmartBuffer();
+    for (const param of paramsList) {
+        if (param.type && param.value) {
+            switch (param.type) {
+                case ParamType.Bytes:
+                    payload.writeBuffer(Buffer.from(param.value, "hex"));
+                    break;
+                case ParamType.Uint64:
+                    const long = Long.fromString(param.value, true);
+                    payload.writeBuffer(Buffer.from(long.toBytesLE()));
+                    break;
+            }
+        }
     }
 
+    /*
     for (const param of paramsList) {
         if (param.type && param.value) {
             switch (param.type) {
@@ -233,8 +234,9 @@ const writeToBuffer = (
             }
         }
     }
+    */
 
-    return writer.toBuffer();
+    return payload.toBuffer();
 };
 
 // todo : use smart buffer
@@ -250,7 +252,7 @@ function bytesToInt64(buffer: any, littleEndian = true) {
     return combined;
 }
 
-const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
+const ContractExecutor: React.FunctionComponent = observer(() => {
     const funcList = useContractFunctions();
     const {
         paramsList,
@@ -318,9 +320,11 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
         setErrorMessage("");
 
         if (!emptyItem) {
-            const buf = writeToBuffer(paramsList, true);
+            const buf = writeToBuffer(paramsList);
+
             try {
                 const result: any = await contractStore.call(currFunc, buf);
+                /*
                 const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
 
                 setWasmResult(
@@ -329,11 +333,11 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                 console.log(
                     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
                 );
+                */
             } catch (e) {
-                console.error("Invoke local wasm error!");
-                console.error(e);
+                setErrorMessage(`Error : ${e}`);
             }
-
+            /*
             const onlyParams = writeToBuffer(paramsList);
 
             const response = await perlin.invokeContractFunction(
@@ -344,13 +348,13 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
             );
 
             console.log(`response : ${response}`);
+            */
         } else {
-            console.log("Item can't be empty");
             setErrorMessage(`Error : Item can't be empty.`);
         }
     };
 
-    const logMessages = contractStore.contract.logs;
+    const logMessages = contractStore.logs;
 
     return (
         <>
@@ -426,7 +430,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                                 key={index}
                                 style={{
                                     textAlign: "center",
-                                    marginTop: "25px",
+                                    marginTop: "10px",
                                     marginBottom: "10px",
                                     color: "#4A41D1"
                                 }}
