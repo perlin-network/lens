@@ -5,12 +5,12 @@ import "./quicksend.scss";
 import { Flex, Box } from "@rebass/grid";
 import { observer } from "mobx-react";
 import {
-    QuickSendSuccessIcon,
     QuickSendThumbsUpIcon,
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { QRCodeModal, QRCodeWidget } from "../../common/qr";
+import DeltaTag, { DeltaTagWrapper } from "../../common/deltaTag";
+import { QRCodeWidget } from "../../common/qr";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 
 interface IProps {
@@ -119,8 +119,7 @@ const SendPerlsButton = styled.button`
     border: 1px solid #00000000;
     color: #151b35;
     padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+
     min-width: 110px;
 
     &:hover {
@@ -161,7 +160,36 @@ const InfoLine = styled.tr`
         opacity: 0.6;
     }
 `;
+const TransferIntroRow = styled(Row)`
+    padding: 20px 20px 0 40px;
+    color: #a6aab1;
+    font-size: 18px;
 
+    h4 {
+        color: #fff;
+        font-size: 22px;
+        margin: 10px 0;
+    }
+`;
+const TransferRow = styled(Row)`
+    padding: 20px;
+    border: 1px solid #686c7c;
+    border-radius: 5px;
+    margin: 0 20px 20px;
+    color: #a6aab1;
+    line-height: 1.6;
+
+    .address {
+        color: #fff;
+        font-weight: 400;
+        font-size: 16px;
+        margin: 5px 0;
+    }
+
+    .balance {
+        margin-right: 5px;
+    }
+`;
 const perlin = Perlin.getInstance();
 
 @observer
@@ -300,39 +328,27 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     in={this.props.toggleComponent === "showSendConfirmation"}
                 >
                     <CancelCardIcon onClick={this.cancelSend} />
-                    <Row style={{ padding: "40px 20px 0 40px" }}>
+                    <TransferIntroRow>
                         <Box width={1 / 7}>
                             <QuickSendThumbsUpIcon />
                         </Box>
-                        <Box
-                            width={4 / 7}
-                            style={{ height: "100px" }}
-                            className="table-outer"
-                        >
-                            <div className="perlsSent table-inner break-word-normal">
-                                <span style={{ fontWeight: 500 }}>
+                        <Box width={4 / 7} className="table-outer">
+                            <div className="table-inner break-word-normal">
+                                <h4>
                                     Your {this.state.inputPerls} PERLs are on
                                     their way!
-                                </span>
-                                <br />
-                                <span style={{ opacity: 0.6 }}>
+                                </h4>
+                                <p>
                                     Your PERL tokens are being processed by our
                                     lighting fast consensus mechanism and will
                                     be transferred in a few seconds.
-                                </span>
+                                </p>
                             </div>
                         </Box>
-                    </Row>
-                    <Row
-                        style={{
-                            padding: "40px",
-                            border: "1px solid #686C7C",
-                            borderRadius: "4px",
-                            margin: "0 20px 20px"
-                        }}
-                    >
+                    </TransferIntroRow>
+                    <TransferRow>
                         <Box
-                            width={1 / 8}
+                            mr={3}
                             className="break-word vertical-center-align"
                         >
                             <QRCodeWidget
@@ -344,30 +360,24 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
-                            <div
-                                style={{
-                                    fontWeight: 400,
-                                    fontSize: "12px",
-                                    paddingLeft: "10px",
-                                    paddingTop: "7px"
-                                }}
-                            >
-                                {perlin.publicKeyHex}
-                                <br />
-                                <span style={{ opacity: 0.6 }}>
-                                    My Balance: {perlin.account.balance}
-                                </span>
-                            </div>
+                            <div className="address">{perlin.publicKeyHex}</div>
+                            <span className="balance">
+                                My Balance: {perlin.account.balance}{" "}
+                            </span>
+                            <DeltaTag value={-this.state.inputPerls} />
                         </Box>
                         <Box
-                            width={2 / 8}
+                            ml={2}
+                            mr={2}
+                            pt={3}
+                            width={1 / 8}
                             className="vertical-center-align"
                             style={{ textAlign: "center" }}
                         >
-                            <QuickSendArrowIcon style={{ paddingTop: 15 }} />
+                            <QuickSendArrowIcon />
                         </Box>
                         <Box
-                            width={1 / 8}
+                            mr={3}
                             className="break-word vertical-center-align"
                         >
                             <QRCodeWidget
@@ -379,22 +389,15 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
-                            <div
-                                style={{
-                                    fontWeight: 400,
-                                    fontSize: "12px",
-                                    paddingLeft: "10px",
-                                    paddingTop: "7px"
-                                }}
-                            >
+                            <div className="address">
                                 {recipient.public_key}
-                                <br />
-                                <span style={{ opacity: 0.6 }}>
-                                    Recipient Balance: {recipient.balance}
-                                </span>
                             </div>
+                            <span className="balance">
+                                Recipient Balance: {recipient.balance}
+                            </span>
+                            <DeltaTag value={this.state.inputPerls} />
                         </Box>
-                    </Row>
+                    </TransferRow>
                 </AccountDetectedAnimation>
             </Wrapper>
         );
