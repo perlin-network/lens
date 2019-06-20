@@ -173,37 +173,36 @@ export default class ContractStore {
         const invoke = (inputs: Buffer) => {
             // [round_idx, round_id, tx_id, tx_creator, balance, payload...]
             contractPayload = new Uint8Array(
-                new ArrayBuffer(8 + 32 + 32 + 32 + 8 + 32)
+                new ArrayBuffer(8 + 32 + 32 + 32 + 8 + inputs.byteLength)
             );
-
             const roundIdxView = new Uint8Array(contractPayload.buffer, 0, 8); // Round index.
             const roundIdView = new Uint8Array(contractPayload.buffer, 8, 32); // Round ID.
+            // Transaction ID of contract call.
             const transactionIdView = new Uint8Array(
                 contractPayload.buffer,
                 8 + 32,
                 32
-            ); // Transaction ID of contract call.
+            );
+            // Transaction creators wallet address.
             const senderIdView = new Uint8Array(
                 contractPayload.buffer,
                 8 + 32 + 32,
                 32
-            ); // Transaction creators wallet address.
-
+            );
+            // Amount of money sent to the contract.
             const balanceView = new Uint8Array(
                 contractPayload.buffer,
                 8 + 32 + 32 + 32,
                 8
-            ); // Amount of money sent to the contract.
+            );
+            // funcPayload
             const contractPayloadView = new Uint8Array(
                 contractPayload.buffer,
                 8 + 32 + 32 + 32 + 8
             );
-
             contractPayloadView.set(inputs);
-
             vm.instance.exports[`_contract_${method}`]();
         };
-
         invoke(params);
     }
 
