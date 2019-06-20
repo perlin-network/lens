@@ -15,11 +15,11 @@ const Input = styled.input`
     padding: 10px;
     &:hover {
         cursor: text;
-        border: 1px solid #4a41d1;
+        box-shadow: 0 0 0 1px #4a41d1;
     }
     &:focus {
         cursor: text;
-        border: 1px solid #4a41d1;
+        box-shadow: 0 0 0 1px #4a41d1;
         outline: 0;
     }
     &::placeholder {

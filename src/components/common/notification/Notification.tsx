@@ -42,7 +42,7 @@ const Notification: React.FunctionComponent = () => {
             () => perlin.notification,
             (notification: any) => {
                 const title =
-                    notificationTitles[notification.type] || notification.title;
+                    notification.title || notificationTitles[notification.type];
                 const content = notification.content || (
                     <p>{notification.message}</p>
                 );

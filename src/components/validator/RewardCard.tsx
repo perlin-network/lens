@@ -25,19 +25,18 @@ const RewardAmount = styled.h2`
 
 interface IRewardCardProps {
     reward: number;
-    onSubmit: (amount: number) => void;
-    errorMessage: string;
+    onSubmit: (amount: number) => Promise<boolean>;
 }
 const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
     reward,
-    onSubmit,
-    errorMessage
+    onSubmit
 }) => {
     const [amount, setAmount] = useState();
     const [showAmountBox, setShowAmountBox] = useState(false);
-    const handleOnClick = useCallback(() => {
-        onSubmit(amount);
-        setShowAmountBox(false);
+    const handleOnClick = useCallback(async () => {
+        if (await onSubmit(amount)) {
+            setShowAmountBox(false);
+        }
     }, [amount]);
 
     const handleShowAmountBox = useCallback(() => {
@@ -48,12 +47,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.target.value;
-            // if (/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/i.test(value) || (value[value.length -1] === "." && (value.indexOf(".") === value.lastIndexOf("."))) ) {
-            if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
-                setAmount(parseInt(value, 10));
-            } else if (value === "") {
-                setAmount(0);
-            }
+            setAmount(parseInt(value, 10));
         },
         []
     );
@@ -97,7 +91,6 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
                         </Row>
                     </div>
                 )}
-                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
             </CardBody>
         </Wrapper>
     );

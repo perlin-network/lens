@@ -3,10 +3,11 @@ import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
 
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import { ValidatorChart } from "./ValidatorChart";
 import { SectionTitle } from "../common/typography";
+import { Link } from "react-router-dom";
 
 import { StakeCard } from "./StakeCard";
 import RewardCard from "./RewardCard";
@@ -44,45 +45,76 @@ const ChartSubtitle = styled.span`
     font-weight: 500;
 `;
 
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        content: <p>{message}</p>
+    });
+};
+
+const successNotification = (title: string, txId: string) => {
+    perlin.notify({
+        title,
+        type: NotificationTypes.Success,
+        // message: "You can view your transactions details here"
+        content: (
+            <p>
+                You can view your transaction
+                <Link to={"/transactions/" + txId} title={txId}>
+                    here
+                </Link>
+            </p>
+        ),
+        dismiss: { duration: 0 }
+    });
+};
+
 const ValidatorView: React.FunctionComponent<{}> = () => {
     const stake = useWalletStake();
     const reward = perlin.account.reward;
 
     const [action, setAction] = useState(StakeActions.None);
-    const [stakeErrorMessage, setStakeErrorMessage] = useState("");
-    const [rewardErrorMessage, setTewardErrorMessage] = useState("");
-
     const handlePlaceStake = async (amount: number) => {
-        setStakeErrorMessage("");
-        setAction(StakeActions.None);
         if (!isNaN(amount)) {
             const results = await perlin.placeStake(amount);
             if (results.error) {
-                setStakeErrorMessage(`${results.error}`);
+                errorNotification(results.error);
+            } else {
+                setAction(StakeActions.None);
+                successNotification("Stake Placed", results.tx_id);
             }
+        } else {
+            errorNotification("You have entered and invalid amount");
         }
-        // display error message
     };
     const handleWithdrawStake = async (amount: number) => {
-        setStakeErrorMessage("");
-        setAction(StakeActions.None);
         if (!isNaN(amount)) {
             const results = await perlin.withdrawStake(amount);
             if (results.error) {
-                setStakeErrorMessage(`${results.error}`);
+                errorNotification(results.error);
+            } else {
+                setAction(StakeActions.None);
+                successNotification("Stake Withdrawn", results.tx_id);
             }
+        } else {
+            errorNotification("You have entered and invalid amount");
         }
         // display error message
     };
 
     const handleWithdrawReward = useCallback(async (amount: number) => {
-        setTewardErrorMessage("");
         if (!isNaN(amount)) {
             const results = await perlin.withdrawReward(amount);
             if (results.error) {
-                setTewardErrorMessage(`${results.error}`);
+                errorNotification(results.error);
+            } else {
+                successNotification("Reward Withdrawn", results.tx_id);
+                return true;
             }
+        } else {
+            errorNotification("You have entered and invalid amount");
         }
+        return false;
     }, []);
 
     return (
@@ -120,15 +152,10 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                             ? handlePlaceStake
                             : handleWithdrawStake
                     }
-                    errorMessage={stakeErrorMessage}
                 />
             </Box>
             <Box width={6 / 12}>
-                <RewardCard
-                    reward={reward}
-                    onSubmit={handleWithdrawReward}
-                    errorMessage={rewardErrorMessage}
-                />
+                <RewardCard reward={reward} onSubmit={handleWithdrawReward} />
             </Box>
         </Flex>
     );

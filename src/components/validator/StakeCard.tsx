@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useCallback } from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import {
@@ -18,7 +18,6 @@ interface IStakeCardProps {
     action: StakeActions;
     setAction: (action: StakeActions) => void;
     onSubmit: (amount: number) => void;
-    errorMessage: string;
 }
 
 const Row = styled(Flex)`
@@ -42,41 +41,38 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
     stake,
     action,
     setAction,
-    onSubmit,
-    errorMessage
+    onSubmit
 }) => {
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] = useState();
 
-    const handleWithdrawStakeClick = () => {
+    const handleWithdrawStakeClick = useCallback(() => {
         if (action !== StakeActions.Withdraw) {
             setAction(StakeActions.Withdraw);
         } else {
             setAction(StakeActions.None);
         }
-    };
+    }, [action]);
 
-    const handlePlaceStakeClick = () => {
+    const handlePlaceStakeClick = useCallback(() => {
         if (action !== StakeActions.Place) {
             setAction(StakeActions.Place);
         } else {
             setAction(StakeActions.None);
         }
-    };
+    }, [action]);
 
-    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        // if (/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/i.test(value) || (value[value.length -1] === "." && (value.indexOf(".") === value.lastIndexOf("."))) ) {
-        if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
-            setAmount("" + value);
-        } else if (value === "") {
-            setAmount("");
-        }
-    };
+    const handleAmountChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value;
+            setAmount(parseInt(value, 10));
+        },
+        []
+    );
 
-    const handleSubmit = () => {
+    const handleSubmit = useCallback(() => {
         // todo: add validation
-        onSubmit(parseInt(amount, 10));
-    };
+        onSubmit(amount);
+    }, [amount]);
 
     return (
         <Card style={{ marginRight: "20px" }}>
@@ -110,7 +106,7 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                             <Col width={1}>
                                 <LargeInput
                                     placeholder="Enter Amount"
-                                    value={amount}
+                                    defaultValue={amount}
                                     onChange={handleAmountChange}
                                 />
                             </Col>
@@ -124,7 +120,6 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                         </Row>
                     </div>
                 )}
-                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
             </CardBody>
         </Card>
     );
