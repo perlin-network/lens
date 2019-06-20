@@ -170,13 +170,6 @@ export default class ContractStore {
         );
         view.set(this.memory);
 
-        const hexToBuffer = (hex: any) => {
-            // @ts-ignore
-            return new Uint8Array(
-                hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16))
-            );
-        };
-
         const invoke = (inputs: Buffer) => {
             // [round_idx, round_id, tx_id, tx_creator, balance, payload...]
             contractPayload = new Uint8Array(
