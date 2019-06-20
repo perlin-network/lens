@@ -150,7 +150,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
 
         try {
             setAlert("");
-            await perlin.setSecretKey(secretKey);
+            await perlin.login(secretKey);
             history.push("/");
         } catch (err) {
             setAlert(`Cannot find the host.`);
