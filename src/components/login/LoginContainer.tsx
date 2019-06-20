@@ -137,6 +137,10 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
         }
     }, []);
 
+    const generateNewKeys = () => {
+        setSecretKey(perlin.generateNewKeys().secretKey);
+    };
+
     const login = async () => {
         if (!secretKey) {
             setAlert("Field is Empty.");
@@ -186,14 +190,12 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                         }}
                                     />
                                 </div>
-                                <div
-                                    className="input-row2"
-                                    style={{ display: "flex" }}
-                                >
+                                <Row>
                                     <Button onClick={login}>Login</Button>
-                                    <FileInputWrapper
-                                        style={{ justifyContent: "flex-end" }}
-                                    >
+                                    <Button onClick={generateNewKeys}>
+                                        Generate New Key
+                                    </Button>
+                                    <FileInputWrapper>
                                         <FileButton>
                                             Import from a file
                                         </FileButton>
@@ -201,7 +203,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                             onChange={handleFileChange}
                                         />
                                     </FileInputWrapper>
-                                </div>
+                                </Row>
                                 <div style={{ paddingTop: "20px" }}>
                                     {alert && <Alert>{alert}</Alert>}
                                 </div>

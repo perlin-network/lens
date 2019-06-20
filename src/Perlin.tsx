@@ -151,6 +151,14 @@ class Perlin {
         window.location.reload();
     }
 
+    public generateNewKeys(): any {
+        const generatedKeys = nacl.sign.keyPair();
+        return {
+            publicKey: Buffer.from(generatedKeys.publicKey).toString("hex"),
+            secretKey: Buffer.from(generatedKeys.secretKey).toString("hex")
+        };
+    }
+
     public prepareTransaction(tag: Tag, payload: Buffer): any {
         const buffer = new SmartBuffer();
         buffer.writeBuffer(new Buffer(8));
