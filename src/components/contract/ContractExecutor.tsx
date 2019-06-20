@@ -14,6 +14,7 @@ import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
+import { loadContractFromNetwork } from "./ContractUploader";
 
 interface IParamItem {
     id: string;
@@ -34,7 +35,10 @@ const useContractFunctions = () => {
             funcList.push(match[1]);
             match = watFunctionRegex.exec(contractStore.contract.textContent);
         }
-        return funcList;
+        console.log("funcList", funcList);
+        const list = funcList.filter((item: any) => item !== "init");
+        console.log("funcList", list);
+        return list;
     }, [contractStore.contract.textContent]);
 };
 
@@ -183,62 +187,43 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
             }
             break;
         case ParamType.Bytes:
-            if (isHexString(value) || isBase64String(value)) {
-                valid = true;
-            }
+            valid = true;
             break;
         case ParamType.Byte:
-            if (isHexString(value) || isBase64String(value)) {
-                valid = true;
-            }
+            valid = true;
             break;
     }
     return valid;
 };
 
-const writeToBuffer = (
-    paramsList: IParamItem[],
-    headers: boolean = false
-): Buffer => {
-    const writer = new PayloadWriter();
-
-    // put mandatory params
-
-    if (headers) {
-        writer.writeBuffer(
-            Buffer.from(contractStore.contract.transactionId, "hex")
-        );
-        writer.writeBuffer(Buffer.from(perlin.account.public_key, "hex"));
-        writer.writeUint64(Long.fromNumber(0, true));
-    }
-
+const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
+    const payload = new SmartBuffer();
     for (const param of paramsList) {
         if (param.type && param.value) {
             switch (param.type) {
                 case ParamType.String:
-                    writer.writeString(param.value);
-                    break;
-                case ParamType.Uint16:
-                    writer.writeUint16(parseInt(param.value, 10));
-                    break;
-                case ParamType.Uint32:
-                    writer.writeUint32(parseInt(param.value, 10));
-                    break;
-                case ParamType.Uint64:
-                    writer.writeUint64(Long.fromString(param.value, true));
+                    payload.writeString(param.value);
                     break;
                 case ParamType.Bytes:
-                    // todo : support base64 string
-                    writer.writeBuffer(Buffer.from(param.value, "hex"));
+                    payload.writeBuffer(Buffer.from(param.value, "hex"));
                     break;
                 case ParamType.Byte:
-                    writer.writeByte(parseInt(param.value, 10));
+                    payload.writeBuffer(Buffer.from(param.value, "hex"));
+                    break;
+                case ParamType.Uint64:
+                    const long = Long.fromString(param.value, true);
+                    payload.writeBuffer(Buffer.from(long.toBytesLE()));
+                    break;
+                case ParamType.Uint32:
+                    payload.writeUInt32LE(parseInt(param.value, 10));
+                    break;
+                case ParamType.Uint16:
+                    payload.writeUInt16LE(parseInt(param.value, 10));
                     break;
             }
         }
     }
-
-    return writer.toBuffer();
+    return payload.toBuffer();
 };
 
 // todo : use smart buffer
@@ -254,7 +239,7 @@ function bytesToInt64(buffer: any, littleEndian = true) {
     return combined;
 }
 
-const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
+const ContractExecutor: React.FunctionComponent = observer(() => {
     const funcList = useContractFunctions();
     const {
         paramsList,
@@ -267,6 +252,8 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         setFunc(funcList[0]);
@@ -313,19 +300,23 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
         }
     };
 
-    const callFunction = async () => {
+    const delay = (time: any) =>
+        new Promise((res: any) => setTimeout(res, time));
+
+    const onCall = async () => {
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
         );
+
         setWasmResult("");
         setErrorMessage("");
+
         if (!emptyItem) {
-            const buf = writeToBuffer(paramsList, true);
+            const buf = writeToBuffer(paramsList);
+            setLoading(true);
             try {
-                const result: any = await contractStore.localInvoke(
-                    currFunc,
-                    buf
-                );
+                const result: any = await contractStore.call(currFunc, buf);
+                /*
                 const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
 
                 setWasmResult(
@@ -334,26 +325,46 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                 console.log(
                     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
                 );
+                */
             } catch (e) {
-                console.error("Invoke local wasm error!");
-                console.error(e);
+                setErrorMessage(`Error : ${e}`);
             }
-
-            const onlyParams = writeToBuffer(paramsList);
+            const params = writeToBuffer(paramsList);
 
             const response = await perlin.invokeContractFunction(
                 contractStore.contract.transactionId,
                 0,
                 currFunc,
-                onlyParams
+                params
+            );
+            const txId = response.tx_id;
+
+            // reload memory
+            let count = 0;
+
+            while (count < 30) {
+                const tx = await perlin.getTransaction(txId);
+                if (tx.status === "applied") {
+                    await delay(3000);
+                    break;
+                }
+                await delay(1000);
+                count++;
+            }
+
+            const totalMemoryPages = await loadContractFromNetwork(
+                contractStore.contract.transactionId
             );
 
-            console.log(`response : ${response}`);
+            await contractStore.load(totalMemoryPages);
+
+            setLoading(false);
         } else {
-            console.log("Item can't be empty");
             setErrorMessage(`Error : Item can't be empty.`);
         }
     };
+
+    const logMessages = contractStore.logs;
 
     return (
         <>
@@ -396,10 +407,10 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                         </Box>
                     </Flex>
 
-                    <Button fontSize="14px" onClick={callFunction}>
+                    <Button disabled={loading} fontSize="14px" onClick={onCall}>
                         Call Function
                     </Button>
-                    {wasmResult !== "" && (
+                    {loading && (
                         <div
                             style={{
                                 textAlign: "center",
@@ -408,7 +419,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                                 color: "#4A41D1"
                             }}
                         >
-                            {wasmResult}
+                            Processing...
                         </div>
                     )}
                     {errorMessage !== "" && (
@@ -423,6 +434,21 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                             {errorMessage}
                         </div>
                     )}
+                    {logMessages.map((item: any, index: number) => {
+                        return (
+                            <div
+                                key={index}
+                                style={{
+                                    textAlign: "center",
+                                    marginTop: "10px",
+                                    marginBottom: "10px",
+                                    color: "#4A41D1"
+                                }}
+                            >
+                                {item}
+                            </div>
+                        );
+                    })}
                 </ParamsBody>
             </Card>
         </>

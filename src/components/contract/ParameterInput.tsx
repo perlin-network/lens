@@ -24,12 +24,12 @@ export enum ParamType {
 }
 
 const typeOptions = [
+    ParamType.String,
     ParamType.Bytes,
+    ParamType.Byte,
     ParamType.Uint64,
     ParamType.Uint32,
-    ParamType.Uint16,
-    ParamType.String,
-    ParamType.Byte
+    ParamType.Uint16
 ];
 
 const Wrapper = styled(Flex)`

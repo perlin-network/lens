@@ -91,12 +91,13 @@ const StyledButton = styled(RawButton).attrs({ hideOverflow: true })`
         background-color: #d4d5da;
     }
 `;
+
 const Loader = styled.div`
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    top: -20px;
+    bottom: -20px;
+    left: -20px;
+    right: -20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -151,34 +152,17 @@ const createSmartContract = async (file: File) => {
     }
 };
 
-const loadContract = async (contractId: string) => {
+export const loadContractFromNetwork = async (
+    contractId: string
+): Promise<number> => {
     try {
         const account = await perlin.getAccount(contractId);
 
-        /*
         if (!account.is_contract) {
-            contractStore.contract.errorMessage = "Account is not a contract.";
-            console.log("Account is not a contract.");
-            return;
-        } 
-        */
-
-        contractStore.contract.errorMessage = "";
-        contractStore.contract.transactionId = "";
-
-        const pages = [];
-
-        for (let i = 0; i < account.num_mem_pages; i++) {
-            try {
-                pages.push(await perlin.getContractPage(contractId, i));
-            } catch (err) {
-                pages.push([]);
-            }
+            throw new Error(`Address is not a contract.`);
         }
 
-        console.log(pages);
-
-        // todo: import memory page to local wasm instance
+        const numPages = account.num_mem_pages || 0;
 
         const hexContent = await perlin.getContractCode(contractId);
 
@@ -197,27 +181,38 @@ const loadContract = async (contractId: string) => {
             inlineExport: false
         });
         contractStore.contract.errorMessage = "";
+
+        return numPages;
     } catch (err) {
-        contractStore.contract.errorMessage = err.message;
+        contractStore.contract.errorMessage = `Error : ${err.message}`;
+        return 0;
     }
 };
 
-const ContractUploader: React.SFC<{}> = () => {
+const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [contractAddress, setContractAddress] = useState("");
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setContractAddress(e.target.value);
     };
+
+    const delay = (time: any) =>
+        new Promise((res: any) => setTimeout(res, time));
+
     const handleLoadClick = useCallback(async () => {
+        setLoading(true);
         try {
-            await loadContract(contractAddress);
+            const totalMemoryPages = await loadContractFromNetwork(
+                contractAddress
+            );
 
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract();
-                // load state here
+                await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
-            console.error(err);
+            contractStore.contract.errorMessage = `${err}`;
+        } finally {
+            setLoading(false);
         }
     }, [contractAddress]);
 
@@ -227,11 +222,30 @@ const ContractUploader: React.SFC<{}> = () => {
         try {
             await createSmartContract(file);
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract();
+                let count = 0;
+                while (count < 30) {
+                    const tx = await perlin.getTransaction(
+                        contractStore.contract.transactionId
+                    );
+
+                    if (tx.status === "applied") {
+                        await delay(3000);
+                        break;
+                    }
+                    await delay(1000);
+                    count++;
+                }
+
+                const totalMemoryPages = await loadContractFromNetwork(
+                    contractStore.contract.transactionId
+                );
+
+                await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
             console.log("Error while uploading file: ");
             console.error(err);
+            contractStore.contract.errorMessage = `${err}`;
         } finally {
             setLoading(false);
         }
@@ -264,7 +278,13 @@ const ContractUploader: React.SFC<{}> = () => {
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
             {contractStore.contract.errorMessage !== "" && (
-                <div style={{ marginTop: "25px", color: "red" }}>
+                <div
+                    style={{
+                        textAlign: "center",
+                        marginTop: "25px",
+                        color: "red"
+                    }}
+                >
                     {contractStore.contract.errorMessage}
                 </div>
             )}

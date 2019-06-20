@@ -233,11 +233,12 @@ class Perlin {
 
     public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
         const payload = new PayloadWriter();
-        payload.writeBuffer(Buffer.from(bytes));
-
+        payload.writeUint64(Long.fromNumber(100000000, true));
+        payload.writeUint64(Long.fromNumber(0, true));
+        payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagContract, payload.buffer.toBuffer())
         );
     }
 
@@ -254,11 +255,18 @@ class Perlin {
     public async getContractPage(
         contractId: string,
         pageIndex: number
-    ): Promise<string> {
-        return await this.getText(
-            `/contract/${contractId}/page/${pageIndex}`,
-            {}
-        );
+    ): Promise<any> {
+        try {
+            return new Uint8Array(
+                await this.getBuffer(
+                    `/contract/${contractId}/page/${pageIndex}`,
+                    {}
+                )
+            );
+        } catch (err) {
+            console.log("getContractPage Error : ", err);
+            return [];
+        }
     }
 
     public async invokeContractFunction(
@@ -268,8 +276,9 @@ class Perlin {
         funcParams: Buffer
     ): Promise<any> {
         const payload = new PayloadWriter();
-        payload.writeBuffer(Buffer.from(contractID, "hex"));
+        payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
+        payload.writeUint64(Long.fromNumber(100000000000, true));
         payload.writeString(funcName);
         payload.writeBuffer(funcParams);
 
