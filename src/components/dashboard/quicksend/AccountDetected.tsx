@@ -262,12 +262,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                 {recipient.stake}
                                             </td>
                                         </InfoLine>
-                                        <InfoLine>
-                                            <td className="label">Nonce</td>
-                                            <td className="value">
-                                                {recipient.nonce}
-                                            </td>
-                                        </InfoLine>
+                                        {recipient.nonce && (
+                                            <InfoLine>
+                                                <td className="label">Nonce</td>
+                                                <td className="value">
+                                                    {recipient.nonce}
+                                                </td>
+                                            </InfoLine>
+                                        )}
                                     </tbody>
                                 </InfoTable>
                             </Box>
