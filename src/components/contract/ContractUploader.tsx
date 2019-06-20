@@ -194,6 +194,9 @@ const ContractUploader: React.FunctionComponent = () => {
         setContractAddress(e.target.value);
     };
 
+    const delay = (time: any) =>
+        new Promise((res: any) => setTimeout(res, time));
+
     const handleLoadClick = useCallback(async () => {
         setLoading(true);
         try {
@@ -216,14 +219,31 @@ const ContractUploader: React.FunctionComponent = () => {
         setLoading(true);
         try {
             await createSmartContract(file);
-            /*
             if (contractStore.contract.transactionId) {
-                await contractStore.load();
+                let count = 0;
+                while (count < 30) {
+                    const tx = await perlin.getTransaction(
+                        contractStore.contract.transactionId
+                    );
+
+                    if (tx.status === "applied") {
+                        await delay(3000);
+                        break;
+                    }
+                    await delay(1000);
+                    count++;
+                }
+
+                const totalMemoryPages = await loadContractFromNetwork(
+                    contractStore.contract.transactionId
+                );
+
+                await contractStore.load(totalMemoryPages);
             }
-            */
         } catch (err) {
             console.log("Error while uploading file: ");
             console.error(err);
+            contractStore.contract.errorMessage = `${err}`;
         } finally {
             setLoading(false);
         }
@@ -235,12 +255,7 @@ const ContractUploader: React.FunctionComponent = () => {
     });
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
-            <Button
-                disabled={true}
-                fontSize="14px"
-                width="100%"
-                {...getRootProps()}
-            >
+            <Button fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
             </Button>
