@@ -131,7 +131,7 @@ export default class ContractStore {
                         new Uint8Array(memory.buffer, pointer, len)
                     );
                     console.log("Result:", result);
-                    this.logs.push(result);
+                    // this.logs.push(result);
                 },
                 _log: (pointer: any, len: any) => {
                     const logView = new Uint8Array(memory.buffer, pointer, len);
