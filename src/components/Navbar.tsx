@@ -12,6 +12,7 @@ import { Perlin } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon, QrCodeIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
+import Address from "./common/address";
 
 const Header = styled(Flex)`
     padding: 10px 0px 10px 0px;
@@ -85,72 +86,83 @@ const WalletItem = styled(Item)`
 `;
 const perlin = Perlin.getInstance();
 
-const Navbar: React.FunctionComponent<{}> = observer(() => {
+const Navbar: React.FunctionComponent<{}> = () => {
     const balance = perlin.account.balance;
-    const pubKey = perlin.publicKeyHex;
+    const isLoggedIn = perlin.isLoggedIn;
+
     const stake = perlin.account.stake;
+    const pubKey = isLoggedIn ? perlin.publicKeyHex : undefined;
     const reward = perlin.account.reward;
 
     const copyPubkeyToClipboard = () => {
         const el = document.createElement("textarea");
-        el.value = pubKey;
-        el.setAttribute("readonly", "");
-        el.style.position = "absolute";
-        el.style.left = "-9999px";
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
-
-        // todo : show success message
+        if (pubKey !== undefined) {
+            el.value = pubKey;
+            el.setAttribute("readonly", "");
+            el.style.position = "absolute";
+            el.style.left = "-9999px";
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+        }
     };
 
-    return (
-        <Header>
-            <Container>
-                <QRCodeWidget
-                    publicKeyHex={pubKey}
-                    clickable={true}
-                    width={50}
-                    height={50}
-                />
-                <WalletItem>
-                    <span className="nowrap">Your Wallet Address</span>
-                    <LinkValue title={pubKey} onClick={copyPubkeyToClipboard}>
-                        <CopyIcon />
-                        <span className="truncate">{pubKey}</span>
-                    </LinkValue>
-                </WalletItem>
-                <Item>
-                    <span className="nowrap">
-                        <WalletIcon className="icon" />
-                        Your Balance
-                    </span>
-                    <Value title={balance}>
-                        <span className="truncate">{balance || 0}</span> PERLs
-                    </Value>
-                </Item>
-                <Item flex="0 0 auto">
-                    <span className="nowrap">
-                        <StakeIcon className="icon" />
-                        Your Stake
-                    </span>
-                    <Value title={stake + ""}>
-                        <span className="truncate">{stake || 0}</span> PERLs
-                    </Value>
-                </Item>
-                <Item flex="0 0 auto">
-                    <span className="nowrap">
-                        <EarningsIcon className="icon" />
-                        Available Rewards
-                    </span>
-                    <Value title={reward + ""}>
-                        <span className="truncate">{reward || 0}</span> PERLs
-                    </Value>
-                </Item>
-            </Container>
-        </Header>
-    );
-});
+    const LoggedBar = () => {
+        return (
+            <Header>
+                <Container>
+                    <QRCodeWidget
+                        publicKeyHex={pubKey || ""}
+                        clickable={true}
+                        width={50}
+                        height={50}
+                    />
+                    <WalletItem>
+                        <span className="nowrap">Your Wallet Address</span>
+                        <LinkValue
+                            title={pubKey}
+                            onClick={copyPubkeyToClipboard}
+                        >
+                            <CopyIcon />
+                            <span className="truncate">{pubKey}</span>
+                        </LinkValue>
+                    </WalletItem>
+                    <Item>
+                        <span className="nowrap">
+                            <WalletIcon className="icon" />
+                            Your Balance
+                        </span>
+                        <Value title={balance}>
+                            <span className="truncate">{balance || 0}</span>{" "}
+                            PERLs
+                        </Value>
+                    </Item>
+                    <Item flex="0 0 auto">
+                        <span className="nowrap">
+                            <StakeIcon className="icon" />
+                            Your Stake
+                        </span>
+                        <Value title={stake + ""}>
+                            <span className="truncate">{stake || 0}</span> PERLs
+                        </Value>
+                    </Item>
+                    <Item flex="0 0 auto">
+                        <span className="nowrap">
+                            <EarningsIcon className="icon" />
+                            Available Rewards
+                        </span>
+                        <Value title={reward + ""}>
+                            <span className="truncate">{reward || 0}</span>{" "}
+                            PERLs
+                        </Value>
+                    </Item>
+                </Container>
+            </Header>
+        );
+    };
 
-export default Navbar;
+    return isLoggedIn ? <LoggedBar /> : <Header />;
+};
+
+export default observer(Navbar);

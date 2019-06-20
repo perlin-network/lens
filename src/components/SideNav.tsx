@@ -8,6 +8,8 @@ import DeveloperIcon from "../assets/svg/navbar-developer.svg";
 import SettingsIcon from "../assets/svg/navbar-settings.svg";
 import LogoutIcon from "../assets/svg/navbar-logout.svg";
 import perlinLogo from "../assets/svg/perlin-logo.svg";
+import { Perlin } from "../Perlin";
+import { observer } from "mobx-react-lite";
 
 const NavIcon = styled.img<INavItemProps>`
     height: 16px;
@@ -60,46 +62,71 @@ const items: INavItem[] = [
     { title: "Network", link: "/network", icon: NetworkIcon },
     { title: "Validator", link: "/validator", icon: ValidatorIcon },
     { title: "Developer", link: "/contracts", icon: DeveloperIcon },
-    { title: "Settings", link: "/settings", icon: SettingsIcon },
-    { title: "Logout", link: "/logout", icon: LogoutIcon }
+    { title: "Settings", link: "/settings", icon: SettingsIcon }
 ];
 
-class SideNav extends React.Component<RouteComponentProps, {}> {
-    public render() {
-        const { pathname } = this.props.history.location;
+const LogoWrapper = styled.img`
+    max-width: 150px;
+    padding: 20px;
+    margin-bottom: 2em;
+`;
 
-        return (
-            <>
-                <img
-                    src={perlinLogo}
-                    style={{
-                        maxWidth: "150px",
-                        padding: "20px",
-                        marginBottom: "2em"
-                    }}
-                />
+const perlin = Perlin.getInstance();
 
-                {items.map(item => (
-                    <NavItem
-                        key={item.title}
-                        onClick={
-                            item.link ? this.navigateTo(item.link) : undefined
-                        }
-                        active={pathname === item.link}
-                    >
-                        <NavIcon
-                            src={item.icon}
-                            active={pathname === item.link}
-                        />
-                        {item.title}
-                    </NavItem>
-                ))}
-            </>
-        );
-    }
-    private navigateTo = (link: string) => () => {
-        this.props.history.push(link);
+const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
+    const { pathname } = props.history.location;
+    const isLoggedIn = perlin.isLoggedIn;
+
+    const navigateTo = (link: string) => () => {
+        props.history.push(link);
     };
-}
+    const logout = () => () => {
+        perlin.logout();
+    };
 
-export default withRouter(SideNav);
+    const login = () => () => {
+        props.history.push("/login");
+    };
+
+    return (
+        <>
+            <LogoWrapper src={perlinLogo} />
+            {isLoggedIn ? (
+                <>
+                    {items.map(item => (
+                        <NavItem
+                            key={item.title}
+                            onClick={
+                                item.link ? navigateTo(item.link) : undefined
+                            }
+                            active={pathname === item.link}
+                        >
+                            <NavIcon
+                                src={item.icon}
+                                active={pathname === item.link}
+                            />
+                            {item.title}
+                        </NavItem>
+                    ))}
+                    <NavItem onClick={logout()}>
+                        <NavIcon src={LogoutIcon} />
+                        Logout
+                    </NavItem>
+                </>
+            ) : (
+                <>
+                    <NavItem onClick={login()}>
+                        <NavIcon src={LogoutIcon} />
+                        Login
+                    </NavItem>
+                    <NavItem onClick={navigateTo("/settings")}>
+                        <NavIcon src={SettingsIcon} />
+                        Settings
+                    </NavItem>
+                </>
+            )}
+        </>
+    );
+};
+
+export default withRouter(observer(SideNav));
