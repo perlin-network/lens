@@ -95,14 +95,16 @@ const Navbar: React.FunctionComponent<{}> = () => {
 
     const copyPubkeyToClipboard = () => {
         const el = document.createElement("textarea");
-        el.value = pubKey;
-        el.setAttribute("readonly", "");
-        el.style.position = "absolute";
-        el.style.left = "-9999px";
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
+        if (pubKey !== undefined) {
+            el.value = pubKey;
+            el.setAttribute("readonly", "");
+            el.style.position = "absolute";
+            el.style.left = "-9999px";
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+        }
     };
 
     const LoggedBar = () => {
@@ -110,7 +112,7 @@ const Navbar: React.FunctionComponent<{}> = () => {
             <Header>
                 <Container>
                     <QRCodeWidget
-                        publicKeyHex={pubKey}
+                        publicKeyHex={pubKey || ""}
                         clickable={true}
                         width={50}
                         height={50}
