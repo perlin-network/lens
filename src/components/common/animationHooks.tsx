@@ -137,10 +137,10 @@ export const useSlideDown = (
             overflow: "hidden",
             willChange: "height"
         },
-        fromY: -5,
-        toY: 5,
+        fromY: -10,
+        toY: 0,
         fromZ: 0,
-        toZ: 20,
+        toZ: 0,
         easing: defaultEasing,
         ...configOverrides
     };
@@ -172,13 +172,13 @@ export const useSlideDown = (
                         return config.fromZ;
                 }
             },
-            height: (el: HTMLElement) => {
+            maxHeight: (el: HTMLElement) => {
                 switch (state) {
                     case "entering":
                     case "entered":
                         return elHeight.current;
                     case "":
-                        elHeight.current = el.offsetHeight;
+                        elHeight.current = el.offsetHeight + 100;
                     default:
                         return 0;
                 }

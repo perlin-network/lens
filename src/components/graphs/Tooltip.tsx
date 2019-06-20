@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import styled from "styled-components";
 
 const Wrapper = styled.div<{
@@ -64,17 +64,22 @@ const statusTypes = {
     applied: {
         color: "#7668cb",
         display: "block",
-        text: "Applied"
+        text: "applied"
     },
-    accepted: {
-        color: "#6bad1d",
+    critical: {
+        color: "#4788f1",
         display: "block",
-        text: "Accepted"
+        text: "critical"
     },
-    failed: {
-        color: "#940f1f",
+    start: {
+        color: "#4788f1",
         display: "block",
-        text: "Failed"
+        text: "critical"
+    },
+    rejected: {
+        color: "#ff4422",
+        display: "block",
+        text: "rejected"
     }
 };
 
@@ -89,7 +94,7 @@ interface ITooltipProps {
     visible: boolean;
 }
 
-const Tooltip: React.SFC<ITooltipProps> = props => {
+const Tooltip: React.FunctionComponent<ITooltipProps> = props => {
     const { title, text, x, y, visible, status = "" } = props;
     const position = { x, y };
     return (
@@ -103,4 +108,4 @@ const Tooltip: React.SFC<ITooltipProps> = props => {
     );
 };
 
-export default Tooltip;
+export default memo(Tooltip);

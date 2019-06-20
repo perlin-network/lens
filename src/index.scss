@@ -40,13 +40,8 @@ body {
 }
 
 body {
-    background-color: #000;
-    z-index: -2;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    background: #0c112b url(./assets/svg/main-background.svg) repeat-x;
+    background-size: 100% auto;
 }
 
 .tag-list {
@@ -116,7 +111,14 @@ svg {
     background-color: #1f2137 !important;
     border-radius: 1em;
 }
+.nowrap {
+    white-space: nowrap;
+}
 
+.truncate {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 .statuses {
     display: flex;
     flex-direction: row;

@@ -33,12 +33,29 @@ const removeStoredHost = (host: string) => {
     }
 };
 
+const setSecretKey = (secretKey: string) => {
+    store.set("secret", secretKey);
+};
+
+const getSecretKey = (): string | undefined => {
+    const secret = store.get("secret");
+    if (!secret) {
+        return undefined;
+    } else {
+        return secret;
+    }
+};
+
 const setCurrentHost = (host: string) => {
     store.set(STORAGE_KEYS.CURRENT_HOST, host);
     const storedHosts = getStoredHosts();
     if (storedHosts.indexOf(host) === -1) {
         setStoredHosts(storedHosts.concat(host));
     }
+};
+
+const removeSecretKey = () => {
+    store.remove("secret");
 };
 
 const getCurrentHost = (): string => {
@@ -108,5 +125,8 @@ export {
     getTransactionGraphNodeLimit,
     setTransactionGraphNodeLimit,
     getNetworkGraphNodeLimit,
-    setNetworkGraphNodeLimit
+    setNetworkGraphNodeLimit,
+    setSecretKey,
+    getSecretKey,
+    removeSecretKey
 };

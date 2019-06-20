@@ -16,7 +16,6 @@ const TxPrompt = styled.div`
     color: white;
     width: 100%;
     padding: 15px;
-    border: 1px solid #ffffff22;
     font-family: HKGrotesk;
     font-size: 14px;
     font-weight: 400;
