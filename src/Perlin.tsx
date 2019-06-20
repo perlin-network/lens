@@ -238,7 +238,7 @@ class Perlin {
         payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
         return await this.post(
             "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+            this.prepareTransaction(Tag.TagContract, payload.buffer.toBuffer())
         );
     }
 
