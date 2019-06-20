@@ -152,7 +152,9 @@ const createSmartContract = async (file: File) => {
     }
 };
 
-const loadContractFromNetwork = async (contractId: string): Promise<number> => {
+export const loadContractFromNetwork = async (
+    contractId: string
+): Promise<number> => {
     try {
         const account = await perlin.getAccount(contractId);
 

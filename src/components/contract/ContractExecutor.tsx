@@ -14,6 +14,7 @@ import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
+import { loadContractFromNetwork } from "./ContractUploader";
 
 interface IParamItem {
     id: string;
@@ -252,6 +253,8 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const [wasmResult, setWasmResult] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
         setFunc(funcList[0]);
     }, [funcList]);
@@ -297,6 +300,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
     };
 
+    const delay = (time: any) =>
+        new Promise((res: any) => setTimeout(res, time));
+
     const onCall = async () => {
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
@@ -307,7 +313,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
         if (!emptyItem) {
             const buf = writeToBuffer(paramsList);
-
+            setLoading(true);
             try {
                 const result: any = await contractStore.call(currFunc, buf);
                 /*
@@ -331,8 +337,28 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 currFunc,
                 params
             );
+            const txId = response.tx_id;
 
-            console.log("response", response);
+            // reload memory
+            let count = 0;
+
+            while (count < 30) {
+                const tx = await perlin.getTransaction(txId);
+                if (tx.status === "applied") {
+                    await delay(3000);
+                    break;
+                }
+                await delay(1000);
+                count++;
+            }
+
+            const totalMemoryPages = await loadContractFromNetwork(
+                contractStore.contract.transactionId
+            );
+
+            await contractStore.load(totalMemoryPages);
+
+            setLoading(false);
         } else {
             setErrorMessage(`Error : Item can't be empty.`);
         }
@@ -381,10 +407,10 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         </Box>
                     </Flex>
 
-                    <Button fontSize="14px" onClick={onCall}>
+                    <Button disabled={loading} fontSize="14px" onClick={onCall}>
                         Call Function
                     </Button>
-                    {wasmResult !== "" && (
+                    {loading && (
                         <div
                             style={{
                                 textAlign: "center",
@@ -393,7 +419,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                 color: "#4A41D1"
                             }}
                         >
-                            {wasmResult}
+                            Processing...
                         </div>
                     )}
                     {errorMessage !== "" && (
