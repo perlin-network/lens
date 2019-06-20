@@ -7,8 +7,8 @@ import { NetworkGraph } from "../graphs/NetworkGraph";
 import TransactionsTable from "../TransactionsTable";
 import QuickSend from "./quicksend/QuickSend";
 import { observer } from "mobx-react";
-import NetworkLoad from "./NetworkLoad";
-import NetworkPeers from "./NetworkPeers";
+import NetworkLoad from "../graphs/NetworkLoad";
+import NetworkPeers from "../graphs/NetworkPeers";
 import { Card, CardHeader, CardTitle } from "../common/card";
 import DataChart from "./DataChart";
 
