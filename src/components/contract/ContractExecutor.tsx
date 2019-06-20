@@ -320,18 +320,16 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             } catch (e) {
                 setErrorMessage(`Error : ${e}`);
             }
-            /*
-            const onlyParams = writeToBuffer(paramsList);
+            const params = writeToBuffer(paramsList);
 
             const response = await perlin.invokeContractFunction(
                 contractStore.contract.transactionId,
                 0,
                 currFunc,
-                onlyParams
+                params
             );
 
-            console.log(`response : ${response}`);
-            */
+            console.log("response", response);
         } else {
             setErrorMessage(`Error : Item can't be empty.`);
         }
