@@ -195,3 +195,9 @@ svg {
     grid-row-gap: 10px;
     grid-column-gap: 10px;
 }
+
+input, textarea, button {
+    &:focus, &:active, &:hover {
+        outline: none;
+    }
+}

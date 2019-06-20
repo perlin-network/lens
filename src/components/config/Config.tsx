@@ -1,15 +1,20 @@
 import * as React from "react";
-import Input from "./Input";
+import { LargeInput } from "../common/core";
 import { Perlin } from "../../Perlin";
-import * as storage from "../../storage";
 import styled from "styled-components";
 import "./config.scss";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { EditIcon, QuestionIcon } from "../common/typography";
 
-const perlin = Perlin.getInstance();
-
+const Wrapper = styled.div`
+    ${LargeInput} {
+        display: inline-block;
+        max-width: 70%;
+        padding: 15px;
+        cursor: pointer;
+    }
+`;
 const SaveButton = styled.button`
     width: 160px;
     height: 40px;
@@ -73,7 +78,6 @@ const DiscardButton = styled.button`
 interface IConfigProps {
     confirmationMessage: string;
     onChange: (newValue: string) => void;
-    placeholder?: string;
     value: string | number;
 }
 export default class Config extends React.Component<IConfigProps> {
@@ -156,15 +160,20 @@ export default class Config extends React.Component<IConfigProps> {
         const { disabled } = this.state;
 
         return (
-            <>
+            <Wrapper>
                 <div className="input-grid">
-                    <div className="input-row1" style={{ width: "100%" }}>
-                        <Input
+                    <div
+                        className="input-row1"
+                        style={{ width: "100%" }}
+                        onClick={this.toggleDisabled}
+                    >
+                        <LargeInput
                             type="text"
                             ref={this.inputRef}
-                            placeholder={this.props.placeholder}
+                            defaultValue={this.props.value + ""}
                             onChange={this.handleInputChanged}
                             disabled={this.state.disabled}
+                            onKeyPress={this.handleInputKeypress}
                         />
                         {disabled && (
                             <EditButton onClick={this.toggleDisabled}>
@@ -189,14 +198,21 @@ export default class Config extends React.Component<IConfigProps> {
                         )}
                     </div>
                 </div>
-            </>
+            </Wrapper>
         );
     }
 
     private toggleDisabled = () => {
-        this.setState(() => ({
-            disabled: false
-        }));
+        this.setState(
+            () => ({
+                disabled: false
+            }),
+            () => {
+                if (this.inputRef.current !== null) {
+                    this.inputRef.current.focus();
+                }
+            }
+        );
     };
 
     private handleChangeAlertConfirm = () => {
@@ -238,6 +254,12 @@ export default class Config extends React.Component<IConfigProps> {
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         this.newValue = event.target.value;
+    };
+
+    private handleInputKeypress = (event: any) => {
+        if (event.key === "Enter") {
+            this.onToggleSave();
+        }
     };
 
     private handleDiscardAlertConfirm = () => {

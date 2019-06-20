@@ -357,7 +357,10 @@ class Perlin {
 
             storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
-            throw new Error(err);
+            this.notify({
+                type: NotificationTypes.Danger,
+                message: err.message
+            });
         }
     }
 

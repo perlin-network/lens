@@ -167,7 +167,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
             history.push("/");
             perlin.notify({
                 type: NotificationTypes.Success,
-                message: "You have entered a valid Private Key"
+                message: "You have Logged In"
             });
         } catch (err) {
             errorNotification("Cannot find the host.");
@@ -179,12 +179,10 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
             <Box width={2 / 3}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>
-                            &nbsp;Login&nbsp;using&nbsp;a&nbsp;private&nbsp;key
-                        </CardTitle>
+                        <CardTitle>Login using a private key</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <p>&nbsp;Input&nbsp;private&nbsp;key&nbsp;:</p>
+                        <p>Private Key</p>
                         <div className="input-grid">
                             <div
                                 className="input-row1"
