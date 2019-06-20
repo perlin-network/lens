@@ -21,6 +21,17 @@ class Perlin {
         return Buffer.from(this.keys.publicKey).toString("hex");
     }
 
+    public get isLoggedIn(): boolean {
+        try {
+            if (this.publicKeyHex === null) {
+                return false;
+            }
+            return storage.getSecretKey() !== null;
+        } catch (e) {
+            return false;
+        }
+    }
+
     public static getInstance(): Perlin {
         if (Perlin.singleton === undefined) {
             Perlin.singleton = new Perlin();
@@ -109,15 +120,43 @@ class Perlin {
     private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2200;
     private peerPollIntv: number = 10000;
+    private interval: any;
 
     private constructor() {
+        const secret = storage.getSecretKey();
+
+        if (secret) {
+            this.login(secret);
+        }
+    }
+
+    @action.bound
+    public async login(hexString: string): Promise<any> {
         this.keys = nacl.sign.keyPair.fromSecretKey(
-            Buffer.from(
-                "87a6813c3b4cf534b6ae82db9b1409fa7dbd5c13dba5858970b56084c4a930eb400056ee68a7cc2695222df05ea76875bc27ec6e61e8e62317c336157019c405",
-                "hex"
-            )
+            Buffer.from(hexString, "hex")
         );
-        this.init().catch(err => console.error(err));
+        try {
+            await this.init();
+            storage.setSecretKey(hexString);
+            return Promise.resolve();
+        } catch (err) {
+            return Promise.reject(err);
+        }
+    }
+
+    @action.bound
+    public logout() {
+        storage.removeSecretKey();
+        clearInterval(this.interval);
+        window.location.reload();
+    }
+
+    public generateNewKeys(): any {
+        const generatedKeys = nacl.sign.keyPair();
+        return {
+            publicKey: Buffer.from(generatedKeys.publicKey).toString("hex"),
+            secretKey: Buffer.from(generatedKeys.secretKey).toString("hex")
+        };
     }
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {
@@ -297,7 +336,7 @@ class Perlin {
 
             storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
-            console.error(err);
+            throw new Error(err);
         }
     }
 
@@ -383,8 +422,8 @@ class Perlin {
     }
 
     private async initPeers() {
-        setInterval(async () => {
-            /// only update peers
+        this.interval = setInterval(async () => {
+            // only update peers
             const ledger = await this.getLedger();
             this.peers = ledger.peers || [];
             this.numAccounts = ledger.num_accounts;
