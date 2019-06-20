@@ -117,7 +117,7 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
                 <>
                     <NavItem onClick={login()}>
                         <NavIcon src={LogoutIcon} />
-                        Login&nbsp;using&nbsp;a&nbsp;private&nbsp;key
+                        Login
                     </NavItem>
                     <NavItem onClick={navigateTo("/settings")}>
                         <NavIcon src={SettingsIcon} />
