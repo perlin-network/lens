@@ -117,12 +117,12 @@ class Perlin {
         const secret = storage.getSecretKey();
 
         if (secret) {
-            this.setSecretKey(secret);
+            this.login(secret);
         }
     }
 
     @action.bound
-    public async setSecretKey(hexString: string): Promise<any> {
+    public async login(hexString: string): Promise<any> {
         this.keys = nacl.sign.keyPair.fromSecretKey(
             Buffer.from(hexString, "hex")
         );
@@ -137,7 +137,7 @@ class Perlin {
     }
 
     @action.bound
-    public removeSecretKey() {
+    public logout() {
         this.isLogged = false;
         storage.removeSecretKey();
         clearInterval(this.interval);

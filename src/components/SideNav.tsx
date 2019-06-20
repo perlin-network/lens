@@ -81,7 +81,7 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
         props.history.push(link);
     };
     const logout = () => () => {
-        perlin.removeSecretKey();
+        perlin.logout();
     };
 
     const login = () => () => {
