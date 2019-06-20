@@ -421,13 +421,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         ) {
             perlin.notify({
                 type: NotificationTypes.Danger,
-                content: <p>Please enter a valid number of PERLs.</p>
+                message: "Please enter a valid number of PERLs"
             });
             return false;
         } else if (this.state.doubleChecked === false) {
             perlin.notify({
                 type: NotificationTypes.Danger,
-                content: <p>Please double-check the recipient address.</p>
+                message: "Please double-check the recipient address"
             });
             return false;
         } else {

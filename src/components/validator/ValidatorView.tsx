@@ -48,7 +48,7 @@ const ChartSubtitle = styled.span`
 const errorNotification = (message: string) => {
     perlin.notify({
         type: NotificationTypes.Danger,
-        content: <p>{message}</p>
+        message
     });
 };
 
