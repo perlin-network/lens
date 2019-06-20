@@ -65,7 +65,7 @@ const perlin = Perlin.getInstance();
 @observer
 class App extends React.Component<RouteComponentProps, {}> {
     public render() {
-        const isLoggedIn = perlin.isLogged;
+        const isLoggedIn = perlin.isLoggedIn;
         return (
             <>
                 <ContentWrapper>

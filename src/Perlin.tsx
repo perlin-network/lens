@@ -21,6 +21,17 @@ class Perlin {
         return Buffer.from(this.keys.publicKey).toString("hex");
     }
 
+    public get isLoggedIn(): boolean {
+        try {
+            if (this.publicKeyHex === null) {
+                return false;
+            }
+            return storage.getSecretKey() !== null;
+        } catch (e) {
+            return false;
+        }
+    }
+
     public static getInstance(): Perlin {
         if (Perlin.singleton === undefined) {
             Perlin.singleton = new Perlin();
@@ -55,8 +66,6 @@ class Perlin {
         host: storage.getCurrentHost(),
         token: ""
     };
-
-    @observable public isLogged: boolean = false;
 
     @observable public ledger = {
         public_key: "",
@@ -128,7 +137,6 @@ class Perlin {
         );
         try {
             await this.init();
-            this.isLogged = true;
             storage.setSecretKey(hexString);
             return Promise.resolve();
         } catch (err) {
@@ -138,9 +146,9 @@ class Perlin {
 
     @action.bound
     public logout() {
-        this.isLogged = false;
         storage.removeSecretKey();
         clearInterval(this.interval);
+        window.location.reload();
     }
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {

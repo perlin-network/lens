@@ -88,7 +88,8 @@ const perlin = Perlin.getInstance();
 
 const Navbar: React.FunctionComponent<{}> = () => {
     const balance = perlin.account.balance;
-    const isLoggedIn = perlin.isLogged;
+    const isLoggedIn = perlin.isLoggedIn;
+
     const stake = perlin.account.stake;
     const pubKey = isLoggedIn ? perlin.publicKeyHex : undefined;
     const reward = perlin.account.reward;

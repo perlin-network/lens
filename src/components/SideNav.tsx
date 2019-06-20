@@ -75,7 +75,7 @@ const perlin = Perlin.getInstance();
 
 const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
     const { pathname } = props.history.location;
-    const isLoggedIn = perlin.isLogged;
+    const isLoggedIn = perlin.isLoggedIn;
 
     const navigateTo = (link: string) => () => {
         props.history.push(link);
