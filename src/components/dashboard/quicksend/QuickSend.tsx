@@ -165,10 +165,11 @@ export default class QuickSend extends React.Component<{}, IState> {
     };
     private updateinputID(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.target.value;
-        this.setState({ inputID: value });
-        if (value.length === 64) {
-            this.checkInput();
-        }
+        this.setState({ inputID: value }, () => {
+            if (value.length === 64) {
+                this.checkInput();
+            }
+        });
     }
     private async checkInput() {
         if (await this.validtxId()) {
