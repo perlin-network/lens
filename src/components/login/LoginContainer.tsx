@@ -3,7 +3,7 @@ import { Box, Flex } from "@rebass/grid";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { observer } from "mobx-react-lite";
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import { withRouter, RouteComponentProps } from "react-router";
 import "../config/config.scss";
 
@@ -33,6 +33,9 @@ const Button = styled.button`
     &:active {
         background-color: #d4d5da;
     }
+    &:focus {
+        outline: none;
+    }
 `;
 
 const Input = styled.textarea`
@@ -47,14 +50,13 @@ const Input = styled.textarea`
     color: #fff;
     background-color: #171d39;
     padding: 10px;
+
+    &:focus,
+    &:active,
     &:hover {
         cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        cursor: text;
-        border: 1px solid #4a41d1;
-        outline: 0;
+        box-shadow: 0 0 0 1px #4a41d1;
+        outline: none;
     }
     &::placeholder {
         color: #717985;
@@ -72,7 +74,7 @@ const FileInputWrapper = styled.div`
 
 const FileButton = styled(Button)`
     display: inline-block;
-    font-color: black;
+    color: black;
 `;
 
 const FileInput = styled.input.attrs({
@@ -91,14 +93,20 @@ const Alert = styled.p`
 `;
 
 const Row = styled(Flex)`
-    margin-top: 25px;
-    margin-bottom: ${props => props.theme.margin.row};
+    margin-top: 10px;
 `;
 
 const perlin = Perlin.getInstance();
 
 const DEFAULT_SECRET_KEY =
     "87a6813c3b4cf534b6ae82db9b1409fa7dbd5c13dba5858970b56084c4a930eb400056ee68a7cc2695222df05ea76875bc27ec6e61e8e62317c336157019c405";
+
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
 
 const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     history
@@ -116,24 +124,25 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
             if (e.target.files[0]) {
                 const file = e.target.files[0];
                 if (file.type !== "text/plain") {
-                    throw new Error(`File Type ${file.type} is not support.`);
+                    errorNotification(
+                        `File Type ${file.type} is not supported.`
+                    );
                 } else {
                     const fileReader = new FileReader();
                     fileReader.onloadend = (readerEvent: any) => {
                         if (typeof fileReader.result === "string") {
                             setSecretKey(fileReader.result);
                         } else {
-                            throw new Error(
-                                `Can't parse string from the file.`
+                            errorNotification(
+                                "Can't parse string from the file."
                             );
                         }
                     };
                     fileReader.readAsText(file);
                 }
-                setAlert("");
             }
         } catch (err) {
-            setAlert(`${err}`);
+            errorNotification(err);
         }
     }, []);
 
@@ -143,12 +152,12 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
 
     const login = async () => {
         if (!secretKey) {
-            setAlert("Field is Empty.");
+            errorNotification("Please enter a Private key");
             return;
         }
 
         if (secretKey.length !== 128) {
-            setAlert("Invalid Secret Key.");
+            errorNotification("Invalid Private Key.");
             return;
         }
 
@@ -156,63 +165,58 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
             setAlert("");
             await perlin.login(secretKey);
             history.push("/");
+            perlin.notify({
+                type: NotificationTypes.Success,
+                message: "You have entered a valid Private Key"
+            });
         } catch (err) {
-            setAlert(`Cannot find the host.`);
+            errorNotification("Cannot find the host.");
         }
     };
 
     return (
-        <>
-            <Row>
-                <Box width={2 / 3}>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>
-                                &nbsp;Login&nbsp;using&nbsp;a&nbsp;private&nbsp;key
-                            </CardTitle>
-                        </CardHeader>
-                        <CardBody>
-                            <p>&nbsp;Input&nbsp;private&nbsp;key&nbsp;:</p>
-                            <div className="input-grid">
-                                <div
-                                    className="input-row1"
-                                    style={{ width: "100%" }}
-                                >
-                                    <Input
-                                        placeholder={`${DEFAULT_SECRET_KEY}`}
-                                        onChange={handleChange}
-                                        value={secretKey}
-                                        rows={4}
-                                        style={{
-                                            width: "100%",
-                                            height: "100px",
-                                            fontSize: "14px"
-                                        }}
-                                    />
-                                </div>
-                                <Row>
-                                    <Button onClick={login}>Login</Button>
-                                    <Button onClick={generateNewKeys}>
-                                        Generate New Key
-                                    </Button>
-                                    <FileInputWrapper>
-                                        <FileButton>
-                                            Import from a file
-                                        </FileButton>
-                                        <FileInput
-                                            onChange={handleFileChange}
-                                        />
-                                    </FileInputWrapper>
-                                </Row>
-                                <div style={{ paddingTop: "20px" }}>
-                                    {alert && <Alert>{alert}</Alert>}
-                                </div>
+        <Row>
+            <Box width={2 / 3}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>
+                            &nbsp;Login&nbsp;using&nbsp;a&nbsp;private&nbsp;key
+                        </CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <p>&nbsp;Input&nbsp;private&nbsp;key&nbsp;:</p>
+                        <div className="input-grid">
+                            <div
+                                className="input-row1"
+                                style={{ width: "100%" }}
+                            >
+                                <Input
+                                    placeholder={`${DEFAULT_SECRET_KEY}`}
+                                    onChange={handleChange}
+                                    value={secretKey}
+                                    rows={4}
+                                    style={{
+                                        width: "100%",
+                                        height: "100px",
+                                        fontSize: "14px"
+                                    }}
+                                />
                             </div>
-                        </CardBody>
-                    </Card>
-                </Box>
-            </Row>
-        </>
+                            <Row>
+                                <Button onClick={login}>Login</Button>
+                                <Button onClick={generateNewKeys}>
+                                    Generate New Key
+                                </Button>
+                                <FileInputWrapper>
+                                    <FileButton>Import from a file</FileButton>
+                                    <FileInput onChange={handleFileChange} />
+                                </FileInputWrapper>
+                            </Row>
+                        </div>
+                    </CardBody>
+                </Card>
+            </Box>
+        </Row>
     );
 };
 

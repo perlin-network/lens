@@ -8,7 +8,7 @@ import {
 } from "./common/typography";
 import "../index.scss";
 import { Flex, Box } from "@rebass/grid";
-import { Perlin } from "../Perlin";
+import { Perlin, NotificationTypes } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon, QrCodeIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
@@ -105,6 +105,11 @@ const Navbar: React.FunctionComponent<{}> = () => {
             el.select();
             document.execCommand("copy");
             document.body.removeChild(el);
+
+            perlin.notify({
+                type: NotificationTypes.Success,
+                message: "Public Key copied to clipboard"
+            });
         }
     };
 
