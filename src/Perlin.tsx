@@ -98,7 +98,7 @@ class Perlin {
         recent: [] as ITransaction[],
         loading: true,
         hasMore: true,
-        page: 0,
+        offset: 0,
         pageSize: 200
     };
 
@@ -313,12 +313,20 @@ class Perlin {
         return await this.getJSON(`/tx/${id}`, {});
     }
 
-    public async getTableTransactions(offset: number, limit: number) {
+    public async getTableTransactions(offset?: number) {
         try {
+            if (typeof offset !== "undefined") {
+                this.transactions.offset = offset;
+                this.transactions.recent = this.transactions.recent.slice(
+                    0,
+                    offset
+                );
+            }
+
             this.transactions.loading = true;
             const transactions = await this.requestRecentTransactions(
-                offset,
-                limit
+                this.transactions.offset,
+                this.transactions.pageSize
             );
 
             const appliedTransactions = transactions.filter(
@@ -330,7 +338,7 @@ class Perlin {
                 recent: [...this.transactions.recent, ...appliedTransactions],
                 hasMore: !!transactions.length,
                 loading: false,
-                page: this.transactions.page + 1
+                offset: this.transactions.offset + transactions.length // offset is calculated using all types of tx (both applied and non-applied)
             };
         } catch (err) {
             console.log(err);
@@ -475,14 +483,17 @@ class Perlin {
 
         const pushTransactions = _.debounce(
             transactions => {
-                this.transactions.recent = [
-                    ...transactions,
-                    ...lastTransactions
-                ].slice(0, this.transactions.pageSize);
+                // TODO: restore approach once there's a solution to accurately calculate next page's offset
+                // this.transactions.recent = [
+                //     ...transactions,
+                //     ...lastTransactions
+                // ].slice(0, this.transactions.pageSize);
 
-                this.transactions.page = 1;
-                this.transactions.hasMore = true;
-                lastTransactions = this.transactions.recent;
+                // this.transactions.offset = this.transactions.recent.length;
+                // this.transactions.hasMore = true;
+                // lastTransactions = this.transactions.recent;
+
+                this.getTableTransactions(0);
             },
             this.transactionDebounceIntv,
             {
@@ -490,7 +501,7 @@ class Perlin {
             }
         );
 
-        let lastTransactions: ITransaction[] = this.transactions.recent;
+        // let lastTransactions: ITransaction[] = this.transactions.recent;
         ws.onmessage = async ({ data }) => {
             if (!data) {
                 return;
