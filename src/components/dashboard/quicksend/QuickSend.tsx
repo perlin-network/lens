@@ -8,7 +8,7 @@ import SendFailAnimation from "./SendFailAnimation";
 import { Perlin } from "../../../Perlin";
 import TxDetectedAnimation from "./TxDetectedAnimation";
 import TxDetected from "./TxDetected";
-import InputIconSVG from "../../../assets/svg/text-icon.svg";
+import InputIconSVG from "../../../assets/svg/lens-icon.svg";
 
 const QuickSendHeading = styled.p`
     font-family: Montserrat;
@@ -20,22 +20,23 @@ const QuickSendHeading = styled.p`
 
 const QuickSendInput = styled.input`
     font-family: HKGrotesk;
-    background-color: #171d39;
+    background-color: #0b122b;
     border-radius: 5px;
-    border: 1px solid #2e345100;
+    border: none;
     color: white;
     width: 100%;
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-left: 36px;
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
+    padding: 15px 15px 12px;
+    padding-left: 45px;
+    font-size: 20px;
+    transition: all 0.2s ease;
+
+    &::placeholder {
+        font-size: 20px;
     }
+    &:hover,
     &:focus {
         cursor: text;
-        border: 1px solid #4a41d1;
+        box-shadow: 0 0 0 1px #4a41d1;
         outline: 0;
     }
 `;
@@ -44,17 +45,17 @@ const Wrapper = styled.div`
     perspective: 60vw;
     perspective-origin: 30% calc(100% - 60px);
     transform-style: preserve-3d;
+    border: 1px solid #34374b;
+    border-radius: 5px;
 `;
 
 const InputIcon = styled.img.attrs({ src: InputIconSVG })`
     position: fixed;
     left: 16px;
-    top: 45%;
-    -webkit-transform: translateY(-45%);
-    -ms-transform: translateY(-45%);
-    transform: translateY(-45%);
-    width: 14px;
-    height: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
 `;
 
 const StyledTag = styled.span`
@@ -62,11 +63,9 @@ const StyledTag = styled.span`
     border: solid 1px #fff;
     padding: 3px 5px;
     border-radius: 3px;
-    right: 16px;
-    top: 45%;
-    -webkit-transform: translateY(-45%);
-    -ms-transform: translateY(-45%);
-    transform: translateY(-45%);
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     opacity: 0.4;
 `;
 
@@ -75,7 +74,7 @@ interface IState {
     recipientID: string;
     inputID: string;
     sendInputFocused: boolean;
-    recipientBalance: string;
+    recipient: any;
     validAccount: boolean;
     validContract: boolean;
     validTx: boolean;
@@ -92,7 +91,7 @@ export default class QuickSend extends React.Component<{}, IState> {
             recipientID: "",
             inputID: "",
             sendInputFocused: false,
-            recipientBalance: "0",
+            recipient: {},
             validAccount: false,
             validContract: false,
             validTx: false
@@ -104,16 +103,10 @@ export default class QuickSend extends React.Component<{}, IState> {
     public render() {
         return (
             <Wrapper>
-                <QuickSendHeading>Quick Send</QuickSendHeading>
-                <p style={{ opacity: 0.6 }} className="break-word-normal">
-                    Input a contract/transaction ID or address to view
-                    interaction options.
-                </p>
-
                 <QuickSendInputAnimation in={this.state.sendInputFocused}>
                     <InputIcon />
                     <QuickSendInput
-                        placeholder="Enter an account ID, Contract ID or Transaction ID"
+                        placeholder="Wallet Address / Smart Contract Address / Transaction ID"
                         value={this.state.inputID}
                         onChange={this.updateinputID}
                         onKeyDown={this.onKeyDown}
@@ -132,8 +125,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                 </QuickSendInputAnimation>
 
                 <AccountDetected
-                    recipientID={this.state.recipientID}
-                    recipientBalance={this.state.recipientBalance}
+                    recipient={this.state.recipient}
                     changeComponent={this.handleRestart}
                     toggleComponent={this.state.toggleComponent}
                 />
@@ -187,16 +179,19 @@ export default class QuickSend extends React.Component<{}, IState> {
                     toggleComponent: "showDetectedTx"
                 });
             } else if (this.validInputID()) {
-                const balance: string = await this.getAccountBalance(
-                    this.state.inputID
-                );
+                try {
+                    const recipient = await perlin.getAccount(
+                        this.state.inputID
+                    );
 
-                this.setState({
-                    toggleComponent: "showDetectedAccount",
-                    recipientBalance: balance,
-                    recipientID: this.state.inputID,
-                    validAccount: true
-                });
+                    this.setState({
+                        toggleComponent: "showDetectedAccount",
+                        recipient,
+                        validAccount: true
+                    });
+                } catch (err) {
+                    console.log(err);
+                }
             } else {
                 this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
             }
@@ -233,16 +228,5 @@ export default class QuickSend extends React.Component<{}, IState> {
         setTimeout(() => {
             this.onSendInputBlur();
         }, 400);
-    }
-
-    private async getAccountBalance(recipientID: string) {
-        let balance = "0";
-        try {
-            const account = await perlin.getAccount(recipientID);
-            balance = account ? account.balance : "0";
-        } catch (error) {
-            console.error(error);
-        }
-        return balance;
     }
 }

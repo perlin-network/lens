@@ -1,17 +1,20 @@
-import * as React from "react";
+import React, { useCallback, useState, useEffect, memo } from "react";
 import { Perlin } from "../Perlin";
 import { ITransaction, Tag } from "../types/Transaction";
-import { observer } from "mobx-react";
+import LoadingSpinner from "./common/loadingSpinner";
+import { observer } from "mobx-react-lite";
 import styled from "styled-components";
 import ReactTable, { FinalState } from "react-table";
 import "react-table/react-table.css";
-import Pagination from "react-js-pagination";
 import { Link } from "react-router-dom";
-import Dropdown, { Option } from "react-dropdown";
+import * as _ from "lodash";
+import InfiniteScroll from "react-infinite-scroller";
 
 const perlin = Perlin.getInstance();
 
 const Wrapper = styled.div`
+    overflow: auto;
+    max-height: 300px;
     .ReactTable {
         a {
             color: inherit;
@@ -138,161 +141,95 @@ const columns = [
     }
 ];
 
-const StyledPagination = styled.div`
-    text-align: center;
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    margin: 15px;
-
-    .per-page {
-        .Dropdown-root {
-            display: inline-block;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-        .Dropdown-menu {
-            text-align: left;
-        }
+const CustomNoDataComponent: (
+    dataLength: number,
+    loading: boolean,
+    hasMore: boolean
+) => React.FunctionComponent<FinalState> = (
+    dataLength,
+    loading,
+    hasMore
+) => () => {
+    if (!dataLength && !loading && !hasMore) {
+        return <div className="rt-noData">No transactions found</div>;
     }
-    .pagination {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+    return null;
+};
 
-        li.disabled {
-            display: none;
-        }
-        li.active,
-        li:hover {
-            opacity: 1;
-        }
-        li {
-            display: inline-block;
-            border: solid 1px #fff;
-            padding: 7px;
-            min-width: 30px;
-            border-radius: 3px;
-            opacity: 0.6;
-            margin-left: 5px;
-            cursor: pointer;
+const TransactionsTable: React.FunctionComponent = () => {
+    const [firsLoad, setFirstLoad] = useState(false);
+    const data: any[] = perlin.transactions.recent;
+    const hasMore = perlin.transactions.hasMore;
+    const loading = perlin.transactions.loading;
 
-            a {
-                color: inherit;
-
-                &:hover {
-                    text-decoration: none;
-                }
+    useEffect(() => {
+        (async () => {
+            if (!perlin.transactions.recent.length) {
+                await perlin.getTableTransactions(
+                    0,
+                    perlin.transactions.pageSize
+                );
             }
-        }
-    }
+            setFirstLoad(true);
+        })();
+    }, []);
+    const loadFunc = useCallback(
+        _.debounce(async () => {
+            await perlin.getTableTransactions(
+                perlin.transactions.page * perlin.transactions.pageSize,
+                perlin.transactions.pageSize
+            );
+        }, 100),
+        [perlin.transactions.page]
+    );
 
-    .page-active,
-    .arrow:hover,
-    .page:hover {
-        opacity: 1;
-    }
-`;
+    console.log("Transactions #", data.length);
 
-const pageSizeOptions: number[] = [5, 10, 25, 50, 100];
-const CustomPagination: React.FunctionComponent<FinalState> = props => {
-    const { page, pageSize, data, onPageChange, onPageSizeChange } = props;
-    const onDropdownChange = (item: Option) =>
-        onPageSizeChange(parseInt(item.value, 10), 1);
-    const pageSizeOptionsStr: string[] = pageSizeOptions.map(item => item + "");
     return (
-        <StyledPagination>
-            <div className="per-page">
-                {data.length} result{data.length > 1 ? "s" : ""} | Per page:
-                <Dropdown
-                    options={pageSizeOptionsStr}
-                    value={pageSize + ""}
-                    onChange={onDropdownChange}
-                />
-            </div>
-
-            <Pagination
-                activePage={page || 1}
-                activeClass="active"
-                itemsCountPerPage={pageSize}
-                totalItemsCount={data.length - (pageSize || 0)}
-                pageRangeDisplayed={3}
-                nextPageText="Next"
-                prevPageText="Prev"
-                onChange={onPageChange}
-            />
-        </StyledPagination>
+        <Wrapper>
+            {firsLoad ? (
+                <InfiniteScroll
+                    loadMore={loadFunc}
+                    hasMore={hasMore}
+                    loader={<LoadingSpinner key={0} />}
+                    useWindow={false}
+                >
+                    <ReactTable
+                        key={1}
+                        minRows={0}
+                        data={data}
+                        pageSize={data.length}
+                        columns={columns}
+                        resizable={false}
+                        sortable={false}
+                        showPagination={false}
+                        NoDataComponent={CustomNoDataComponent(
+                            data.length,
+                            loading,
+                            hasMore
+                        )}
+                    />
+                </InfiniteScroll>
+            ) : (
+                <LoadingSpinner />
+            )}
+        </Wrapper>
     );
 };
 
-const CustomNoDataComponent: (
-    loading: boolean
-) => React.FunctionComponent<FinalState> = (loading: boolean) => props => {
-    if (loading) {
-        return null;
-    }
-    return <div className="rt-noData">No rows found</div>;
-};
-
-@observer
-export default class TransactionsTable extends React.Component<{}, {}> {
-    public state = { lastUpdate: new Date() };
-
-    public shouldComponentUpdate() {
-        const now = new Date();
-        const seconds =
-            (now.getTime() - this.state.lastUpdate.getTime()) / 1000;
-        return seconds >= 20; // Re-render minimum every second
-    }
-
-    public componentDidUpdate() {
-        console.log("Updated, time changed from", this.state.lastUpdate);
-        this.setState(() => {
-            return {
-                lastUpdate: new Date()
-            };
-        });
-    }
-
-    public render() {
-        const data: any[] = perlin.transactions.recent;
-        const loading = perlin.transactions.loading;
-
-        console.log("Transactions #", data.length);
-
-        return (
-            <Wrapper>
-                <ReactTable
-                    minRows={0}
-                    data={data}
-                    columns={columns}
-                    resizable={false}
-                    loading={loading}
-                    defaultPageSize={10}
-                    pageSizeOptions={pageSizeOptions}
-                    defaultSorted={[
-                        {
-                            id: "time",
-                            desc: true
-                        }
-                    ]}
-                    NoDataComponent={CustomNoDataComponent(loading)}
-                    PaginationComponent={CustomPagination}
-                />
-            </Wrapper>
-        );
-    }
-}
-
 function getTag(tx: ITransaction) {
     switch (tx.tag) {
-        case Tag.NOP:
+        case Tag.TagNop:
             return "nop";
-        case Tag.TRANSFER:
+        case Tag.TagTransfer:
             return "transfer";
-        case Tag.CONTRACT:
+        case Tag.TagContract:
             return "contract";
-        case Tag.STAKE:
+        case Tag.TagStake:
             return "stake";
+        case Tag.TagBatch:
+            return "batch";
     }
 }
+
+export default memo(observer(TransactionsTable));

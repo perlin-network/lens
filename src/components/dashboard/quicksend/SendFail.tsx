@@ -10,7 +10,6 @@ interface IProps {
 const FailPrompt = styled.div`
     background-color: #351a35;
     color: white;
-    width: 75%;
     padding: 15px;
     vertical-align: middle;
 `;
