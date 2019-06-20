@@ -34,7 +34,10 @@ const useContractFunctions = () => {
             funcList.push(match[1]);
             match = watFunctionRegex.exec(contractStore.contract.textContent);
         }
-        return funcList;
+        console.log("funcList", funcList);
+        const list = funcList.filter((item: any) => item !== "init");
+        console.log("funcList", list);
+        return list;
     }, [contractStore.contract.textContent]);
 };
 
