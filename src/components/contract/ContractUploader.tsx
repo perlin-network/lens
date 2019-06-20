@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { Button as RawButton, Card, Input } from "../common/core";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
 import { observer } from "mobx-react-lite";
@@ -106,6 +106,12 @@ const Loader = styled.div`
     font-family: HKGrotesk;
     font-weight: 600;
 `;
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
 
 const createSmartContract = async (file: File) => {
     const reader = new FileReader();
@@ -217,7 +223,7 @@ const ContractUploader: React.SFC<{}> = () => {
                 // load state here
             }
         } catch (err) {
-            console.error(err);
+            errorNotification(err.message);
         }
     }, [contractAddress]);
 
@@ -231,7 +237,7 @@ const ContractUploader: React.SFC<{}> = () => {
             }
         } catch (err) {
             console.log("Error while uploading file: ");
-            console.error(err);
+            errorNotification(err.message);
         } finally {
             setLoading(false);
         }
@@ -241,6 +247,10 @@ const ContractUploader: React.SFC<{}> = () => {
         onDropAccepted,
         multiple: false
     });
+    if (contractStore.contract.errorMessage !== "") {
+        errorNotification(contractStore.contract.errorMessage);
+        contractStore.contract.errorMessage = "";
+    }
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <Button fontSize="14px" width="100%" {...getRootProps()}>
@@ -263,11 +273,7 @@ const ContractUploader: React.SFC<{}> = () => {
                 </StyledButton>
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
-            {contractStore.contract.errorMessage !== "" && (
-                <div style={{ marginTop: "25px", color: "red" }}>
-                    {contractStore.contract.errorMessage}
-                </div>
-            )}
+
             {contractStore.contract.transactionId !== "" && (
                 <div
                     style={{

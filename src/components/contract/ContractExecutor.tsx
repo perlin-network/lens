@@ -5,7 +5,7 @@ import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import { Button as RawButton } from "../common/core";
 import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
@@ -102,6 +102,13 @@ const isBase64String = (text: string): boolean => {
     return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i.test(
         text
     );
+};
+
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
 };
 
 const Button = styled(RawButton)`
@@ -308,7 +315,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                 setErrorMessage("");
             } else {
                 console.log("Param value can't be resolved to a type");
-                setErrorMessage(`Param value can't be resolved to a type`);
+                errorNotification("Param value can't be resolved to a type");
             }
         }
     };
@@ -336,7 +343,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
                 );
             } catch (e) {
                 console.error("Invoke local wasm error!");
-                console.error(e);
+                errorNotification(e.message);
             }
 
             const onlyParams = writeToBuffer(paramsList);
@@ -351,7 +358,7 @@ const ContractExecutor: React.FunctionComponent<{}> = observer(() => {
             console.log(`response : ${response}`);
         } else {
             console.log("Item can't be empty");
-            setErrorMessage(`Error : Item can't be empty.`);
+            errorNotification("Error : Item can't be empty.");
         }
     };
 

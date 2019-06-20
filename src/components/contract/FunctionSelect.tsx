@@ -52,7 +52,7 @@ const Checked = styled.div`
     font-size: 14px;
     font-weight: 400;
     font-family: HKGrotesk;
-    ccolor: #4a41d1;
+    color: #4a41d1;
     text-align: right;
 `;
 
