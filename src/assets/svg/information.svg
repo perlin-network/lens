@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2px" height="10px" viewBox="0 0 2 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>Icon/Information</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icon/Notification/Warning" transform="translate(-9.000000, -5.000000)" fill="#FFFFFF">
+            <g id="Icon/Information">
+                <g id="noun_Information_386028" transform="translate(9.000000, 5.000000)">
+                    <path d="M1,10 C0.461538462,10 0,9.55597015 0,8.98134328 L0,4.01865672 C0,3.47014925 0.435897436,3 1,3 C1.56410256,3 2,3.44402985 2,4.01865672 L2,9.00746269 C2,9.55597015 1.53846154,10 1,10 Z" id="Path" fill-rule="nonzero"></path>
+                    <path d="M1,2 C0.461538462,2 0,1.56410256 0,1 C0,0.435897436 0.435897436,0 1,0 C1.56410256,0 2,0.435897436 2,1 C2,1.56410256 1.53846154,2 1,2 Z" id="Path" fill-rule="nonzero"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -4,6 +4,7 @@ import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
 import SideNav from "./components/SideNav";
+import Notification from "./components/common/notification/Notification";
 import {
     Switch,
     Route,
@@ -91,6 +92,7 @@ class App extends React.Component<RouteComponentProps, {}> {
                         </Switch>
                     </Content>
                 </ContentWrapper>
+                <Notification />
             </>
         );
     }

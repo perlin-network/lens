@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="18px" height="18px" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
-    <title>183E4F59-C7CB-436A-9670-0D8042AA0A85</title>
-    <desc>Created with sketchtool.</desc>
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>path-1</title>
+    <desc>Created with Sketch.</desc>
     <defs>
-        <polygon id="path-1" points="23.75 8.0125 21.9875 6.25 15 13.2375 8.0125 6.25 6.25 8.0125 13.2375 15 6.25 21.9875 8.0125 23.75 15 16.7625 21.9875 23.75 23.75 21.9875 16.7625 15"></polygon>
+        <polygon id="path-1" points="17.75 2.0125 15.9875 0.25 9 7.2375 2.0125 0.25 0.25 2.0125 7.2375 9 0.25 15.9875 2.0125 17.75 9 10.7625 15.9875 17.75 17.75 15.9875 10.7625 9"></polygon>
     </defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Adding-stake-" transform="translate(-895.000000, -230.000000)">
-            <g id="Close" transform="translate(889.000000, 224.000000)">
-                <polygon id="Bounds" points="0 0 30 0 30 30 0 30"></polygon>
-                <mask id="mask-2" fill="white">
-                    <use xlink:href="#path-1"></use>
-                </mask>
-                <use id="Mask" fill="#FFFFFF" xlink:href="#path-1"></use>
-            </g>
-        </g>
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="path-1" fill="#FFFFFF" fill-rule="nonzero" xlink:href="#path-1"></use>
     </g>
 </svg>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Perlin } from "../../../Perlin";
+import { Perlin, NotificationTypes } from "../../../Perlin";
 import styled from "styled-components";
 import "./quicksend.scss";
 import { Flex, Box } from "@rebass/grid";
@@ -12,6 +12,7 @@ import {
 import DeltaTag, { DeltaTagWrapper } from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
+import { Link } from "react-router-dom";
 
 interface IProps {
     recipient: any;
@@ -316,9 +317,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
-                                <div>
-                                    <this.ErrorMessage />
-                                </div>
                             </Box>
                         </Flex>
                     </AccountDetectedContent>
@@ -407,57 +405,60 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         this.setState({ inputPerls: e.target.value });
     }
     private handleSendButton = () => {
-        const successfulSend = this.successfulSend();
-        if (successfulSend === "Success") {
-            this.setState({
-                errorMessage: "Success"
-            });
+        if (this.successfulSend()) {
             this.props.changeComponent("showSendConfirmation");
-        } else {
-            this.setState({
-                errorMessage: successfulSend
-            }); // if fail, toggle error component
-            this.props.changeComponent("showDetectedAccount");
         }
     };
     private handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
         const doubleChecked = e.target.checked;
         this.setState({ doubleChecked });
     }
+
     private successfulSend = () => {
         if (
             this.state.inputPerls === "" ||
             isNaN(Number(this.state.inputPerls))
         ) {
-            return "Invalid input";
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                content: <p>Please enter a valid number of PERLs.</p>
+            });
+            return false;
         } else if (this.state.doubleChecked === false) {
-            return "No double-check";
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                content: <p>Please double-check the recipient address.</p>
+            });
+            return false;
         } else {
-            perlin.transfer(
-                this.props.recipient.public_key,
-                Number(this.state.inputPerls)
-            );
+            perlin
+                .transfer(
+                    this.props.recipient.public_key,
+                    Number(this.state.inputPerls)
+                )
+                .then(response => {
+                    perlin.notify({
+                        type: NotificationTypes.Success,
+                        // message: "You can view your transactions details here"
+                        content: (
+                            <p>
+                                You can view your transactions details
+                                <Link
+                                    to={"/transactions/" + response.tx_id}
+                                    title={response.tx_id}
+                                >
+                                    here
+                                </Link>
+                            </p>
+                        ),
+                        dismiss: { duration: 10000 }
+                    });
+                });
             // further validation required for successful send
-            return "Success";
+            return true;
         }
     };
-    private ErrorMessage = () => {
-        if (this.state.errorMessage === "Invalid input") {
-            return (
-                <div style={{ color: "red" }}>
-                    Please enter a valid number of PERLs.
-                </div>
-            );
-        } else if (this.state.errorMessage === "No double-check") {
-            return (
-                <div style={{ color: "red" }}>
-                    Please double-check the recipient address.
-                </div>
-            );
-        } else {
-            return null;
-        }
-    };
+
     private cancelSend = () => {
         this.props.changeComponent("");
         this.setState({

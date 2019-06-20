@@ -12,6 +12,14 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 // @ts-ignore
 import * as JSONbig from "json-bigint";
 
+export enum NotificationTypes {
+    Success = "success",
+    Default = "default",
+    Info = "info",
+    Danger = "danger",
+    Warning = "warning"
+}
+
 class Perlin {
     @computed get recentTransactions() {
         return this.transactions.recent.slice();
@@ -74,6 +82,8 @@ class Perlin {
         round: {} as any,
         num_accounts: 0
     };
+
+    @observable public notification: any;
 
     @observable public account: IAccount = {
         public_key: "",
@@ -178,6 +188,9 @@ class Perlin {
         };
     }
 
+    public notify(data: any) {
+        this.notification = data;
+    }
     public async transfer(
         recipient: string,
         amount: number,
