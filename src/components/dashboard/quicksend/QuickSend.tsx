@@ -166,6 +166,30 @@ export default class QuickSend extends React.Component<{}, IState> {
     private updateinputID(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.target.value;
         this.setState({ inputID: value });
+        if (value.length === 64) {
+            this.checkInput();
+        }
+    }
+    private async checkInput() {
+        if (await this.validtxId()) {
+            this.setState({
+                toggleComponent: "showDetectedTx"
+            });
+        } else if (this.validInputID()) {
+            try {
+                const recipient = await perlin.getAccount(this.state.inputID);
+
+                this.setState({
+                    toggleComponent: "showDetectedAccount",
+                    recipient,
+                    validAccount: true
+                });
+            } catch (err) {
+                console.log(err);
+            }
+        } else {
+            this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
+        }
     }
     private async onKeyDown(e: any) {
         this.setState({
@@ -174,27 +198,7 @@ export default class QuickSend extends React.Component<{}, IState> {
             validTx: false
         });
         if (e.keyCode === 13) {
-            if (await this.validtxId()) {
-                this.setState({
-                    toggleComponent: "showDetectedTx"
-                });
-            } else if (this.validInputID()) {
-                try {
-                    const recipient = await perlin.getAccount(
-                        this.state.inputID
-                    );
-
-                    this.setState({
-                        toggleComponent: "showDetectedAccount",
-                        recipient,
-                        validAccount: true
-                    });
-                } catch (err) {
-                    console.log(err);
-                }
-            } else {
-                this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
-            }
+            this.checkInput();
         } else {
             this.setState({ toggleComponent: "" });
         }
