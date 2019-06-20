@@ -131,6 +131,8 @@ const QRWidgetWrapper = styled.button<{
     margin: 8px 0px 8px 0px;
     background-color: white;
     border-radius: 50%;
+    flex-shrink: 0;
+    flex-grow: 0;
 
     & > * {
         width: 80%;

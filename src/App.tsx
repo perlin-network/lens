@@ -25,27 +25,25 @@ import { Perlin } from "./Perlin";
 const ContentWrapper = styled(Flex)`
     margin: 0px;
     padding: 0px;
-    background-color: #0c112b;
+    background-size: 100% auto;
     min-height: 100vh;
+    background-repeat: no-repeat;
 `;
-const SideWrapper = styled(Box).attrs({
-    width: 1 / 6
-})`
+const SideWrapper = styled(Box)`
     background-color: #0c112b;
     margin: 0px;
     padding: 0px;
-    min-width: 150px;
-    max-width: 250px;
+    width: 160px;
 `;
 const Content = styled(Box).attrs({
-    width: 5 / 6
+    flex: 1
 })`
-    background-image: url(${MainBackgroundSVG});
     margin: 0px;
-    padding-left: 2em;
-    padding-right: 2em;
-    background-size: 100% 1500px;
-    background-repeat: no-repeat;
+    padding-left: 25px;
+    padding-right: 25px;
+    max-width: 1340px;
+    min-width: 900px;
+    width: calc(100% - 160px);
 `;
 
 const routes = [

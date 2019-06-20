@@ -2,7 +2,7 @@ import { Perlin } from "../../Perlin";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { withSize } from "react-sizeme";
-import * as React from "react";
+import React from "react";
 import { createRef } from "react";
 import { when, intercept, Lambda } from "mobx";
 import Tooltip from "./Tooltip";
@@ -28,7 +28,7 @@ const Wrapper = styled.div`
     }
 `;
 
-class NGraph extends React.Component<{ size: any }, {}> {
+class NGraph extends React.PureComponent<{ size: any }, {}> {
     private networkGraphRef: React.RefObject<any> = createRef();
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
 
@@ -45,6 +45,8 @@ class NGraph extends React.Component<{ size: any }, {}> {
 
             // @ts-ignore
             this.renderer.resize(parent.clientWidth, parent.clientHeight);
+
+            this.renderer.render(this.stage);
         }
     }
 
@@ -129,6 +131,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
             render();
             this.forceUpdate();
         };
+
         this.disposer = intercept(perlin, "peers", changes => {
             const peers = (changes.newValue || []).slice(0, nodeLimit - 1);
             const isDirty = this.checkPeers(peers, mouseHandleUpdate);
@@ -136,7 +139,6 @@ class NGraph extends React.Component<{ size: any }, {}> {
             if (isDirty) {
                 update();
             }
-
             return changes;
         });
 
@@ -155,6 +157,7 @@ class NGraph extends React.Component<{ size: any }, {}> {
                 );
                 this.nodes.push(this.localNode);
                 this.stage.addChild(this.localNode.gfx);
+                this.checkPeers(perlin.ledger.peers, mouseHandleUpdate);
 
                 update();
             }

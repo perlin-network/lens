@@ -13,6 +13,7 @@ import QuickSendArrow from "../../assets/svg/quicksend-arrow.png";
 import CancelCard from "../../assets/svg/cancel-card.svg";
 import DataCopyIcon from "../../assets/svg/copy-icon.svg";
 import DataCheckIcon from "../../assets/svg/check-icon.svg";
+import User from "../../assets/svg/user-icon.svg";
 import QrIcon from "../../assets/svg/qr-icon.svg";
 
 const SectionTitle = styled.h2`
@@ -49,6 +50,7 @@ const QuestionIcon = styled.img.attrs({ src: QuestionAlert })`
 const EarningsIcon = styled.img.attrs({ src: DataCardEarnings })`
     max-height: 24px;
     max-width: 24px;
+    margin-top: 2px;
 `;
 const WalletIcon = styled.img.attrs({ src: DataCardWallet })`
     max-height: 24px;
@@ -61,6 +63,12 @@ const StakeIcon = styled.img.attrs({ src: DataCardStake })`
 const NetworkIcon = styled.img.attrs({ src: DataCardNetwork })`
     max-height: 24px;
     max-width: 24px;
+`;
+
+const UserIcon = styled.img.attrs({ src: User })`
+    max-height: 16px;
+    max-width: 16px;
+    margin-top: 4px;
 `;
 
 const QuickSendErrorIcon = styled.img.attrs({ src: QuickSendFail })`
@@ -150,5 +158,6 @@ export {
     QuickSendArrowIcon,
     CancelCardIcon,
     CheckedIcon,
-    QrCodeIcon
+    QrCodeIcon,
+    UserIcon
 };

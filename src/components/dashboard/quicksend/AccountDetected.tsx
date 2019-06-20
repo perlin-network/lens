@@ -14,8 +14,7 @@ import { QRCodeModal, QRCodeWidget } from "../../common/qr";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 
 interface IProps {
-    recipientID: string;
-    recipientBalance: string;
+    recipient: any;
     changeComponent: (component: string) => void;
     toggleComponent: string;
 }
@@ -25,6 +24,13 @@ interface IState {
     doubleChecked: boolean;
     errorMessage: string;
 }
+
+const Wrapper = styled.div`
+    ${CancelCardIcon} {
+        position: absolute;
+        top: 25px;
+    }
+`;
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -89,8 +95,7 @@ const Divider = styled.button`
     width: auto;
     display: inline;
     padding: 0px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px 0;
     border: 0px;
 
     &:focus {
@@ -99,6 +104,11 @@ const Divider = styled.button`
     }
 `;
 
+const AccountDetectedContent = styled.div`
+    position: relative;
+    background-color: #1b213d;
+    padding-top: 20px;
+`;
 const SendPerlsButton = styled.button`
     font-family: HKGrotesk;
     font-weight: 600;
@@ -108,10 +118,11 @@ const SendPerlsButton = styled.button`
     border-radius: 5px;
     border: 1px solid #00000000;
     color: #151b35;
-    width: 100%;
-    padding: 15px;
+    padding: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
+    min-width: 110px;
+
     &:hover {
         cursor: pointer;
         background-color: #d4d5da;
@@ -120,6 +131,34 @@ const SendPerlsButton = styled.button`
         background-color: #d4d5da;
         border: 1px solid #4a41d1;
         outline: 0;
+    }
+`;
+
+const InfoTable = styled.table`
+    font-weight: 400;
+    font-size: 12px;
+    background: #121734;
+    border-radius: 5px;
+    table-layout: fixed;
+    width: calc(100% - 40px);
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 10px;
+    border: solid 1px #34374a;
+`;
+
+const InfoLine = styled.tr`
+    .label,
+    .value {
+        padding: 8px 10px;
+        min-width: 0;
+        border-bottom: solid 2px #1a203d;
+        vertical-align: top;
+    }
+    .label {
+        width: 60px;
+        white-space: nowrap;
+        opacity: 0.6;
     }
 `;
 
@@ -139,40 +178,20 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     }
 
     public render() {
+        const { recipient } = this.props;
         return (
-            <>
+            <Wrapper>
                 <AccountDetectedAnimation
                     in={this.props.toggleComponent === "showDetectedAccount"}
                 >
-                    <div
-                        style={{
-                            backgroundColor: "#1b213d",
-                            paddingBottom: "15px",
-                            position: "relative"
-                        }}
-                    >
-                        <CancelCardIcon
-                            style={{ position: "absolute" }}
-                            onClick={this.cancelSend}
-                        />
-                        <Row>
-                            <Box
-                                width={1}
-                                style={{
-                                    backgroundColor: "#171d39",
-                                    padding: "15px"
-                                }}
-                            >
-                                <QuickSendSuccessIcon />
-                                Detected An Account ID
-                            </Box>
-                        </Row>
-                        <Row
+                    <AccountDetectedContent>
+                        <CancelCardIcon onClick={this.cancelSend} />
+                        <Flex
                             className="break-word"
                             style={{
-                                paddingLeft: "40px",
-                                paddingRight: "40px"
+                                padding: "0 20px"
                             }}
+                            mb={3}
                         >
                             <Box
                                 width={1 / 2}
@@ -184,60 +203,46 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 width={1 / 2}
                                 style={{ fontWeight: 500, fontSize: "20px" }}
                             >
-                                Send Funds
+                                Send PERLs
                             </Box>
-                        </Row>
-                        <Row
+                        </Flex>
+                        <Flex
                             className="break-word"
                             style={{
-                                paddingLeft: "40px",
-                                paddingRight: "40px"
+                                padding: "0 20px 20px"
                             }}
                         >
                             <Box width={1 / 2} className="break-word">
-                                <Row>
-                                    <Box
-                                        width={2 / 9}
-                                        style={{ padding: "0px" }}
-                                    >
-                                        <QRCodeWidget
-                                            publicKeyHex={
-                                                this.props.recipientID
-                                            }
-                                            width={100}
-                                            height={100}
-                                            clickable={true}
-                                            top={20}
-                                        />
-                                    </Box>
-                                    <Box
-                                        width={5 / 9}
-                                        style={{
-                                            paddingTop: "15px",
-                                            fontSize: "16px",
-                                            fontWeight: 500,
-                                            paddingLeft: "20px"
-                                        }}
-                                    >
-                                        <div>
-                                            {this.props.recipientID}
-                                            <br />
-                                            <span
-                                                style={{
-                                                    fontWeight: 400,
-                                                    fontSize: "12px",
-                                                    opacity: 0.6
-                                                }}
-                                            >
-                                                Recipient balance:{" "}
-                                                {this.props.recipientBalance}
-                                            </span>
-                                        </div>
-                                    </Box>
-                                </Row>
+                                <InfoTable>
+                                    <tbody>
+                                        <InfoLine>
+                                            <td className="label">Balance</td>
+                                            <td className="value">
+                                                {recipient.balance}
+                                            </td>
+                                        </InfoLine>
+                                        <InfoLine>
+                                            <td className="label">Reward</td>
+                                            <td className="value">
+                                                {recipient.reward}
+                                            </td>
+                                        </InfoLine>
+                                        <InfoLine>
+                                            <td className="label">Stake</td>
+                                            <td className="value">
+                                                {recipient.stake}
+                                            </td>
+                                        </InfoLine>
+                                        <InfoLine>
+                                            <td className="label">Nonce</td>
+                                            <td className="value">
+                                                {recipient.nonce}
+                                            </td>
+                                        </InfoLine>
+                                    </tbody>
+                                </InfoTable>
                             </Box>
                             <Box width={1 / 2} className="break-word">
-                                <div>Amount</div>
                                 <InputWrapper>
                                     <SendPerlsInput
                                         placeholder="Enter Amount"
@@ -248,51 +253,54 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     <Fees>Fee:&nbsp;0.00001&nbsp;PERLs</Fees>
                                 </InputWrapper>
 
-                                <div
-                                    style={{
-                                        marginTop: "20px",
-                                        marginBottom: "20px"
-                                    }}
+                                <Flex
+                                    alignItems="center"
+                                    justifyContent="space-between"
                                 >
-                                    <input
-                                        type="checkbox"
-                                        id="confirmSendPerls"
-                                        name="confirmSendPerls"
-                                        checked={this.state.doubleChecked}
-                                        onChange={this.handleCheckboxChange}
-                                        style={{
-                                            border: "1px solid #3a3f5b",
-                                            backgroundColor: "#00000000",
-                                            marginRight: "5px"
-                                        }}
-                                    />
-                                    <label htmlFor="confirmSendPerls">
-                                        I have double checked the address
-                                    </label>
-                                </div>
-                                <div>
-                                    <SendPerlsButton
-                                        onClick={this.handleSendButton}
-                                    >
-                                        Send {this.state.inputPerls} PERLs
-                                    </SendPerlsButton>
-                                </div>
+                                    <Flex alignItems="top">
+                                        <input
+                                            type="checkbox"
+                                            id="confirmSendPerls"
+                                            name="confirmSendPerls"
+                                            checked={this.state.doubleChecked}
+                                            onChange={this.handleCheckboxChange}
+                                            style={{
+                                                border: "1px solid #3a3f5b",
+                                                backgroundColor: "#00000000",
+                                                margin: "2px 10px 0 0"
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor="confirmSendPerls"
+                                            style={{
+                                                flex: 1,
+                                                marginRight: "10px"
+                                            }}
+                                        >
+                                            I have double checked the address
+                                        </label>
+                                    </Flex>
+                                    <Box>
+                                        <SendPerlsButton
+                                            onClick={this.handleSendButton}
+                                        >
+                                            Send {this.state.inputPerls} PERLs
+                                        </SendPerlsButton>
+                                    </Box>
+                                </Flex>
                                 <div>
                                     <this.ErrorMessage />
                                 </div>
                             </Box>
-                        </Row>
-                    </div>
+                        </Flex>
+                    </AccountDetectedContent>
                 </AccountDetectedAnimation>
 
                 <AccountDetectedAnimation
                     in={this.props.toggleComponent === "showSendConfirmation"}
                 >
-                    <CancelCardIcon
-                        style={{ position: "absolute" }}
-                        onClick={this.cancelSend}
-                    />
-                    <Row style={{ padding: "40px 20px 40px 40px" }}>
+                    <CancelCardIcon onClick={this.cancelSend} />
+                    <Row style={{ padding: "40px 20px 0 40px" }}>
                         <Box width={1 / 7}>
                             <QuickSendThumbsUpIcon />
                         </Box>
@@ -320,8 +328,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             padding: "40px",
                             border: "1px solid #686C7C",
                             borderRadius: "4px",
-                            marginLeft: "20px",
-                            marginRight: "20px"
+                            margin: "0 20px 20px"
                         }}
                     >
                         <Box
@@ -364,7 +371,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             className="break-word vertical-center-align"
                         >
                             <QRCodeWidget
-                                publicKeyHex={this.props.recipientID}
+                                publicKeyHex={recipient.public_key}
                                 width={48}
                                 height={48}
                                 clickable={true}
@@ -380,17 +387,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     paddingTop: "7px"
                                 }}
                             >
-                                {this.props.recipientID}
+                                {recipient.public_key}
                                 <br />
                                 <span style={{ opacity: 0.6 }}>
-                                    Recipient Balance:{" "}
-                                    {this.props.recipientBalance}
+                                    Recipient Balance: {recipient.balance}
                                 </span>
                             </div>
                         </Box>
                     </Row>
                 </AccountDetectedAnimation>
-            </>
+            </Wrapper>
         );
     }
 
@@ -425,7 +431,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             return "No double-check";
         } else {
             perlin.transfer(
-                this.props.recipientID,
+                this.props.recipient.public_key,
                 Number(this.state.inputPerls)
             );
             // further validation required for successful send
