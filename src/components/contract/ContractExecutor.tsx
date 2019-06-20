@@ -197,45 +197,28 @@ const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
     for (const param of paramsList) {
         if (param.type && param.value) {
             switch (param.type) {
+                case ParamType.String:
+                    payload.writeString(param.value);
+                    break;
                 case ParamType.Bytes:
+                    payload.writeBuffer(Buffer.from(param.value, "hex"));
+                    break;
+                case ParamType.Byte:
                     payload.writeBuffer(Buffer.from(param.value, "hex"));
                     break;
                 case ParamType.Uint64:
                     const long = Long.fromString(param.value, true);
                     payload.writeBuffer(Buffer.from(long.toBytesLE()));
                     break;
-            }
-        }
-    }
-
-    /*
-    for (const param of paramsList) {
-        if (param.type && param.value) {
-            switch (param.type) {
-                case ParamType.String:
-                    writer.writeString(param.value);
+                case ParamType.Uint32:
+                    payload.writeUInt32LE(parseInt(param.value, 10));
                     break;
                 case ParamType.Uint16:
-                    writer.writeUint16(parseInt(param.value, 10));
-                    break;
-                case ParamType.Uint32:
-                    writer.writeUint32(parseInt(param.value, 10));
-                    break;
-                case ParamType.Uint64:
-                    writer.writeUint64(Long.fromString(param.value, true));
-                    break;
-                case ParamType.Bytes:
-                    // todo : support base64 string
-                    writer.writeBuffer(Buffer.from(param.value, "hex"));
-                    break;
-                case ParamType.Byte:
-                    writer.writeByte(parseInt(param.value, 10));
+                    payload.writeUInt16LE(parseInt(param.value, 10));
                     break;
             }
         }
     }
-    */
-
     return payload.toBuffer();
 };
 
