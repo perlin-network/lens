@@ -173,15 +173,9 @@ class Perlin {
 
     public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
         const payload = new PayloadWriter();
-        // set gas fee
         payload.writeUint64(Long.fromNumber(100000000, true));
-        // payload size
-        payload.writeUint64(
-            Long.fromNumber(payload.toBuffer().byteLength, true)
-        );
-        // source code
-        payload.writeBuffer(Buffer.from(bytes));
-
+        payload.writeUint64(Long.fromNumber(0, true));
+        payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
         return await this.post(
             "/tx/send",
             this.prepareTransaction(Tag.CONTRACT, payload.buffer.toBuffer())
@@ -222,8 +216,9 @@ class Perlin {
         funcParams: Buffer
     ): Promise<any> {
         const payload = new PayloadWriter();
-        payload.writeBuffer(Buffer.from(contractID, "hex"));
+        payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
+        payload.writeUint64(Long.fromNumber(100000000000, true));
         payload.writeString(funcName);
         payload.writeBuffer(funcParams);
 
