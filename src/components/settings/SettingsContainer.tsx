@@ -29,9 +29,7 @@ export default class SettingsContainer extends React.Component<{}, {}> {
                     <Box width={2 / 3}>
                         <Card>
                             <CardHeader>
-                                <CardTitle>
-                                    &nbsp;API host configuration
-                                </CardTitle>
+                                <CardTitle>API Address</CardTitle>
                             </CardHeader>
                             <CardBody>
                                 <Config
