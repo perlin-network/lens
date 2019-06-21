@@ -13,13 +13,10 @@ import {
     Redirect
 } from "react-router";
 import Dashboard from "./components/dashboard/DashboardContainer";
-import Wallet from "./components/wallet/WalletContainer";
-import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
 import Login from "./components/login/LoginContainer";
-import MainBackgroundSVG from "./assets/svg/main-background.svg";
 import TransactionDetail from "./components/transactions/TransactionDetail";
 import { Perlin } from "./Perlin";
 
@@ -52,7 +49,6 @@ const Content = styled(Box).attrs({
 
 const routes = [
     { path: "/", component: Dashboard, restriction: true },
-    { path: "/network", component: Network, restriction: true },
     { path: "/validator", component: Validator, restriction: true },
     { path: "/contracts", component: Contract, restriction: true },
     { path: "/settings", component: Settings, restriction: true },

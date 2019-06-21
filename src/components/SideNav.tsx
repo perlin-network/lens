@@ -2,7 +2,7 @@ import * as React from "react";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
 import DashboardIcon from "../assets/svg/navbar-dashboard.svg";
-import NetworkIcon from "../assets/svg/navbar-network.svg";
+
 import ValidatorIcon from "../assets/svg/navbar-validator.svg";
 import DeveloperIcon from "../assets/svg/navbar-developer.svg";
 import SettingsIcon from "../assets/svg/navbar-settings.svg";
@@ -59,7 +59,6 @@ interface INavItem {
 
 const items: INavItem[] = [
     { title: "Dashboard", link: "/", icon: DashboardIcon },
-    { title: "Network", link: "/network", icon: NetworkIcon },
     { title: "Validator", link: "/validator", icon: ValidatorIcon },
     { title: "Developer", link: "/contracts", icon: DeveloperIcon },
     { title: "Settings", link: "/settings", icon: SettingsIcon }
