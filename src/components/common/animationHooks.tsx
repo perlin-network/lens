@@ -32,7 +32,7 @@ export const usePushDown = (
                 switch (state) {
                     case "entering":
                     case "entered":
-                        return elHeight.current;
+                        return 400;
                     case "":
                         elHeight.current = el.offsetHeight;
                     default:

@@ -31,6 +31,7 @@ export const InlineNotification = styled.div`
     .notification-message {
         color: #aaacb3;
         a {
+            font-weight: 600;
             color: inherit;
             margin-left: 5px;
             text-decoration: underline;
