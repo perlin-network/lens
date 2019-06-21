@@ -91,7 +91,7 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
     return (
         <>
             <LogoWrapper src={perlinLogo} />
-            {isLoggedIn ? (
+            {isLoggedIn && (
                 <>
                     {items.map(item => (
                         <NavItem
@@ -111,17 +111,6 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
                     <NavItem onClick={logout()}>
                         <NavIcon src={LogoutIcon} />
                         Logout
-                    </NavItem>
-                </>
-            ) : (
-                <>
-                    <NavItem onClick={login()}>
-                        <NavIcon src={LogoutIcon} />
-                        Login
-                    </NavItem>
-                    <NavItem onClick={navigateTo("/settings")}>
-                        <NavIcon src={SettingsIcon} />
-                        Settings
                     </NavItem>
                 </>
             )}

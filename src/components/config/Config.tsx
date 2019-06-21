@@ -55,26 +55,6 @@ const EditButton = styled.button`
     }
 `;
 
-const DiscardButton = styled.button`
-    width: 160px;
-    height: 40px;
-    border: 0;
-    border-radius: 5px;
-
-    text-align: center;
-    vertical-align: middle;
-    line-height: 40px;
-    font-family: HKGrotesk;
-    font-size: 16px;
-    font-weight: 400;
-    background-color: #fff;
-    color: #151b35;
-    cursor: pointer;
-    &:active {
-        background-color: #d4d5da;
-    }
-`;
-
 interface IConfigProps {
     confirmationMessage: string;
     onChange: (newValue: string) => void;
@@ -104,12 +84,12 @@ export default class Config extends React.Component<IConfigProps> {
                             <QuestionIcon />
                         </div>
                         <div className="alert-row3">
-                            <DiscardButton
+                            <SaveButton
                                 style={{ marginRight: "10px" }}
                                 onClick={onClose}
                             >
                                 Cancel
-                            </DiscardButton>
+                            </SaveButton>
                             <SaveButton onClick={this.handleChangeAlertConfirm}>
                                 Confirm
                             </SaveButton>
@@ -135,7 +115,7 @@ export default class Config extends React.Component<IConfigProps> {
                             <QuestionIcon />
                         </div>
                         <div className="alert-row3">
-                            <DiscardButton
+                            <SaveButton
                                 style={{
                                     marginRight: "10px",
                                     verticalAlign: "middle"
@@ -143,7 +123,7 @@ export default class Config extends React.Component<IConfigProps> {
                                 onClick={onClose}
                             >
                                 Cancel
-                            </DiscardButton>
+                            </SaveButton>
                             <SaveButton
                                 onClick={this.handleDiscardAlertConfirm}
                             >
@@ -184,9 +164,9 @@ export default class Config extends React.Component<IConfigProps> {
 
                     <div className="input-row2">
                         {!disabled && (
-                            <DiscardButton onClick={this.showDiscardAlert}>
+                            <SaveButton onClick={this.showDiscardAlert}>
                                 Discard Changes
-                            </DiscardButton>
+                            </SaveButton>
                         )}
                         {!disabled && (
                             <SaveButton

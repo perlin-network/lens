@@ -6,18 +6,39 @@ import { observer } from "mobx-react-lite";
 import { Perlin, NotificationTypes } from "../../Perlin";
 import { withRouter, RouteComponentProps } from "react-router";
 import "../config/config.scss";
+import { Config } from "../config/Config";
+import { LargeInput } from "../common/core";
+import { getCurrentHost, setCurrentHost } from "../../storage";
 
-const Title = styled.p`
+const Title = styled.h1`
     font-family: Montserrat;
-    font-size: 30px;
-    color: #fff;
     margin-bottom: 15px;
-    font-weight: 400;
+    font-weight: 600;
+    font-size: 35px;
+`;
+const SubTitle = styled.p`
+    font-size: 20px;
 `;
 
+const Wrapper = styled(Flex)`
+    padding: 70px 70px 50px;
+    margin-left: -160px;
+    label {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 7px;
+        display: block;
+    }
+
+    ${LargeInput} {
+        width: 80%;
+        padding: 15px;
+        margin: 10px 0;
+    }
+`;
 const Button = styled.button`
     width: 160px;
-    height: 40px;
+    height: 44px;
     border: 0;
     border-radius: 5px;
     text-align: center;
@@ -30,8 +51,25 @@ const Button = styled.button`
     margin-right: 10px;
     background-color: #fff;
     cursor: pointer;
+    &:hover,
     &:active {
-        background-color: #d4d5da;
+        background-color: none;
+    }
+    &:focus {
+        outline: none;
+    }
+`;
+
+const ButtonOutlined = styled(Button)`
+    background: none;
+    border: solid 1px #fff;
+    color: #fff;
+    opacity: 0.8;
+
+    &:hover,
+    &:active {
+        background-color: none;
+        opacity: 1;
     }
     &:focus {
         outline: none;
@@ -49,7 +87,9 @@ const Input = styled.textarea`
     font-family: HKGrotesk;
     color: #fff;
     background-color: #171d39;
-    padding: 10px;
+    padding: 10px 15px;
+    margin: 10px 0;
+    line-height: 1.5;
 
     &:focus,
     &:active,
@@ -67,7 +107,7 @@ const Input = styled.textarea`
 
 const FileInputWrapper = styled.div`
     width: 200px;
-    height: 40px;
+    height: 44px;
     overflow: hidden;
     position: relative;
 `;
@@ -86,10 +126,6 @@ const FileInput = styled.input.attrs({
     right: 0;
     opacity: 0;
     cursor: pointer;
-`;
-
-const Alert = styled.p`
-    color: red;
 `;
 
 const Row = styled(Flex)`
@@ -118,6 +154,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     const handleChange = useCallback((e: any) => {
         setSecretKey(e.target.value);
     }, []);
+    const currentHost = getCurrentHost();
 
     const handleFileChange = useCallback((e: any) => {
         try {
@@ -174,16 +211,27 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
         }
     };
 
+    const apiHostChangeHandler = useCallback((event: any) => {
+        setCurrentHost(event.target.value);
+    }, []);
+
     return (
-        <Row>
-            <Box width={2 / 3}>
+        <Wrapper>
+            <Box width={1.2 / 3} pr={5} pt={6}>
+                <Title>Welcome to Lens</Title>
+                <SubTitle>
+                    Please enter your wallet's private key, and Wavelet nodes
+                    HTTP API address to continue.
+                </SubTitle>
+            </Box>
+            <Box width={1.8 / 3}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Login using a private key</CardTitle>
+                        <CardTitle>Login</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <p>Private Key</p>
-                        <div className="input-grid">
+                        <Box mb={4}>
+                            <label>Private Key</label>
                             <div
                                 className="input-row1"
                                 style={{ width: "100%" }}
@@ -201,20 +249,31 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                 />
                             </div>
                             <Row>
-                                <Button onClick={login}>Login</Button>
-                                <Button onClick={generateNewKeys}>
+                                <ButtonOutlined onClick={generateNewKeys}>
                                     Generate New Key
-                                </Button>
+                                </ButtonOutlined>
                                 <FileInputWrapper>
-                                    <FileButton>Import from a file</FileButton>
+                                    <ButtonOutlined>
+                                        Import from a file
+                                    </ButtonOutlined>
                                     <FileInput onChange={handleFileChange} />
                                 </FileInputWrapper>
                             </Row>
-                        </div>
+                        </Box>
+
+                        <Box mb={4}>
+                            <label>API Address</label>
+                            <LargeInput
+                                defaultValue={currentHost}
+                                onChange={apiHostChangeHandler}
+                            />
+                        </Box>
+
+                        <Button onClick={login}>Login</Button>
                     </CardBody>
                 </Card>
             </Box>
-        </Row>
+        </Wrapper>
     );
 };
 
