@@ -1,8 +1,8 @@
 {
   "main.css": "static/css/main.851891ff.css",
   "main.css.map": "static/css/main.851891ff.css.map",
-  "main.js": "static/js/main.b1eb85db.js",
-  "main.js.map": "static/js/main.b1eb85db.js.map",
+  "main.js": "static/js/main.f37b0d86.js",
+  "main.js.map": "static/js/main.f37b0d86.js.map",
   "static/media/alert-question.svg": "static/media/alert-question.0c82472f.svg",
   "static/media/cancel-card.svg": "static/media/cancel-card.7d055c8c.svg",
   "static/media/check-icon.svg": "static/media/check-icon.42ca45ef.svg",
@@ -26,7 +26,6 @@
   "static/media/navbar-dashboard.svg": "static/media/navbar-dashboard.c574d205.svg",
   "static/media/navbar-developer.svg": "static/media/navbar-developer.01c5ebb3.svg",
   "static/media/navbar-logout.svg": "static/media/navbar-logout.241d68ae.svg",
-  "static/media/navbar-network.svg": "static/media/navbar-network.50a9172d.svg",
   "static/media/navbar-settings.svg": "static/media/navbar-settings.efe1bba1.svg",
   "static/media/navbar-validator.svg": "static/media/navbar-validator.39e416ec.svg",
   "static/media/pencil-edit-button.svg": "static/media/pencil-edit-button.97f916e1.svg",
