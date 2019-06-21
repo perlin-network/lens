@@ -449,6 +449,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 <Link
                                     to={"/transactions/" + response.tx_id}
                                     title={response.tx_id}
+                                    target="_blank"
                                 >
                                     here
                                 </Link>

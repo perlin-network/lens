@@ -60,12 +60,12 @@ const successNotification = (title: string, txId: string) => {
         content: (
             <p>
                 You can view your transaction
-                <Link to={"/transactions/" + txId} title={txId}>
+                <Link to={"/transactions/" + txId} title={txId} target="_blank">
                     here
                 </Link>
             </p>
         ),
-        dismiss: { duration: 0 }
+        dismiss: { duration: 10000 }
     });
 };
 

@@ -17,21 +17,21 @@ const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
-const StyledCardTitle = styled(CardTitle)`
-    padding-left: 0px;
-`;
-
 const CodeViewerCard = styled(Card)`
     margin-left: 20px;
-    margin-right: 20px;
+    background: #010724;
 `;
 
 const CodeViewerCardBody = styled(CardBody)`
-    padding: 0px;
-`;
+    padding: 20px;
 
-const CodeViewerCardHeader = styled(CardHeader)`
-    background-color: #0a041e;
+    .cm-s-night.CodeMirror {
+        background: none;
+    }
+    .CodeMirror-code {
+        color: #fff;
+        opacity: 0.6;
+    }
 `;
 
 // tslint:disable-next-line
@@ -63,9 +63,9 @@ const ContractContainer: React.FunctionComponent = () => {
                 <Box width={1 / 2}>
                     {contractLoaded && (
                         <CodeViewerCard>
-                            <CodeViewerCardHeader>
-                                <CardTitle>&nbsp;WASM File</CardTitle>
-                            </CodeViewerCardHeader>
+                            <CardHeader>
+                                <CardTitle>WASM File</CardTitle>
+                            </CardHeader>
                             <CodeViewerCardBody>
                                 <CodeMirror
                                     value={contractStore.contract.textContent}

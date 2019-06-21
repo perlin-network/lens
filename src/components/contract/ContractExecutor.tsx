@@ -5,7 +5,7 @@ import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import { Button as RawButton } from "../common/core";
 import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
@@ -15,6 +15,8 @@ import * as Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
 import { loadContractFromNetwork } from "./ContractUploader";
+import LoadingSpinner from "../common/loadingSpinner";
+import { InlineNotificationSuccess } from "../common/notification/Notification";
 
 interface IParamItem {
     id: string;
@@ -25,6 +27,13 @@ interface IParamItem {
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
 const watFunctionRegex = /\(export "_contract_([a-zA-Z0-9_]+)" \(func \d+\)\)/g;
+
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
 
 const useContractFunctions = () => {
     return useComputed(() => {
@@ -52,6 +61,7 @@ const useParams = () => {
         getEmptyParam()
     ]);
     const setParamType = (id: string) => (type: ParamType) => {
+        contractStore.logs = [];
         setParamsList(prevList =>
             prevList.map(item => {
                 if (item.id === id) {
@@ -78,9 +88,11 @@ const useParams = () => {
         );
     };
     const deleteParam = (id: string) => () => {
+        contractStore.logs = [];
         setParamsList(prevList => prevList.filter(item => item.id !== id));
     };
     const addParam = () => {
+        contractStore.logs = [];
         setParamsList(prevList => prevList.concat(getEmptyParam()));
     };
     const clearParams = () => {
@@ -260,6 +272,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     }, [funcList]);
 
     const handleFuncChange = (name: string) => {
+        contractStore.logs = [];
         setFunc(name);
         clearParams();
     };
@@ -285,6 +298,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     };
 
     const handleParamChange = (id: string) => (value: string) => {
+        contractStore.logs = [];
         const paramItem: IParamItem | undefined = paramsList.find(
             item => item.id === id
         );
@@ -295,7 +309,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 setErrorMessage("");
             } else {
                 console.log("Param value can't be resolved to a type");
-                setErrorMessage(`Param value can't be resolved to a type`);
+                errorNotification(`Param value can't be resolved to a type`);
             }
         }
     };
@@ -327,7 +341,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 );
                 */
             } catch (e) {
-                setErrorMessage(`Error : ${e}`);
+                errorNotification(`Error : ${e}`);
             }
             const params = writeToBuffer(paramsList);
 
@@ -360,7 +374,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
             setLoading(false);
         } else {
-            setErrorMessage(`Error : Item can't be empty.`);
+            errorNotification(`Error : Item can't be empty.`);
         }
     };
 
@@ -410,43 +424,20 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                     <Button disabled={loading} fontSize="14px" onClick={onCall}>
                         Call Function
                     </Button>
-                    {loading && (
-                        <div
-                            style={{
-                                textAlign: "center",
-                                marginTop: "25px",
-                                marginBottom: "10px",
-                                color: "#4A41D1"
-                            }}
-                        >
-                            Processing...
-                        </div>
-                    )}
-                    {errorMessage !== "" && (
-                        <div
-                            style={{
-                                marginTop: "25px",
-                                textAlign: "center",
-                                marginBottom: "10px",
-                                color: "red"
-                            }}
-                        >
-                            {errorMessage}
-                        </div>
-                    )}
+                    {loading && <LoadingSpinner />}
                     {logMessages.map((item: any, index: number) => {
                         return (
-                            <div
-                                key={index}
-                                style={{
-                                    textAlign: "center",
-                                    marginTop: "10px",
-                                    marginBottom: "10px",
-                                    color: "#4A41D1"
-                                }}
-                            >
-                                {item}
-                            </div>
+                            <InlineNotificationSuccess key={index}>
+                                <div className="notification-body">
+                                    <h4 className="notification-title">
+                                        Success
+                                    </h4>
+                                    <div className="notification-message">
+                                        Your result is:
+                                        <span className="result">{item}</span>
+                                    </div>
+                                </div>
+                            </InlineNotificationSuccess>
                         );
                     })}
                 </ParamsBody>

@@ -5,6 +5,7 @@ import { Box, Flex } from "@rebass/grid";
 import { match as Match } from "react-router-dom";
 import { Perlin } from "../../Perlin";
 import { ITransaction, Tag } from "../../types/Transaction";
+import LoadingSpinner from "../common/loadingSpinner";
 
 const perlin = Perlin.getInstance();
 
@@ -203,17 +204,7 @@ const TransactionDetail: React.FunctionComponent<IDetailProps> = ({
     return (
         <>
             <Title>Transaction Details</Title>
-            {loading && (
-                <div
-                    style={{
-                        marginTop: "10px",
-                        marginBottom: "10px",
-                        color: "#4A41D1"
-                    }}
-                >
-                    Loading...
-                </div>
-            )}
+            {loading && <LoadingSpinner />}
             {errorMessage !== "" && (
                 <div
                     style={{

@@ -19,11 +19,11 @@ const Icon = styled(CheckedIcon)`
 `;
 
 const Wrapper = styled.div`
-    height: 150px;
+    max-height: 150px;
     width: 100%;
-    background-color: transaparent;
+    background-color: none;
     margin: 0px;
-    overflow: scroll;
+    overflow: auto;
 `;
 const Item = styled.div`
     font-size: 14px;
@@ -37,7 +37,7 @@ const Item = styled.div`
     ${(props: IItemProps) =>
         props.active &&
         `
-        background: rgba(255, 255, 255, 0.1);
+        background: #171d39;
     `}
 `;
 const ItemPrefix = styled.span`

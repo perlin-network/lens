@@ -113,7 +113,11 @@ const columns = [
         Header: "Transaction ID",
         accessor: "id",
         Cell: (row: any) => (
-            <Link to={"/transactions/" + row.value} title={row.value}>
+            <Link
+                to={"/transactions/" + row.value}
+                title={row.value}
+                target="_blank"
+            >
                 {row.value}
             </Link>
         )

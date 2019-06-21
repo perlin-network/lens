@@ -1,12 +1,15 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
 import { Button as RawButton, Card, Input } from "../common/core";
+import { InlineNotificationSuccess } from "../common/notification/Notification";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
 import { observer } from "mobx-react-lite";
+import { Link } from "react-router-dom";
+import LoadingSpinner from "../common/loadingSpinner";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -16,7 +19,7 @@ const contractStore = ContractStore.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
-    padding: 10px 0px;
+    padding: 10px 0px 0px;
     background-color: transparent;
 `;
 const DividerWrapper = styled.div`
@@ -108,6 +111,30 @@ const Loader = styled.div`
     font-weight: 600;
 `;
 
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
+
+const successNotification = (title: string, txId: string) => {
+    perlin.notify({
+        title,
+        type: NotificationTypes.Success,
+        // message: "You can view your transactions details here"
+        content: (
+            <p>
+                You can view your smart contract
+                <Link to={"/transactions/" + txId} title={txId} target="_blank">
+                    here
+                </Link>
+            </p>
+        ),
+        dismiss: { duration: 10000 }
+    });
+};
+
 const createSmartContract = async (file: File) => {
     const reader = new FileReader();
 
@@ -130,9 +157,7 @@ const createSmartContract = async (file: File) => {
         const resp = await perlin.createSmartContract(bytes);
 
         if (resp.error) {
-            contractStore.contract.errorMessage = `${resp.status} : ${
-                resp.error
-            }`;
+            errorNotification(`${resp.status} : ${resp.error}`);
         } else {
             const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
                 readDebugNames: false
@@ -146,9 +171,10 @@ const createSmartContract = async (file: File) => {
                 inlineExport: false
             });
             contractStore.contract.errorMessage = "";
+            successNotification("", contractStore.contract.transactionId);
         }
     } catch (error) {
-        contractStore.contract.errorMessage = `${"Error"} : ${`Connection Failed`}`;
+        errorNotification("Error: Connection Failed");
     }
 };
 
@@ -159,7 +185,7 @@ export const loadContractFromNetwork = async (
         const account = await perlin.getAccount(contractId);
 
         if (!account.is_contract) {
-            throw new Error(`Address is not a contract.`);
+            throw new Error("Address is not a contract.");
         }
 
         const numPages = account.num_mem_pages || 0;
@@ -184,7 +210,7 @@ export const loadContractFromNetwork = async (
 
         return numPages;
     } catch (err) {
-        contractStore.contract.errorMessage = `Error : ${err.message}`;
+        errorNotification(`Error : ${err.message}`);
         return 0;
     }
 };
@@ -210,7 +236,7 @@ const ContractUploader: React.FunctionComponent = () => {
                 await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
-            contractStore.contract.errorMessage = `${err}`;
+            errorNotification(`${err}`);
         } finally {
             setLoading(false);
         }
@@ -243,9 +269,7 @@ const ContractUploader: React.FunctionComponent = () => {
                 await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
-            console.log("Error while uploading file: ");
-            console.error(err);
-            contractStore.contract.errorMessage = `${err}`;
+            errorNotification(`Error while uploading file: ${err}`);
         } finally {
             setLoading(false);
         }
@@ -255,6 +279,10 @@ const ContractUploader: React.FunctionComponent = () => {
         onDropAccepted,
         multiple: false
     });
+
+    if (contractStore.contract.errorMessage) {
+        errorNotification(contractStore.contract.errorMessage);
+    }
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <Button fontSize="14px" width="100%" {...getRootProps()}>
@@ -276,30 +304,19 @@ const ContractUploader: React.FunctionComponent = () => {
                     Load Contract
                 </StyledButton>
             </InputWrapper>
-            {loading && <Loader>Uploading Contract...</Loader>}
-            {contractStore.contract.errorMessage !== "" && (
-                <div
-                    style={{
-                        textAlign: "center",
-                        marginTop: "25px",
-                        color: "red"
-                    }}
-                >
-                    {contractStore.contract.errorMessage}
-                </div>
-            )}
+            {loading && <LoadingSpinner />}
             {contractStore.contract.transactionId !== "" && (
-                <div
-                    style={{
-                        textAlign: "center",
-                        marginTop: "25px",
-                        color: "#4A41D1"
-                    }}
-                >
-                    {`Success! Your smart contracts ID is: ${
-                        contractStore.contract.transactionId
-                    }`}
-                </div>
+                <InlineNotificationSuccess>
+                    <div className="notification-body">
+                        <h4 className="notification-title">Success</h4>
+                        <div className="notification-message">
+                            Your smart contracts ID is:
+                            <span className="result break">
+                                {contractStore.contract.transactionId}
+                            </span>
+                        </div>
+                    </div>
+                </InlineNotificationSuccess>
             )}
         </Wrapper>
     );
