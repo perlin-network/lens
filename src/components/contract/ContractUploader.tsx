@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { Button as RawButton, Card, Input } from "../common/core";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
-import { Perlin, NotificationTypes } from "../../Perlin";
+import { Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
 import { observer } from "mobx-react-lite";
@@ -91,12 +91,13 @@ const StyledButton = styled(RawButton).attrs({ hideOverflow: true })`
         background-color: #d4d5da;
     }
 `;
+
 const Loader = styled.div`
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    top: -20px;
+    bottom: -20px;
+    left: -20px;
+    right: -20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -106,12 +107,6 @@ const Loader = styled.div`
     font-family: HKGrotesk;
     font-weight: 600;
 `;
-const errorNotification = (message: string) => {
-    perlin.notify({
-        type: NotificationTypes.Danger,
-        message
-    });
-};
 
 const createSmartContract = async (file: File) => {
     const reader = new FileReader();
@@ -157,34 +152,17 @@ const createSmartContract = async (file: File) => {
     }
 };
 
-const loadContract = async (contractId: string) => {
+export const loadContractFromNetwork = async (
+    contractId: string
+): Promise<number> => {
     try {
         const account = await perlin.getAccount(contractId);
 
-        /*
         if (!account.is_contract) {
-            contractStore.contract.errorMessage = "Account is not a contract.";
-            console.log("Account is not a contract.");
-            return;
-        } 
-        */
-
-        contractStore.contract.errorMessage = "";
-        contractStore.contract.transactionId = "";
-
-        const pages = [];
-
-        for (let i = 0; i < account.num_mem_pages; i++) {
-            try {
-                pages.push(await perlin.getContractPage(contractId, i));
-            } catch (err) {
-                pages.push([]);
-            }
+            throw new Error(`Address is not a contract.`);
         }
 
-        console.log(pages);
-
-        // todo: import memory page to local wasm instance
+        const numPages = account.num_mem_pages || 0;
 
         const hexContent = await perlin.getContractCode(contractId);
 
@@ -203,27 +181,38 @@ const loadContract = async (contractId: string) => {
             inlineExport: false
         });
         contractStore.contract.errorMessage = "";
+
+        return numPages;
     } catch (err) {
-        contractStore.contract.errorMessage = err.message;
+        contractStore.contract.errorMessage = `Error : ${err.message}`;
+        return 0;
     }
 };
 
-const ContractUploader: React.SFC<{}> = () => {
+const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [contractAddress, setContractAddress] = useState("");
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setContractAddress(e.target.value);
     };
+
+    const delay = (time: any) =>
+        new Promise((res: any) => setTimeout(res, time));
+
     const handleLoadClick = useCallback(async () => {
+        setLoading(true);
         try {
-            await loadContract(contractAddress);
+            const totalMemoryPages = await loadContractFromNetwork(
+                contractAddress
+            );
 
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract();
-                // load state here
+                await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
-            errorNotification(err.message);
+            contractStore.contract.errorMessage = `${err}`;
+        } finally {
+            setLoading(false);
         }
     }, [contractAddress]);
 
@@ -233,11 +222,30 @@ const ContractUploader: React.SFC<{}> = () => {
         try {
             await createSmartContract(file);
             if (contractStore.contract.transactionId) {
-                await contractStore.onLoadContract();
+                let count = 0;
+                while (count < 30) {
+                    const tx = await perlin.getTransaction(
+                        contractStore.contract.transactionId
+                    );
+
+                    if (tx.status === "applied") {
+                        await delay(3000);
+                        break;
+                    }
+                    await delay(1000);
+                    count++;
+                }
+
+                const totalMemoryPages = await loadContractFromNetwork(
+                    contractStore.contract.transactionId
+                );
+
+                await contractStore.load(totalMemoryPages);
             }
         } catch (err) {
             console.log("Error while uploading file: ");
-            errorNotification(err.message);
+            console.error(err);
+            contractStore.contract.errorMessage = `${err}`;
         } finally {
             setLoading(false);
         }
@@ -247,10 +255,6 @@ const ContractUploader: React.SFC<{}> = () => {
         onDropAccepted,
         multiple: false
     });
-    if (contractStore.contract.errorMessage !== "") {
-        errorNotification(contractStore.contract.errorMessage);
-        contractStore.contract.errorMessage = "";
-    }
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <Button fontSize="14px" width="100%" {...getRootProps()}>
@@ -273,7 +277,17 @@ const ContractUploader: React.SFC<{}> = () => {
                 </StyledButton>
             </InputWrapper>
             {loading && <Loader>Uploading Contract...</Loader>}
-
+            {contractStore.contract.errorMessage !== "" && (
+                <div
+                    style={{
+                        textAlign: "center",
+                        marginTop: "25px",
+                        color: "red"
+                    }}
+                >
+                    {contractStore.contract.errorMessage}
+                </div>
+            )}
             {contractStore.contract.transactionId !== "" && (
                 <div
                     style={{
