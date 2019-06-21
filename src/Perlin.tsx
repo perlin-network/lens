@@ -378,7 +378,7 @@ class Perlin {
         params?: any,
         headers?: any
     ): Promise<Response> {
-        const url = new URL(`http://${this.api.host}${endpoint}`);
+        const url = new URL(`https://${this.api.host}${endpoint}`);
         Object.keys(params).forEach(key =>
             url.searchParams.append(key, params[key])
         );
@@ -432,7 +432,7 @@ class Perlin {
         body?: any,
         headers?: any
     ): Promise<any> {
-        const response = await fetch(`http://${this.api.host}${endpoint}`, {
+        const response = await fetch(`https://${this.api.host}${endpoint}`, {
             method: "post",
             headers: {
                 ...headers
@@ -488,7 +488,7 @@ class Perlin {
 
     private pollTransactionUpdates(event: string = "accepted") {
         const url = new URL(
-            `ws://${this.api.host}/poll/tx?sender=${this.publicKeyHex}`
+            `wss://${this.api.host}/poll/tx?sender=${this.publicKeyHex}`
         );
 
         const ws = new ReconnectingWebSocket(url.toString());
@@ -543,7 +543,7 @@ class Perlin {
     }
 
     private pollConsensusUpdates() {
-        const url = new URL(`ws://${this.api.host}/poll/consensus`);
+        const url = new URL(`wss://${this.api.host}/poll/consensus`);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -581,7 +581,7 @@ class Perlin {
     }
 
     private pollMetricsUpdates() {
-        const url = new URL(`ws://${this.api.host}/poll/metrics`);
+        const url = new URL(`wss://${this.api.host}/poll/metrics`);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -600,7 +600,7 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(`ws://${this.api.host}/poll/accounts`);
+        const url = new URL(`wss://${this.api.host}/poll/accounts`);
         url.searchParams.append("id", id);
 
         const ws = new ReconnectingWebSocket(url.toString());
