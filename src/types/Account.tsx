@@ -7,7 +7,7 @@ interface IAccount {
 
     is_contract: boolean;
     num_mem_pages: number;
-    nonce: number;
+    nonce?: number;
 }
 
 export { IAccount };
