@@ -287,12 +287,13 @@ class Perlin {
         contractID: string,
         amount: number,
         funcName: string,
-        funcParams: Buffer
+        funcParams: Buffer,
+        gasLimit = 100000000000
     ): Promise<any> {
         const payload = new PayloadWriter();
         payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
-        payload.writeUint64(Long.fromNumber(100000000000, true));
+        payload.writeUint64(Long.fromNumber(gasLimit, true));
         payload.writeString(funcName);
         payload.writeBuffer(funcParams);
 

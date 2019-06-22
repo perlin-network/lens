@@ -130,7 +130,7 @@ const SendPerlsButton = styled.button`
     border-radius: 5px;
     border: 1px solid #00000000;
     color: #151b35;
-    padding: 10px;
+    padding: 15px;
 
     min-width: 110px;
 
@@ -297,12 +297,21 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </InputWrapper>
 
                                 {this.props.validContract && (
-                                    <Flex>
+                                    <Flex
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                    >
                                         <GasLimitsInput
                                             placeholder="Gas Limit"
                                             value={this.state.gasLimit}
                                             onChange={this.updateGasLimit}
                                         />
+
+                                        <SendPerlsButton
+                                            onClick={this.handleSendButton}
+                                        >
+                                            Send {this.state.inputPerls} PERLs
+                                        </SendPerlsButton>
                                     </Flex>
                                 )}
 
@@ -333,13 +342,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             I have double checked the address
                                         </label>
                                     </Flex>
-                                    <Box>
-                                        <SendPerlsButton
-                                            onClick={this.handleSendButton}
-                                        >
-                                            Send {this.state.inputPerls} PERLs
-                                        </SendPerlsButton>
-                                    </Box>
+                                    {!this.props.validContract && (
+                                        <Box>
+                                            <SendPerlsButton
+                                                onClick={this.handleSendButton}
+                                            >
+                                                Send {this.state.inputPerls}{" "}
+                                                PERLs
+                                            </SendPerlsButton>
+                                        </Box>
+                                    )}
                                 </Flex>
                             </Box>
                         </Flex>

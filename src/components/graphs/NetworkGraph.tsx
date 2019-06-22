@@ -18,7 +18,10 @@ const networkTooltip = {
     visible: false,
     title: ""
 };
-const Wrapper = styled.div`
+interface IWrapperProps {
+    showPointer: boolean;
+}
+const Wrapper = styled.div<IWrapperProps>`
     position: relative;
 
     .graph-container {
@@ -26,9 +29,18 @@ const Wrapper = styled.div`
         height: 300px;
         margin-bottom: 0;
     }
+
+    ${({ showPointer }) => (showPointer ? "cursor: pointer;" : "")}
 `;
 
-class NGraph extends React.PureComponent<{ size: any }, {}> {
+class NGraph extends React.PureComponent<
+    { size: any },
+    { showPointer: boolean }
+> {
+    public state = {
+        showPointer: false
+    };
+
     private networkGraphRef: React.RefObject<any> = createRef();
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
 
@@ -156,7 +168,8 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
                         public_key: perlin.ledger.public_key
                     },
                     mouseHandleUpdate,
-                    true
+                    true,
+                    this
                 );
                 this.nodes.push(this.localNode);
                 this.stage.addChild(this.localNode.gfx);
@@ -169,7 +182,7 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
 
     public render() {
         return (
-            <Wrapper>
+            <Wrapper showPointer={this.state.showPointer}>
                 <div className="graph-container" ref={this.networkGraphRef} />
                 <Tooltip {...networkTooltip} />
             </Wrapper>
@@ -213,7 +226,12 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
     }
 
     private addPeer(peer: any, mouseHandleUpdate: () => void) {
-        const peerNode = getInteractiveNode(peer, mouseHandleUpdate);
+        const peerNode = getInteractiveNode(
+            peer,
+            mouseHandleUpdate,
+            false,
+            this
+        );
         this.nodes.push(peerNode);
         this.stage.addChild(peerNode.gfx);
 
@@ -252,7 +270,8 @@ const copyPubkeyToClipboard = (pubKey: string) => {
 function getInteractiveNode(
     self: any,
     mouseUpdate: () => void,
-    isLocal: boolean = false
+    isLocal: boolean = false,
+    context: any
 ) {
     const node = {
         id: self.address,
@@ -270,6 +289,11 @@ function getInteractiveNode(
 
     node.gfx.addChild(node.gfx);
 
+    node.gfx.on("mouseout", () => {
+        context.setState({
+            showPointer: false
+        });
+    });
     // on node mouseover
     node.gfx.on("mouseover", () => {
         const {
@@ -298,7 +322,9 @@ function getInteractiveNode(
         networkTooltip.text = self.public_key;
         networkTooltip.title = self.address || "Local Node";
         networkTooltip.visible = true;
-
+        context.setState({
+            showPointer: true
+        });
         mouseUpdate();
     });
     node.gfx.on("click", () => {

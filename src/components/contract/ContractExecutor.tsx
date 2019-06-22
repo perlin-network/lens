@@ -1,12 +1,15 @@
-import * as React from "react";
+import React, { useCallback } from "react";
 import { useState, useEffect } from "react";
-import { Card as OriginalCard } from "../common/core";
+import {
+    Card as OriginalCard,
+    LargeInput,
+    Button as RawButton
+} from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin, NotificationTypes } from "../../Perlin";
-import { Button as RawButton } from "../common/core";
 import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
@@ -126,7 +129,6 @@ const Button = styled(RawButton)`
     font-size: 16px;
     font-weight: 600;
     color: #151b35;
-    margin-top: 20px;
     border-radius: 5px;
     &:active {
         background-color: #d4d5da;
@@ -161,6 +163,11 @@ const FunctionBody = styled(CardBody)`
 
 const ParamsBody = styled(CardBody)`
     padding: 25px 25px 25px 25px;
+`;
+
+const GasLimitInput = styled(LargeInput)`
+    margin-right: 10px;
+    padding: 15px;
 `;
 
 const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
@@ -261,12 +268,16 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         addParam,
         clearParams
     } = useParams();
+    const [gasLimit, setGasLimit] = useState();
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
     const [loading, setLoading] = useState(false);
 
+    const handleUpdateGasLimit = useCallback((event: any) => {
+        setGasLimit(event.target.value);
+    }, []);
     useEffect(() => {
         setFunc(funcList[0]);
     }, [funcList]);
@@ -318,6 +329,11 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         new Promise((res: any) => setTimeout(res, time));
 
     const onCall = async () => {
+        if (isNaN(gasLimit)) {
+            errorNotification("Invalid Gas Limit");
+            return;
+        }
+
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
         );
@@ -349,7 +365,8 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 contractStore.contract.transactionId,
                 0,
                 currFunc,
-                params
+                params,
+                gasLimit
             );
             const txId = response.tx_id;
 
@@ -421,9 +438,26 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         </Box>
                     </Flex>
 
-                    <Button disabled={loading} fontSize="14px" onClick={onCall}>
-                        Call Function
-                    </Button>
+                    <Flex
+                        mt={3}
+                        alignItems="center"
+                        justifyContent="space-between"
+                    >
+                        <GasLimitInput
+                            placeholder="Gas Limit"
+                            defaultValue={gasLimit}
+                            onChange={handleUpdateGasLimit}
+                        />
+
+                        <Button
+                            disabled={loading}
+                            fontSize="14px"
+                            onClick={onCall}
+                        >
+                            Call Function
+                        </Button>
+                    </Flex>
+
                     {loading && <LoadingSpinner />}
                     {logMessages.map((item: any, index: number) => {
                         return (
