@@ -117,11 +117,12 @@ export default class QuickSend extends React.Component<{}, IState> {
                     {this.state.validTx && (
                         <StyledTag>Transaction ID</StyledTag>
                     )}
-                    {this.state.validContract && (
+                    {this.state.validContract ? (
                         <StyledTag>Contract ID</StyledTag>
-                    )}
-                    {this.state.validAccount && (
+                    ) : this.state.validAccount ? (
                         <StyledTag>Account ID</StyledTag>
+                    ) : (
+                        ""
                     )}
                 </QuickSendInputAnimation>
 

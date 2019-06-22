@@ -1,4 +1,4 @@
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { withSize } from "react-sizeme";
@@ -151,7 +151,10 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
                     return;
                 }
                 this.localNode = getInteractiveNode(
-                    perlin.ledger.address,
+                    {
+                        address: perlin.ledger.address,
+                        public_key: perlin.ledger.public_key
+                    },
                     mouseHandleUpdate,
                     true
                 );
@@ -173,10 +176,13 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
         );
     }
 
-    private checkPeers(peers: string[], mouseHandleUpdate: () => void) {
+    private checkPeers(peers: any[], mouseHandleUpdate: () => void) {
         let isDirty = false;
-        peers.forEach((peer: string) => {
-            if (peer !== this.localNode.id && !this.peerMap.get(peer)) {
+        peers.forEach((peer: any) => {
+            if (
+                peer.address !== this.localNode.id &&
+                !this.peerMap.get(peer.address)
+            ) {
                 isDirty = true;
                 this.addPeer(peer, mouseHandleUpdate);
             }
@@ -187,7 +193,7 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
                 return true;
             }
             const foundIndex = peers.findIndex(
-                (peer: string) => node.id === peer
+                (peer: any) => node.id === peer.address
             );
             // if new peers array doesn't contain a node then remove it
             if (foundIndex === -1) {
@@ -206,13 +212,13 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
         return isDirty;
     }
 
-    private addPeer(peer: string, mouseHandleUpdate: () => void) {
+    private addPeer(peer: any, mouseHandleUpdate: () => void) {
         const peerNode = getInteractiveNode(peer, mouseHandleUpdate);
         this.nodes.push(peerNode);
         this.stage.addChild(peerNode.gfx);
 
         // Add the temporary peer node to the map
-        this.peerMap.set(peer, [
+        this.peerMap.set(peer.address, [
             {
                 id: this.localNode.id,
                 label: this.localNode.id
@@ -224,14 +230,33 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
     }
 }
 
+const copyPubkeyToClipboard = (pubKey: string) => {
+    const el = document.createElement("textarea");
+    if (pubKey !== undefined) {
+        el.value = pubKey;
+        el.setAttribute("readonly", "");
+        el.style.position = "absolute";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+
+        perlin.notify({
+            type: NotificationTypes.Success,
+            message: "Node Public Key copied to clipboard"
+        });
+    }
+};
+
 function getInteractiveNode(
-    self: string,
+    self: any,
     mouseUpdate: () => void,
     isLocal: boolean = false
 ) {
     const node = {
-        id: self,
-        label: self,
+        id: self.address,
+        label: self.public_key,
         gfx: new PIXI.Graphics()
     };
     const nodeSize = isLocal ? 12 : 6;
@@ -270,13 +295,15 @@ function getInteractiveNode(
         networkTooltip.x = transformedX;
         networkTooltip.y = transformedY - (node.gfx.height / 2) * scale;
 
-        networkTooltip.text = self;
-        networkTooltip.title = isLocal ? "Local address" : "Peer address";
+        networkTooltip.text = self.public_key;
+        networkTooltip.title = self.address || "Local Node";
         networkTooltip.visible = true;
 
         mouseUpdate();
     });
-
+    node.gfx.on("click", () => {
+        copyPubkeyToClipboard(self.public_key);
+    });
     // on node mouseout
     node.gfx.on("mouseout", () => {
         node.gfx.removeChildren();

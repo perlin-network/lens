@@ -79,7 +79,7 @@ export default class TxDetected extends React.Component<IProps, {}> {
                     to={`/transactions/${this.props.txId}`}
                 >
                     <b>
-                        <u>Go to the detail.</u>
+                        <u>Go to the detail</u>.
                     </b>
                 </Link>
                 <CancelCardIcon

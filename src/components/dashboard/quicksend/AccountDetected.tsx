@@ -25,6 +25,7 @@ interface IState {
     inputPerls: string;
     doubleChecked: boolean;
     errorMessage: string;
+    gasLimit?: number;
 }
 
 const Wrapper = styled.div`
@@ -74,7 +75,9 @@ const SendPerlsInput = styled.input`
         font-size: 16px;
     }
 `;
-
+const GasLimitsInput = styled(SendPerlsInput)`
+    max-width: calc(100% - 180px);
+`;
 const Fees = styled.button.attrs({ hideOverflow: true })`
     height: 48px;
     border-radius: 0px 5px 5px 0px;
@@ -270,7 +273,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                 {recipient.stake}
                                             </td>
                                         </InfoLine>
-                                        {recipient.nonce && (
+                                        {typeof recipient.nonce !==
+                                            "undefined" && (
                                             <InfoLine>
                                                 <td className="label">Nonce</td>
                                                 <td className="value">
@@ -291,6 +295,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     <Divider>|</Divider>
                                     <Fees>Fee:&nbsp;0.00001&nbsp;PERLs</Fees>
                                 </InputWrapper>
+
+                                {this.props.validContract && (
+                                    <Flex>
+                                        <GasLimitsInput
+                                            placeholder="Gas Limit"
+                                            value={this.state.gasLimit}
+                                            onChange={this.updateGasLimit}
+                                        />
+                                    </Flex>
+                                )}
 
                                 <Flex
                                     alignItems="center"
@@ -338,7 +352,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     }`}
                                 >
                                     <b>
-                                        <u>Go to the detail.</u>
+                                        <u>Go to the detail</u>.
                                     </b>
                                 </Link>
                             </DetailsLinkWrapper>
@@ -424,7 +438,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             </Wrapper>
         );
     }
-
+    private updateGasLimit = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const gasLimit = parseInt(e.target.value, 10);
+        this.setState({ gasLimit });
+    };
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ inputPerls: e.target.value });
     }
@@ -439,6 +456,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     }
 
     private successfulSend = () => {
+        if (
+            this.props.validContract &&
+            (!this.state.gasLimit || isNaN(this.state.gasLimit))
+        ) {
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                message: "Invalid Gas Limit"
+            });
+            return;
+        }
         if (
             this.state.inputPerls === "" ||
             isNaN(Number(this.state.inputPerls))
@@ -458,7 +485,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             perlin
                 .transfer(
                     this.props.recipient.public_key,
-                    Number(this.state.inputPerls)
+                    Number(this.state.inputPerls),
+                    this.state.gasLimit
                 )
                 .then(response => {
                     perlin.notify({
@@ -473,8 +501,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     title={response.tx_id}
                                     target="_blank"
                                 >
-                                    {" "}
-                                    here{" "}
+                                    here
                                 </Link>
                             </p>
                         ),
