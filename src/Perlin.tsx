@@ -314,7 +314,8 @@ class Perlin {
             stake: data.stake,
             reward: data.reward,
             is_contract: data.is_contract,
-            num_mem_pages: data.num_mem_pages
+            num_mem_pages: data.num_mem_pages,
+            nonce: data.nonce
         };
     }
 
