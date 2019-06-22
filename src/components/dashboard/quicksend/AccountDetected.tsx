@@ -18,6 +18,7 @@ interface IProps {
     recipient: any;
     changeComponent: (component: string) => void;
     toggleComponent: string;
+    validContract: boolean;
 }
 
 interface IState {
@@ -39,6 +40,13 @@ const Row = styled(Flex)`
 
 const InputWrapper = styled.div`
     display: flex;
+`;
+const DetailsLinkWrapper = styled.div`
+    padding: 0 20px 20px 20px;
+    a {
+        color: #fff !important;
+        margin-left: 5px;
+    }
 `;
 
 const SendPerlsInput = styled.input`
@@ -321,6 +329,20 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </Flex>
                             </Box>
                         </Flex>
+                        {this.props.validContract && (
+                            <DetailsLinkWrapper>
+                                Valid Contract ID has been detected.
+                                <Link
+                                    to={`/transactions/${
+                                        this.props.recipient.public_key
+                                    }`}
+                                >
+                                    <b>
+                                        <u>Go to the detail.</u>
+                                    </b>
+                                </Link>
+                            </DetailsLinkWrapper>
+                        )}
                     </AccountDetectedContent>
                 </AccountDetectedAnimation>
 
@@ -451,7 +473,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     title={response.tx_id}
                                     target="_blank"
                                 >
-                                    here
+                                    {" "}
+                                    here{" "}
                                 </Link>
                             </p>
                         ),

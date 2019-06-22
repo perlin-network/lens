@@ -127,6 +127,7 @@ export default class QuickSend extends React.Component<{}, IState> {
 
                 <AccountDetected
                     recipient={this.state.recipient}
+                    validContract={this.state.validContract}
                     changeComponent={this.handleRestart}
                     toggleComponent={this.state.toggleComponent}
                 />
@@ -215,6 +216,10 @@ export default class QuickSend extends React.Component<{}, IState> {
         try {
             const payload = await perlin.getTransaction(txId);
             if (payload.tag && payload.tag === 2) {
+                this.setState({
+                    validContract: true,
+                    payload
+                });
                 return Promise.resolve(false);
             } else {
                 this.setState({
