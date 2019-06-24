@@ -62,8 +62,9 @@ const ChoiceButtons: React.FunctionComponent<IChoiceButtonsProps> = ({
 
     return (
         <ChoiceButtonsWrapper>
-            {options.map((option: IOption) => (
+            {options.map((option: IOption, index: number) => (
                 <Button
+                    key={index}
                     onClick={valueButtonClick(option.value)}
                     className={value === option.value ? "active" : ""}
                 >

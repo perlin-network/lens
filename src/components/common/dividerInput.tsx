@@ -46,8 +46,9 @@ export const Divider = styled.button`
     }
 `;
 
-export const DividerAside = styled.button.attrs({ hideOverflow: true })`
+export const DividerAside = styled.div`
     height: 48px;
+    overflow: hidden;
     border-radius: 0px 5px 5px 0px;
     background-color: #121834;
     font-size: 16px;
@@ -59,6 +60,7 @@ export const DividerAside = styled.button.attrs({ hideOverflow: true })`
     margin-top: 10px;
     margin-bottom: 10px;
     border: 0px;
+    flex-shrink: 0;
     white-space: nowrap;
 
     &:focus {
