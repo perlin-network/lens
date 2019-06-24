@@ -204,7 +204,11 @@ class Perlin {
         const payload = new PayloadWriter();
         payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
-        payload.writeUint64(Long.fromNumber(gasLimit, true));
+
+        if (gasLimit > 0) {
+            payload.writeUint64(Long.fromNumber(gasLimit, true));
+            payload.writeString("on_money_received");
+        }
 
         return await this.post(
             "/tx/send",
