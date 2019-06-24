@@ -498,7 +498,7 @@ class Perlin {
 
     private pollTransactionUpdates(event: string = "accepted") {
         const url = new URL(
-            `${WS_PROTOCOL}://${this.api.host}/poll/tx?sender=${
+            `${WS_PROTOCOL}://${this.api.host}/poll/tx?creator=${
                 this.publicKeyHex
             }`
         );
@@ -650,7 +650,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<ITransaction[] | undefined> {
-        return await this.getJSON(`/tx?sender=${this.publicKeyHex}`, {
+        return await this.getJSON(`/tx?creator=${this.publicKeyHex}`, {
             offset,
             limit,
             sender: this.publicKeyHex
