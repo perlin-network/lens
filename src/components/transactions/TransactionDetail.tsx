@@ -146,19 +146,6 @@ const renderTransactionDataView = (data: any) => {
                 <Col>{data.depth}</Col>
             </Row>
             <Row>
-                <HeadCol>Confidence&nbsp;:</HeadCol>
-                <Col>{data.confidence}</Col>
-            </Row>
-            <Row>
-                <HeadCol>Contract Address&nbsp;:</HeadCol>
-                <Col>00000000000000000000000000000000</Col>
-            </Row>
-
-            <Row>
-                <HeadCol>Accounts Root&nbsp;:</HeadCol>
-                <Col>{data.accounts_root}</Col>
-            </Row>
-            <Row>
                 <HeadCol>
                     {/*
                         todo : transcate the input data  
