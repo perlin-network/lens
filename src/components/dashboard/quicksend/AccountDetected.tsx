@@ -11,6 +11,7 @@ import {
 } from "../../common/typography";
 import DeltaTag, { DeltaTagWrapper } from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
+import { numberWithCommas } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 import { Link } from "react-router-dom";
 
@@ -411,7 +412,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         <Box width={3 / 8} className="break-word">
                             <div className="address">{perlin.publicKeyHex}</div>
                             <span className="balance">
-                                My Balance: {perlin.account.balance}{" "}
+                                My Balance:{" "}
+                                {numberWithCommas(perlin.account.balance)}
                             </span>
                             <DeltaTag value={-this.state.inputPerls} />
                         </Box>
@@ -442,7 +444,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 {recipient.public_key}
                             </div>
                             <span className="balance">
-                                Recipient Balance: {recipient.balance}
+                                Recipient Balance:{" "}
+                                {numberWithCommas(recipient.balance)}
                             </span>
                             <DeltaTag value={this.state.inputPerls} />
                         </Box>

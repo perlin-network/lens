@@ -5,7 +5,8 @@ import {
     WhiteButton,
     RoundButton,
     ErrorMessage,
-    LargeInput
+    LargeInput,
+    numberWithCommas
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -14,7 +15,7 @@ import { Box, Flex } from "@rebass/grid";
 import { StakeActions } from "./ValidatorView";
 
 interface IStakeCardProps {
-    stake: number | null;
+    stake?: number;
     action: StakeActions;
     setAction: (action: StakeActions) => void;
     onSubmit: (amount: number) => void;
@@ -38,7 +39,7 @@ const StakeAmount = styled.h2`
 `;
 
 const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
-    stake,
+    stake = 0,
     action,
     setAction,
     onSubmit
@@ -82,7 +83,7 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
             <CardBody>
                 <Row>
                     <Col width={1 / 2}>
-                        <StakeAmount> {stake ? stake : "0"} </StakeAmount>
+                        <StakeAmount> {numberWithCommas(stake)} </StakeAmount>
                         PERLs
                     </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
