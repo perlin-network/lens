@@ -248,7 +248,7 @@ class Perlin {
     public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
         const payload = new PayloadWriter();
         payload.writeUint64(Long.fromNumber(100000000, true));
-        payload.writeUint64(Long.fromNumber(0, true));
+        payload.writeUint32(0);
         payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
         return await this.post(
             "/tx/send",
