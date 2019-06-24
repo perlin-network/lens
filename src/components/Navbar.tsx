@@ -73,6 +73,10 @@ const Item = styled(Box)`
     &.align-left {
         text-align: left;
     }
+
+    &:last-child {
+        padding-right: 0;
+    }
 `;
 
 const WalletItem = styled(Item)`
