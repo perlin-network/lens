@@ -1,5 +1,4 @@
-import { action, observable } from "mobx";
-import { SmartBuffer } from "smart-buffer";
+import { observable } from "mobx";
 import * as Wabt from "wabt";
 import { Perlin } from "../../Perlin";
 
@@ -84,7 +83,7 @@ export default class ContractStore {
 
         const payloadView = new DataView(payload.buffer);
         const contractSpawnGasLimit = payloadView.getBigUint64(0, true);
-        const contractSpawnPayloadSize = payloadView.getBigUint64(8, true);
+        const contractSpawnPayloadSize = payloadView.getUint32(8, true);
 
         console.log(
             `To spawn the smart contract, a gas limit of ${contractSpawnGasLimit} PERLs was provided.`
@@ -95,7 +94,7 @@ export default class ContractStore {
 
         const contractCode = new Uint8Array(
             payload.buffer,
-            8 + 8 + Number(contractSpawnPayloadSize)
+            8 + 4 + Number(contractSpawnPayloadSize)
         );
 
         console.log(
