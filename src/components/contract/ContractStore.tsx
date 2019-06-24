@@ -114,7 +114,22 @@ export default class ContractStore {
                 abort: () => {
                     console.log("abort called");
                 },
-                // todo: add send_transaction
+                _send_transaction: (
+                    tag: any,
+                    payloadPointer: any,
+                    payloadLen: number
+                ) => {
+                    const sendTxView = new Uint8Array(
+                        memory.buffer,
+                        payloadPointer,
+                        payloadLen
+                    );
+                    const sendTxpayload = decoder.decode(sendTxView);
+
+                    const sendTxMsg = `Sent transaction with tag ${tag} and payload ${sendTxpayload}.`;
+                    console.log(sendTxMsg);
+                    this.logs.push(sendTxMsg);
+                },
                 _payload_len: () => {
                     return contractPayload.length;
                 },
