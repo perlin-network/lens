@@ -1,6 +1,10 @@
 import React, { useCallback } from "react";
 import { useState, useEffect } from "react";
-import { Card as OriginalCard, Button as RawButton } from "../common/core";
+import {
+    Card as OriginalCard,
+    Button as RawButton,
+    ButtonOutlined
+} from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
@@ -18,6 +22,7 @@ import LoadingSpinner from "../common/loadingSpinner";
 
 import { InlineNotificationSuccess } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
+import { Link } from "react-router-dom";
 
 interface IParamItem {
     id: string;
@@ -336,7 +341,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
-    const onCall = async () => {
+    const onCall = (simulated: boolean = false) => async () => {
         if (isNaN(gasLimit)) {
             errorNotification("Invalid Gas Limit");
             return;
@@ -354,18 +359,22 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             setLoading(true);
             try {
                 const result: any = await contractStore.call(currFunc, buf);
-                /*
-                const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
 
-                setWasmResult(
-                    `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-                );
-                console.log(
-                    `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-                );
-                */
+                // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
+
+                // setWasmResult(
+                //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+                // );
+
+                // console.log(
+                //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+                // );
             } catch (e) {
                 errorNotification(`Error : ${e}`);
+            }
+            if (simulated) {
+                setLoading(false);
+                return;
             }
             const params = writeToBuffer(paramsList);
 
@@ -377,6 +386,25 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 gasLimit
             );
             const txId = response.tx_id;
+
+            perlin.notify({
+                title: "Function Invoked",
+                type: NotificationTypes.Success,
+                // message: "You can view your transactions details here"
+                content: (
+                    <p>
+                        You can view your transaction
+                        <Link
+                            to={"/transactions/" + txId}
+                            title={txId}
+                            target="_blank"
+                        >
+                            here
+                        </Link>
+                    </p>
+                ),
+                dismiss: { duration: 10000 }
+            });
 
             // reload memory
             let count = 0;
@@ -390,12 +418,15 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 await delay(1000);
                 count++;
             }
+            try {
+                const totalMemoryPages = await loadContractFromNetwork(
+                    contractStore.contract.transactionId
+                );
 
-            const totalMemoryPages = await loadContractFromNetwork(
-                contractStore.contract.transactionId
-            );
-
-            await contractStore.load(totalMemoryPages);
+                await contractStore.load(totalMemoryPages);
+            } catch (err) {
+                errorNotification(`Error : ${err.message || err}`);
+            }
 
             setLoading(false);
         } else {
@@ -446,17 +477,25 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         </Box>
                     </Flex>
 
+                    <GasLimit
+                        balance={perlin.account.balance}
+                        onChange={handleUpdateGasLimit}
+                    />
                     <Flex
                         mt={3}
                         alignItems="center"
                         justifyContent="space-between"
                     >
-                        <GasLimit
-                            mr={3}
-                            balance={perlin.account.balance}
-                            onChange={handleUpdateGasLimit}
-                        />
-                        <CallFunctionButton disabled={loading} onClick={onCall}>
+                        <ButtonOutlined
+                            disabled={loading}
+                            onClick={onCall(true)}
+                        >
+                            Simulate Call
+                        </ButtonOutlined>
+                        <CallFunctionButton
+                            disabled={loading}
+                            onClick={onCall(false)}
+                        >
                             Call Function
                         </CallFunctionButton>
                     </Flex>

@@ -45,6 +45,8 @@ export const Button = styled.button`
     color: #fff;
     background-color: #23228e;
     cursor: pointer;
+    transition: all 0.2s ease;
+
     ${(props: IButtonProps) =>
         props.hideOverflow
             ? `
@@ -66,6 +68,25 @@ Button.defaultProps = {
     fontSize: "16px",
     hideOverflow: false
 };
+
+export const ButtonOutlined = styled(Button)`
+    background: none;
+    color: rgba(255, 255, 255, 0.8);
+    border: solid 2px #fff;
+    border-radius: 5px;
+    font-weight: 600;
+    height: auto;
+    width: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+
+    &:hover,
+    &:active {
+        color: #151a36;
+        background: #fff;
+        border-color: #fff;
+    }
+`;
 
 interface IInputProps {
     width?: string;
