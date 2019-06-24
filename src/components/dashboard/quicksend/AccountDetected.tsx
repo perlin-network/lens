@@ -253,7 +253,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         <SendPerlsButton
                                             onClick={this.handleSendButton}
                                         >
-                                            Send {this.state.inputPerls} PERLs
+                                            Send {this.state.inputPerls} PERL(s)
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
@@ -287,13 +287,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         <Box width={4 / 7} className="table-outer">
                             <div className="table-inner break-word-normal">
                                 <h4>
-                                    Your {this.state.inputPerls} PERLs are on
+                                    Your {this.state.inputPerls} PERL(s) are on
                                     their way!
                                 </h4>
                                 <p>
-                                    Your PERL tokens are being processed by our
-                                    lighting fast consensus mechanism and will
-                                    be transferred in a few seconds.
+                                    Your PERL token(s) are being processed by
+                                    our lighting fast consensus mechanism and
+                                    will be transferred in a few seconds.
                                 </p>
                             </div>
                         </Box>
@@ -407,7 +407,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             )
             .then(response => {
                 perlin.notify({
-                    title: "PERLs Sent",
+                    title: "PERL(s) Sent",
                     type: NotificationTypes.Success,
                     // message: "You can view your transactions details here"
                     content: (
