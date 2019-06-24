@@ -267,3 +267,16 @@ input, textarea, button {
     z-index: 1000;
     -webkit-overflow-scrolling: touch;
 }
+
+#doorbell-button {
+    background: #4a41d1;
+    transition: all 0.15s ease-out;
+    transform: translateY(5px);
+    opacity: 0.6;
+    box-shadow: 0 -2px 2px rgba(0,0,0,0.1);
+
+    &:hover, &:active {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
