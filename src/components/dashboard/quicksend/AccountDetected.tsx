@@ -91,6 +91,7 @@ const Fees = styled.button.attrs({ hideOverflow: true })`
     margin-top: 10px;
     margin-bottom: 10px;
     border: 0px;
+    white-space: nowrap;
 
     &:focus {
         border: 0px;
@@ -293,7 +294,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         onChange={this.updateInputPerls}
                                     />
                                     <Divider>|</Divider>
-                                    <Fees>Fee:&nbsp;0.00001&nbsp;PERLs</Fees>
+                                    <Fees>Fee: 2 PERLs</Fees>
                                 </InputWrapper>
 
                                 {this.props.validContract && (
@@ -474,13 +475,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         ) {
             perlin.notify({
                 type: NotificationTypes.Danger,
-                message: "Invalid Gas Limit"
+                message: "Please enter a valid Gas Limit"
             });
             return;
         }
         if (
             this.state.inputPerls === "" ||
-            isNaN(Number(this.state.inputPerls))
+            isNaN(Number(this.state.inputPerls)) ||
+            Number(this.state.inputPerls) <= 0
         ) {
             perlin.notify({
                 type: NotificationTypes.Danger,
