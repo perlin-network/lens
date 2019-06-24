@@ -9,11 +9,14 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import DeltaTag, { DeltaTagWrapper } from "../../common/deltaTag";
+import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import { numberWithCommas } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 import { Link } from "react-router-dom";
+import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
+import BigNumber from "bignumber.js";
+import GasLimit from "../../common/gas-limit/GasLimit";
 
 interface IProps {
     recipient: any;
@@ -26,7 +29,8 @@ interface IState {
     inputPerls: string;
     doubleChecked: boolean;
     errorMessage: string;
-    gasLimit?: number;
+    gasLimit?: string;
+    gasChoiceReset: number;
 }
 
 const Wrapper = styled.div`
@@ -42,79 +46,13 @@ const Row = styled(Flex)`
 
 const InputWrapper = styled.div`
     display: flex;
+    flex: 1;
 `;
 const DetailsLinkWrapper = styled.div`
     padding: 0 20px 20px 20px;
     a {
         color: #fff !important;
         margin-left: 5px;
-    }
-`;
-
-const SendPerlsInput = styled.input`
-    font-family: HKGrotesk;
-    font-size: 16px;
-    font-weight: 400;
-    background-color: #121834;
-    border-radius: 5px 0px 0px 5px;
-    border: 1px solid #2e345100;
-    color: white;
-    width: 100%;
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    height: 48px;
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        border: 1px solid #4a41d1;
-        outline: 0;
-    }
-    &::placeholder {
-        font-size: 16px;
-    }
-`;
-const GasLimitsInput = styled(SendPerlsInput)`
-    max-width: calc(100% - 180px);
-`;
-const Fees = styled.button.attrs({ hideOverflow: true })`
-    height: 48px;
-    border-radius: 0px 5px 5px 0px;
-    background-color: #121834;
-    font-size: 16px;
-    font-weight: 400;
-    color: white;
-    width: auto;
-    display: inline;
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border: 0px;
-    white-space: nowrap;
-
-    &:focus {
-        border: 0px;
-        outline: 0;
-    }
-`;
-
-const Divider = styled.button`
-    height: 48px;
-    background-color: #121834;
-    font-size: 24px;
-    font-weight: 400;
-    color: #3a3f5b;
-    width: auto;
-    display: inline;
-    padding: 0px;
-    margin: 10px 0;
-    border: 0px;
-
-    &:focus {
-        border: 0px;
-        outline: 0;
     }
 `;
 
@@ -133,16 +71,15 @@ const SendPerlsButton = styled.button`
     border: 1px solid #00000000;
     color: #151b35;
     padding: 15px;
+    margin: 10px 0;
 
     min-width: 110px;
 
-    &:hover {
+    &:hover,
+    &:focus {
         cursor: pointer;
         background-color: #d4d5da;
-    }
-    &:focus {
-        background-color: #d4d5da;
-        border: 1px solid #4a41d1;
+        border: 1px solid #d4d5da;
         outline: 0;
     }
 `;
@@ -174,6 +111,7 @@ const InfoLine = styled.tr`
         opacity: 0.6;
     }
 `;
+
 const TransferIntroRow = styled(Row)`
     padding: 20px 20px 0 40px;
     color: #a6aab1;
@@ -213,7 +151,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         this.state = {
             inputPerls: "",
             doubleChecked: false,
-            errorMessage: ""
+            errorMessage: "",
+            gasChoiceReset: 0
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -289,71 +228,34 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </Box>
                             <Box width={1 / 2} className="break-word">
                                 <InputWrapper>
-                                    <SendPerlsInput
+                                    <DividerInput
                                         placeholder="Enter Amount"
                                         value={this.state.inputPerls}
                                         onChange={this.updateInputPerls}
                                     />
                                     <Divider>|</Divider>
-                                    <Fees>Fee: 2 PERLs</Fees>
+                                    <DividerAside>Fee: 2 PERLs</DividerAside>
                                 </InputWrapper>
-
-                                {this.props.validContract && (
-                                    <Flex
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                    >
-                                        <GasLimitsInput
-                                            placeholder="Gas Limit"
-                                            value={this.state.gasLimit}
-                                            onChange={this.updateGasLimit}
-                                        />
-
-                                        <SendPerlsButton
-                                            onClick={this.handleSendButton}
-                                        >
-                                            Send {this.state.inputPerls} PERLs
-                                        </SendPerlsButton>
-                                    </Flex>
-                                )}
 
                                 <Flex
                                     alignItems="center"
                                     justifyContent="space-between"
                                 >
-                                    <Flex alignItems="top">
-                                        <input
-                                            type="checkbox"
-                                            id="confirmSendPerls"
-                                            name="confirmSendPerls"
-                                            checked={this.state.doubleChecked}
-                                            onChange={this.handleCheckboxChange}
-                                            style={{
-                                                border: "1px solid #3a3f5b",
-                                                backgroundColor: "#00000000",
-                                                margin: "2px 10px 0 0"
-                                            }}
+                                    {this.props.validContract && (
+                                        <GasLimit
+                                            balance={perlin.account.balance}
+                                            onChange={this.updateGasLimit}
+                                            mr={3}
                                         />
-                                        <label
-                                            htmlFor="confirmSendPerls"
-                                            style={{
-                                                flex: 1,
-                                                marginRight: "10px"
-                                            }}
-                                        >
-                                            I have double checked the address
-                                        </label>
-                                    </Flex>
-                                    {!this.props.validContract && (
-                                        <Box>
-                                            <SendPerlsButton
-                                                onClick={this.handleSendButton}
-                                            >
-                                                Send {this.state.inputPerls}{" "}
-                                                PERLs
-                                            </SendPerlsButton>
-                                        </Box>
                                     )}
+
+                                    <Box>
+                                        <SendPerlsButton
+                                            onClick={this.handleSendButton}
+                                        >
+                                            Send {this.state.inputPerls} PERLs
+                                        </SendPerlsButton>
+                                    </Box>
                                 </Flex>
                             </Box>
                         </Flex>
@@ -454,10 +356,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             </Wrapper>
         );
     }
-    private updateGasLimit = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const gasLimit = parseInt(e.target.value, 10);
+
+    private updateGasLimit = (gasLimit: string) => {
         this.setState({ gasLimit });
     };
+
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ inputPerls: e.target.value });
     }
@@ -472,62 +375,58 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     }
 
     private successfulSend = () => {
-        if (
-            this.props.validContract &&
-            (!this.state.gasLimit || isNaN(this.state.gasLimit))
-        ) {
-            perlin.notify({
-                type: NotificationTypes.Danger,
-                message: "Please enter a valid Gas Limit"
-            });
-            return;
-        }
-        if (
-            this.state.inputPerls === "" ||
-            isNaN(Number(this.state.inputPerls)) ||
-            Number(this.state.inputPerls) <= 0
-        ) {
-            perlin.notify({
-                type: NotificationTypes.Danger,
-                message: "Please enter a valid number of PERLs"
-            });
-            return false;
-        } else if (this.state.doubleChecked === false) {
-            perlin.notify({
-                type: NotificationTypes.Danger,
-                message: "Please double-check the recipient address"
-            });
-            return false;
-        } else {
-            perlin
-                .transfer(
-                    this.props.recipient.public_key,
-                    Number(this.state.inputPerls),
-                    this.state.gasLimit
-                )
-                .then(response => {
-                    perlin.notify({
-                        title: "PERLs Sent",
-                        type: NotificationTypes.Success,
-                        // message: "You can view your transactions details here"
-                        content: (
-                            <p>
-                                You can view your transaction
-                                <Link
-                                    to={"/transactions/" + response.tx_id}
-                                    title={response.tx_id}
-                                    target="_blank"
-                                >
-                                    here
-                                </Link>
-                            </p>
-                        ),
-                        dismiss: { duration: 10000 }
-                    });
+        let gasLimit;
+        const perls = new BigNumber(this.state.inputPerls);
+
+        if (this.props.validContract) {
+            gasLimit = new BigNumber(this.state.gasLimit || "0");
+
+            if (gasLimit.isNaN() || gasLimit.lte(0)) {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: "Please enter a valid Gas Limit"
                 });
-            // further validation required for successful send
-            return true;
+                return false;
+            }
+
+            gasLimit = gasLimit.toNumber();
         }
+
+        if (perls.isNaN() || perls.lte(0)) {
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                message: "Please enter a valid amount of PERLs"
+            });
+            return false;
+        }
+        perlin
+            .transfer(
+                this.props.recipient.public_key,
+                perls.toNumber(),
+                gasLimit
+            )
+            .then(response => {
+                perlin.notify({
+                    title: "PERLs Sent",
+                    type: NotificationTypes.Success,
+                    // message: "You can view your transactions details here"
+                    content: (
+                        <p>
+                            You can view your transaction
+                            <Link
+                                to={"/transactions/" + response.tx_id}
+                                title={response.tx_id}
+                                target="_blank"
+                            >
+                                here
+                            </Link>
+                        </p>
+                    ),
+                    dismiss: { duration: 10000 }
+                });
+            });
+        // further validation required for successful send
+        return true;
     };
 
     private cancelSend = () => {

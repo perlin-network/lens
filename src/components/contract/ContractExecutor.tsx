@@ -1,10 +1,6 @@
 import React, { useCallback } from "react";
 import { useState, useEffect } from "react";
-import {
-    Card as OriginalCard,
-    LargeInput,
-    Button as RawButton
-} from "../common/core";
+import { Card as OriginalCard, Button as RawButton } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
@@ -19,7 +15,9 @@ import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
 import { loadContractFromNetwork } from "./ContractUploader";
 import LoadingSpinner from "../common/loadingSpinner";
+
 import { InlineNotificationSuccess } from "../common/notification/Notification";
+import GasLimit from "../common/gas-limit/GasLimit";
 
 interface IParamItem {
     id: string;
@@ -135,6 +133,13 @@ const Button = styled(RawButton)`
     }
 `;
 
+const CallFunctionButton = styled(Button)`
+    width: auto;
+    font-size: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
+`;
+
 const Title = styled.h2`
     margin: 0;
     font-size: 16px;
@@ -165,9 +170,12 @@ const ParamsBody = styled(CardBody)`
     padding: 25px 25px 25px 25px;
 `;
 
-const GasLimitInput = styled(LargeInput)`
-    margin-right: 10px;
-    padding: 15px;
+const GasLimitBox = styled.div`
+    label {
+        color: #fff;
+        opacity: 0.6;
+        margin-bottom: 4px;
+    }
 `;
 
 const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
@@ -275,8 +283,8 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const [loading, setLoading] = useState(false);
 
-    const handleUpdateGasLimit = useCallback((event: any) => {
-        setGasLimit(event.target.value);
+    const handleUpdateGasLimit = useCallback((value: string) => {
+        setGasLimit(value);
     }, []);
     useEffect(() => {
         setFunc(funcList[0]);
@@ -443,19 +451,14 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         alignItems="center"
                         justifyContent="space-between"
                     >
-                        <GasLimitInput
-                            placeholder="Gas Limit"
-                            defaultValue={gasLimit}
+                        <GasLimit
+                            mr={3}
+                            balance={perlin.account.balance}
                             onChange={handleUpdateGasLimit}
                         />
-
-                        <Button
-                            disabled={loading}
-                            fontSize="14px"
-                            onClick={onCall}
-                        >
+                        <CallFunctionButton disabled={loading} onClick={onCall}>
                             Call Function
-                        </Button>
+                        </CallFunctionButton>
                     </Flex>
 
                     {loading && <LoadingSpinner />}
