@@ -41,7 +41,7 @@ const DividerText = styled.h2`
     color: #fff;
     margin: 0 16px;
 `;
-const InputWrapper = styled.div`
+const InputWrapper = styled.form`
     display: flex;
 `;
 const StyledInput = styled(Input)`
@@ -218,29 +218,36 @@ export const loadContractFromNetwork = async (
 const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [contractAddress, setContractAddress] = useState("");
-    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setContractAddress(e.target.value);
-    };
+    const handleAddressChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setContractAddress(e.target.value);
+        },
+        []
+    );
 
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
-    const handleLoadClick = useCallback(async () => {
-        setLoading(true);
-        try {
-            const totalMemoryPages = await loadContractFromNetwork(
-                contractAddress
-            );
+    const handleLoad = useCallback(
+        async (event: any) => {
+            event.preventDefault();
+            setLoading(true);
+            try {
+                const totalMemoryPages = await loadContractFromNetwork(
+                    contractAddress
+                );
 
-            if (contractStore.contract.transactionId) {
-                await contractStore.load(totalMemoryPages);
+                if (contractStore.contract.transactionId) {
+                    await contractStore.load(totalMemoryPages);
+                }
+            } catch (err) {
+                errorNotification(`${err}`);
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            errorNotification(`${err}`);
-        } finally {
-            setLoading(false);
-        }
-    }, [contractAddress]);
+        },
+        [contractAddress]
+    );
 
     const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
@@ -294,15 +301,13 @@ const ContractUploader: React.FunctionComponent = () => {
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
-            <InputWrapper>
+            <InputWrapper onSubmit={handleLoad}>
                 <StyledInput
                     value={contractAddress}
                     placeholder="Enter the address of a deployed smart contract"
                     onChange={handleAddressChange}
                 />
-                <StyledButton onClick={handleLoadClick}>
-                    Load Contract
-                </StyledButton>
+                <StyledButton type="submit">Load Contract</StyledButton>
             </InputWrapper>
             {loading && <LoadingSpinner />}
             {contractStore.contract.transactionId !== "" && (
