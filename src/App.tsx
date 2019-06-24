@@ -30,7 +30,7 @@ const ContentWrapper = styled(Flex)`
 const SideWrapper = styled(Box)`
     margin: 0px;
     padding: 0px;
-    width: 160px;
+    width: 170px;
     ${({ isLoggedIn }: { isLoggedIn: boolean }) =>
         isLoggedIn ? "background-color: #0c112b;" : ""}
 `;
@@ -41,7 +41,7 @@ const Content = styled(Box).attrs({
     padding-left: 25px;
     padding-right: 25px;
     min-width: 900px;
-    width: calc(100% - 160px);
+    width: calc(100% - 170px);
     max-width: 1340px;
     ${({ isLoggedIn }: { isLoggedIn: boolean }) =>
         isLoggedIn ? "" : "margin: 0 auto;"}

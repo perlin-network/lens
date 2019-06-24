@@ -29,11 +29,11 @@ const NavItem = styled.div<INavItemProps>`
     display: flex;
     align-items: center;
     height: 36.5px;
-    padding: 10px 20px;
+    padding: 10px 30px;
     margin-bottom: 12px;
     cursor: pointer;
     position: relative;
-    width: 135px;
+
     &:hover {
         font-weight: bold;
         color: white;
@@ -65,8 +65,8 @@ const items: INavItem[] = [
 ];
 
 const LogoWrapper = styled.img`
-    max-width: 150px;
-    padding: 20px;
+    max-width: 170px;
+    padding: 30px;
     margin-bottom: 2em;
 `;
 
