@@ -97,8 +97,8 @@
     "scripts": {
         "start": "node scripts/start.js",
         "start-secure": "REACT_APP_HTTPS=true node scripts/start.js",
-        "build": "node scripts/build.js",
-        "build-secure": "REACT_APP_HTTPS=true node scripts/build.js",
+        "build": "GENERATE_SOURCEMAP=false node scripts/build.js",
+        "build-secure": "GENERATE_SOURCEMAP=false EACT_APP_HTTPS=true node scripts/build.js",
         "test": "node scripts/test.js --env=jsdom",
         "lint:prettier": "prettier --write src/**/*.{js,jsx,ts,tsx}"
     },
