@@ -61,11 +61,12 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
         },
         [balance]
     );
+    const formattedValue = (gasLimit && parseInt(gasLimit, 10)) || "";
     return (
         <Flex mr={mr} mt={mt} flex="1">
             <DividerInput
                 placeholder="Gas Limit"
-                value={gasLimit}
+                value={formattedValue}
                 onChange={updateGasLimit}
             />
             <Divider>|</Divider>
