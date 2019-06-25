@@ -48,8 +48,13 @@ class Perlin {
         return Perlin.singleton;
     }
 
-    public static parseTransferTransaction(b: Buffer) {
-        const reader = new PayloadReader(Array.from(b));
+    public static parseTransactionPayload(data: ITransaction) {
+        if (!data.payload) {
+            return;
+        }
+
+        const buffer = Buffer.from(data.payload, "base64");
+        const reader = new PayloadReader(Array.from(buffer));
 
         return {
             recipient: reader.buffer.readBuffer(32).toString("hex"),

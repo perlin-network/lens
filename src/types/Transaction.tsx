@@ -16,6 +16,7 @@ interface ITransaction {
     tag: Tag;
 
     status: string;
+    payload?: string;
 }
 
 export { ITransaction };
