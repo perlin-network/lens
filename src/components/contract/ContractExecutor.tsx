@@ -355,9 +355,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         setErrorMessage("");
 
         if (!emptyItem) {
-            const buf = writeToBuffer(paramsList);
             setLoading(true);
             try {
+                const buf = writeToBuffer(paramsList);
                 const result: any = await contractStore.call(currFunc, buf);
 
                 // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
