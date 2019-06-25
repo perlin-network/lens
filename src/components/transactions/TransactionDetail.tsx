@@ -159,12 +159,7 @@ const renderTransactionDataView = (data: any) => {
             {payload && (
                 <>
                     <Row>
-                        <HeadCol>
-                            {/*
-                                todo : transcate the input data  
-                            */}
-                            Input Data:
-                        </HeadCol>
+                        <HeadCol>Input Data:</HeadCol>
                         <Col className="truncated">{data.payload}</Col>
                     </Row>
                     <hr color="#717985" />
