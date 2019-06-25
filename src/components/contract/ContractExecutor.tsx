@@ -354,28 +354,30 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         setWasmResult("");
         setErrorMessage("");
 
-        if (!emptyItem) {
-            setLoading(true);
-            try {
-                const buf = writeToBuffer(paramsList);
-                const result: any = await contractStore.call(currFunc, buf);
+        if (emptyItem) {
+            errorNotification("Error : Item can't be empty.");
+            return;
+        }
 
-                // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
+        setLoading(true);
+        try {
+            const buf = writeToBuffer(paramsList);
+            const result: any = await contractStore.call(currFunc, buf);
 
-                // setWasmResult(
-                //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-                // );
+            // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
 
-                // console.log(
-                //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-                // );
-            } catch (e) {
-                errorNotification(`Error : ${e}`);
-            }
+            // setWasmResult(
+            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+            // );
+
+            // console.log(
+            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+            // );
             if (simulated) {
                 setLoading(false);
                 return;
             }
+
             const params = writeToBuffer(paramsList);
 
             const response = await perlin.invokeContractFunction(
@@ -418,20 +420,17 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 await delay(1000);
                 count++;
             }
-            try {
-                const totalMemoryPages = await loadContractFromNetwork(
-                    contractStore.contract.transactionId
-                );
 
-                await contractStore.load(totalMemoryPages);
-            } catch (err) {
-                errorNotification(`Error : ${err.message || err}`);
-            }
+            const totalMemoryPages = await loadContractFromNetwork(
+                contractStore.contract.transactionId
+            );
 
-            setLoading(false);
-        } else {
-            errorNotification(`Error : Item can't be empty.`);
+            await contractStore.load(totalMemoryPages);
+        } catch (err) {
+            errorNotification(`Error : ${err.message || err}`);
         }
+
+        setLoading(false);
     };
 
     const logMessages = contractStore.logs;
