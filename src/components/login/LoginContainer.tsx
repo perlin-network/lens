@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { observer } from "mobx-react-lite";
 import { Perlin, NotificationTypes } from "../../Perlin";
-import { withRouter, RouteComponentProps } from "react-router";
+import { withRouter, RouteComponentProps, Redirect } from "react-router";
 import "../config/config.scss";
 import { Config } from "../config/Config";
 import { LargeInput } from "../common/core";
@@ -214,6 +214,10 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     const apiHostChangeHandler = useCallback((event: any) => {
         setCurrentHost(event.target.value);
     }, []);
+
+    if (perlin.isLoggedIn) {
+        return <Redirect to={{ pathname: "/" }} />;
+    }
 
     return (
         <Wrapper>
