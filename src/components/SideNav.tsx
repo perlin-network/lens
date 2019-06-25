@@ -59,7 +59,7 @@ interface INavItemProps {
 
 interface INavItem {
     title: string;
-    link?: string;
+    link: string;
     icon: any;
     external?: boolean;
 }
@@ -89,8 +89,13 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
     const { pathname } = props.history.location;
     const isLoggedIn = perlin.isLoggedIn;
 
-    const navigateTo = (link: string) => () => {
-        props.history.push(link);
+    const navigateTo = (link: string, external: boolean = false) => {
+        return (event: any) => {
+            if (!external) {
+                props.history.push(link);
+                event.preventDefault();
+            }
+        };
     };
     const logout = () => () => {
         perlin.logout();
@@ -108,14 +113,10 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
                     {items.map(item => (
                         <NavItem
                             key={item.title}
-                            onClick={
-                                !external && item.link
-                                    ? navigateTo(item.link)
-                                    : undefined
-                            }
+                            onClick={navigateTo(item.link, item.external)}
                             active={pathname === item.link}
-                            href={external ? item.link : ""}
-                            target="_blank"
+                            href={item.external ? item.link : ""}
+                            target={item.external ? "_blank" : ""}
                         >
                             <NavIcon
                                 src={item.icon}
