@@ -99,6 +99,10 @@ class NGraph extends React.PureComponent<
 
         const simulation = d3
             .forceSimulation(this.nodes)
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("charge", d3.forceManyBody().strength(-50))
+            .force("y", d3.forceY().y(height / 2))
+            .force("x", d3.forceX().x(width / 2))
             .force(
                 "link",
                 d3
@@ -106,13 +110,8 @@ class NGraph extends React.PureComponent<
                     .id((d: any) => d.id)
                     .strength(0)
             )
-            .force(
-                "collide",
-                d3.forceCollide((d: any) => d.r + 10).iterations(16)
-            )
-            .force("charge", d3.forceManyBody().strength(-50))
-            .force("y", d3.forceY().y(height / 2))
-            .force("x", d3.forceX().x(width / 2))
+            .force("collide", d3.forceCollide((d: any) => d.r + 10))
+
             .alphaDecay(0.1)
             .alphaTarget(0);
 
