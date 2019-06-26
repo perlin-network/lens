@@ -147,7 +147,7 @@ const errorNotification = (message: string) => {
 const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     history
 }) => {
-    const [secretKey, setSecretKey] = useState<string>(DEFAULT_SECRET_KEY);
+    const [secretKey, setSecretKey] = useState<string>();
 
     const [alert, setAlert] = useState<string>();
 
@@ -156,6 +156,9 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     }, []);
     const currentHost = getCurrentHost();
 
+    useEffect(() => {
+        generateNewKeys();
+    }, []);
     const handleFileChange = useCallback((e: any) => {
         try {
             if (e.target.files[0]) {
@@ -241,7 +244,6 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                 style={{ width: "100%" }}
                             >
                                 <Input
-                                    placeholder={`${DEFAULT_SECRET_KEY}`}
                                     onChange={handleChange}
                                     value={secretKey}
                                     rows={4}
