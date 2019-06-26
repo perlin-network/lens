@@ -381,7 +381,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         if (this.props.validContract) {
             gasLimit = new BigNumber(this.state.gasLimit || "0");
 
-            if (gasLimit.isNaN() || gasLimit.lte(0)) {
+            if (
+                gasLimit.isNaN() ||
+                gasLimit.lte(0) ||
+                gasLimit.gt(perlin.account.balance)
+            ) {
                 perlin.notify({
                     type: NotificationTypes.Danger,
                     message: "Please enter a valid Gas Limit"
@@ -392,7 +396,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             gasLimit = gasLimit.toNumber();
         }
 
-        if (perls.isNaN() || perls.lte(0)) {
+        if (perls.isNaN() || perls.lte(0) || perls.gt(perlin.account.balance)) {
             perlin.notify({
                 type: NotificationTypes.Danger,
                 message: "Please enter a valid amount of PERLs"
