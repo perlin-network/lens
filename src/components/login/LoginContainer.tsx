@@ -39,8 +39,6 @@ const Wrapper = styled(Flex)`
 
 // TODO: refactor to reuse Button and ButtonOutlined from core.tsx
 const Button = styled.button`
-    width: 160px;
-    height: 44px;
     border: 0;
     border-radius: 5px;
     text-align: center;
@@ -53,6 +51,8 @@ const Button = styled.button`
     margin-right: 10px;
     background-color: #fff;
     cursor: pointer;
+    padding: 10px;
+    line-height: 1.3;
 
     &:disabled,
     &[disabled] {
@@ -75,9 +75,6 @@ const ButtonOutlined = styled(Button)`
     border: solid 1px #fff;
     color: #fff;
     opacity: 0.8;
-    width: auto;
-    padding-left: 15px;
-    padding-right: 15px;
 
     &:hover,
     &:active {
@@ -119,8 +116,6 @@ const Input = styled.textarea`
 `;
 
 const FileInputWrapper = styled.div`
-    height: 44px;
-    overflow: hidden;
     position: relative;
 `;
 
