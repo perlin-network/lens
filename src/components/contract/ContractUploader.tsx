@@ -10,6 +10,7 @@ import * as Wabt from "wabt";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../common/loadingSpinner";
+import GasLimit from "../common/gas-limit/GasLimit";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -135,7 +136,7 @@ const successNotification = (title: string, txId: string) => {
     });
 };
 
-const createSmartContract = async (file: File) => {
+const createSmartContract = async (file: File, gasLimit: number) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -154,7 +155,7 @@ const createSmartContract = async (file: File) => {
     contractStore.contract.transactionId = "";
 
     try {
-        const resp = await perlin.createSmartContract(bytes);
+        const resp = await perlin.createSmartContract(bytes, gasLimit);
 
         if (resp.error) {
             errorNotification(`${resp.status} : ${resp.error}`);
@@ -217,6 +218,7 @@ export const loadContractFromNetwork = async (
 
 const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
+    const [gasLimit, setGasLimit] = useState();
     const [contractAddress, setContractAddress] = useState("");
     const handleAddressChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,6 +227,9 @@ const ContractUploader: React.FunctionComponent = () => {
         []
     );
 
+    const handleUpdateGasLimit = useCallback((value: string) => {
+        setGasLimit(value);
+    }, []);
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
@@ -249,38 +254,46 @@ const ContractUploader: React.FunctionComponent = () => {
         [contractAddress]
     );
 
-    const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
-        const file = acceptedFiles[0];
-        setLoading(true);
-        try {
-            await createSmartContract(file);
-            if (contractStore.contract.transactionId) {
-                let count = 0;
-                while (count < 30) {
-                    const tx = await perlin.getTransaction(
+    const onDropAccepted = useCallback(
+        async (acceptedFiles: File[]) => {
+            const file = acceptedFiles[0];
+            setLoading(true);
+            try {
+                if (isNaN(gasLimit)) {
+                    errorNotification("Invalid Gas Limit");
+                    return;
+                }
+                await createSmartContract(file, gasLimit);
+                if (contractStore.contract.transactionId) {
+                    let count = 0;
+                    while (count < 30) {
+                        const tx = await perlin.getTransaction(
+                            contractStore.contract.transactionId
+                        );
+
+                        if (tx.status === "applied") {
+                            await delay(3000);
+                            break;
+                        }
+                        await delay(1000);
+                        count++;
+                    }
+
+                    const totalMemoryPages = await loadContractFromNetwork(
                         contractStore.contract.transactionId
                     );
 
-                    if (tx.status === "applied") {
-                        await delay(3000);
-                        break;
-                    }
-                    await delay(1000);
-                    count++;
+                    await contractStore.load(totalMemoryPages);
                 }
-
-                const totalMemoryPages = await loadContractFromNetwork(
-                    contractStore.contract.transactionId
-                );
-
-                await contractStore.load(totalMemoryPages);
+            } catch (err) {
+                errorNotification(`Error while uploading file: ${err}`);
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            errorNotification(`Error while uploading file: ${err}`);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+        },
+        [gasLimit]
+    );
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         accept: "application/wasm",
         onDropAccepted,
@@ -292,10 +305,15 @@ const ContractUploader: React.FunctionComponent = () => {
     }
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
+            <GasLimit
+                balance={perlin.account.balance}
+                onChange={handleUpdateGasLimit}
+            />
             <Button fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
             </Button>
+
             <DividerWrapper>
                 <Divider />
                 <DividerText>OR</DividerText>

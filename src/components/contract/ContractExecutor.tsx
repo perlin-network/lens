@@ -175,14 +175,6 @@ const ParamsBody = styled(CardBody)`
     padding: 25px 25px 25px 25px;
 `;
 
-const GasLimitBox = styled.div`
-    label {
-        color: #fff;
-        opacity: 0.6;
-        margin-bottom: 4px;
-    }
-`;
-
 const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     let valid = false;
     switch (paramItem.type) {
