@@ -140,6 +140,7 @@ class Perlin {
 
     private constructor() {
         const secret = storage.getSecretKey();
+        storage.watchCurrentHost(this.handleHostChange);
 
         if (secret) {
             this.login(secret);
@@ -369,8 +370,6 @@ class Perlin {
             this.pollTransactionUpdates();
             this.pollConsensusUpdates();
             this.pollMetricsUpdates();
-
-            storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
             this.notify({
                 type: NotificationTypes.Danger,
