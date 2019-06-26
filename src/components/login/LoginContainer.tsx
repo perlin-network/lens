@@ -38,7 +38,7 @@ const Wrapper = styled(Flex)`
 `;
 
 // TODO: refactor to reuse Button and ButtonOutlined from core.tsx
-const Button = styled.button`
+const Button = styled.button<any>`
     border: 0;
     border-radius: 5px;
     text-align: center;
@@ -53,6 +53,8 @@ const Button = styled.button`
     cursor: pointer;
     padding: 10px;
     line-height: 1.3;
+
+    width: ${({ width }) => (width ? width : "auto")};
 
     &:disabled,
     &[disabled] {
@@ -302,7 +304,9 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                             />
                         </Box>
 
-                        <Button onClick={login}>Login</Button>
+                        <Button width="140px" onClick={login}>
+                            Login
+                        </Button>
                     </CardBody>
                 </Card>
             </Box>
