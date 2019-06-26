@@ -160,6 +160,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
 
     public render() {
         const { recipient } = this.props;
+        const recipientBalance = new BigNumber(recipient.balance);
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -347,7 +348,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </div>
                             <span className="balance">
                                 Recipient Balance:{" "}
-                                {numberWithCommas(recipient.balance)}
+                                {numberWithCommas(
+                                    recipientBalance
+                                        .plus(this.state.inputPerls)
+                                        .toString()
+                                )}
                             </span>
                             <DeltaTag value={this.state.inputPerls} />
                         </Box>
