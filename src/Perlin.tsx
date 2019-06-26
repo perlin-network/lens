@@ -266,13 +266,7 @@ class Perlin {
     }
 
     public async getContractCode(contractId: string): Promise<string> {
-        return await this.getText(
-            `/contract/${contractId}`,
-            {},
-            {
-                "Content-Type": "application/wasm"
-            }
-        );
+        return await this.getText(`/contract/${contractId}`, {});
     }
 
     public async getContractPage(

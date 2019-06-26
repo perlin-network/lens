@@ -12,6 +12,29 @@ const perlin = Perlin.getInstance();
 const watImportRegex = /\(import \"env" "_([a-zA-Z0-9_]+)" /g;
 const WEB_ASSEMBLY_PAGE_SIZE = 65536;
 
+/*
+ *   BigInt polyfill needed for Firefox (<68) and Safari
+ *   source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
+ */
+function getUint64(dataview: any, byteOffset: any, littleEndian: any) {
+    // split 64-bit number into two 32-bit (4-byte) parts
+    const left = dataview.getUint32(byteOffset, littleEndian);
+    const right = dataview.getUint32(byteOffset + 4, littleEndian);
+
+    // combine the two 32-bit values
+    const combined = littleEndian
+        ? left + 2 ** 32 * right
+        : 2 ** 32 * left + right;
+
+    if (!Number.isSafeInteger(combined)) {
+        console.warn(
+            combined,
+            "exceeds MAX_SAFE_INTEGER. Precision may be lost"
+        );
+    }
+
+    return combined;
+}
 export default class ContractStore {
     public static getInstance(): ContractStore {
         if (ContractStore.singleton === undefined) {
@@ -82,7 +105,7 @@ export default class ContractStore {
         }
 
         const payloadView = new DataView(payload.buffer);
-        const contractSpawnGasLimit = payloadView.getBigUint64(0, true);
+        const contractSpawnGasLimit = getUint64(payloadView, 0, true);
         const contractSpawnPayloadSize = payloadView.getUint32(8, true);
 
         console.log(
