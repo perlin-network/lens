@@ -36,6 +36,8 @@ const Wrapper = styled(Flex)`
         margin: 10px 0;
     }
 `;
+
+// TODO: refactor to reuse Button and ButtonOutlined from core.tsx
 const Button = styled.button`
     width: 160px;
     height: 44px;
@@ -51,6 +53,14 @@ const Button = styled.button`
     margin-right: 10px;
     background-color: #fff;
     cursor: pointer;
+
+    &:disabled,
+    &[disabled] {
+        pointer-events: none;
+        cursor: default;
+        opacity: 0.3;
+    }
+
     &:hover,
     &:active {
         background-color: none;
@@ -65,6 +75,9 @@ const ButtonOutlined = styled(Button)`
     border: solid 1px #fff;
     color: #fff;
     opacity: 0.8;
+    width: auto;
+    padding-left: 15px;
+    padding-right: 15px;
 
     &:hover,
     &:active {
@@ -106,7 +119,6 @@ const Input = styled.textarea`
 `;
 
 const FileInputWrapper = styled.div`
-    width: 200px;
     height: 44px;
     overflow: hidden;
     position: relative;
@@ -133,9 +145,6 @@ const Row = styled(Flex)`
 `;
 
 const perlin = Perlin.getInstance();
-
-const DEFAULT_SECRET_KEY =
-    "87a6813c3b4cf534b6ae82db9b1409fa7dbd5c13dba5858970b56084c4a930eb400056ee68a7cc2695222df05ea76875bc27ec6e61e8e62317c336157019c405";
 
 const errorNotification = (message: string) => {
     perlin.notify({
@@ -189,6 +198,23 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     const generateNewKeys = () => {
         setSecretKey(perlin.generateNewKeys().secretKey);
     };
+
+    const downloadKey = useCallback(() => {
+        const element = document.createElement("a");
+        element.setAttribute(
+            "href",
+            "data:text/plain;charset=utf-8," +
+                encodeURIComponent(secretKey || "")
+        );
+        element.setAttribute("download", "private-key.txt");
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }, [secretKey]);
 
     const login = async () => {
         if (!secretKey) {
@@ -264,6 +290,12 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                     </ButtonOutlined>
                                     <FileInput onChange={handleFileChange} />
                                 </FileInputWrapper>
+                                <ButtonOutlined
+                                    onClick={downloadKey}
+                                    disabled={!secretKey}
+                                >
+                                    Download Key
+                                </ButtonOutlined>
                             </Row>
                         </Box>
 
