@@ -119,7 +119,7 @@ const Input = styled.textarea`
 
 const FileInputWrapper = styled.div`
     position: relative;
-    overflow: hiddden;
+    overflow: hidden;
 `;
 
 const FileButton = styled(Button)`
