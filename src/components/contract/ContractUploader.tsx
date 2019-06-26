@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
 import { Button as RawButton, Card, Input } from "../common/core";
-import { InlineNotificationSuccess } from "../common/notification/Notification";
+import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
 import { Perlin, NotificationTypes } from "../../Perlin";
@@ -152,14 +152,13 @@ const createSmartContract = async (file: File, gasLimit: number) => {
         reader.readAsArrayBuffer(file);
     });
 
-    contractStore.contract.errorMessage = "";
     contractStore.contract.transactionId = "";
 
     try {
         const resp = await perlin.createSmartContract(bytes, gasLimit);
 
         if (resp.error) {
-            errorNotification(`${resp.status} : ${resp.error}`);
+            errorNotification(`${resp.status}: ${resp.error}`);
         } else {
             const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
                 readDebugNames: false
@@ -172,10 +171,9 @@ const createSmartContract = async (file: File, gasLimit: number) => {
                 foldExprs: true,
                 inlineExport: false
             });
-            contractStore.contract.errorMessage = "";
         }
-    } catch (error) {
-        errorNotification("Error: Connection Failed");
+    } catch (err) {
+        errorNotification(`${err.message}`);
     }
 };
 
@@ -185,7 +183,7 @@ export const loadContractFromNetwork = async (
     const account = await perlin.getAccount(contractId);
 
     if (!account.is_contract) {
-        throw new Error("Address is not a contract.");
+        throw new Error("Contract couldn't be spawned.");
     }
 
     try {
@@ -207,11 +205,10 @@ export const loadContractFromNetwork = async (
             foldExprs: true,
             inlineExport: false
         });
-        contractStore.contract.errorMessage = "";
 
         return numPages;
     } catch (err) {
-        errorNotification(`Error : ${err.message}`);
+        errorNotification(err.message || err);
         return 0;
     }
 };
@@ -220,6 +217,7 @@ const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [gasLimit, setGasLimit] = useState();
     const [contractAddress, setContractAddress] = useState("");
+    const [inlineMessage, setInlineMessage] = useState();
     const handleAddressChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             setContractAddress(e.target.value);
@@ -237,6 +235,7 @@ const ContractUploader: React.FunctionComponent = () => {
         async (event: any) => {
             event.preventDefault();
             setLoading(true);
+            setInlineMessage(undefined);
             try {
                 const totalMemoryPages = await loadContractFromNetwork(
                     contractAddress
@@ -248,9 +247,12 @@ const ContractUploader: React.FunctionComponent = () => {
                         "",
                         contractStore.contract.transactionId
                     );
+                    setInlineMessage({
+                        type: "success"
+                    });
                 }
             } catch (err) {
-                errorNotification(`${err}`);
+                errorNotification(err.message || err);
             } finally {
                 setLoading(false);
                 setGasLimit(undefined);
@@ -264,6 +266,7 @@ const ContractUploader: React.FunctionComponent = () => {
             const file = acceptedFiles[0];
             setLoading(true);
             const gasLimitNumber = new BigNumber(gasLimit);
+            setInlineMessage(undefined);
             try {
                 if (
                     gasLimitNumber.isNaN() ||
@@ -274,6 +277,7 @@ const ContractUploader: React.FunctionComponent = () => {
                     return;
                 }
                 await createSmartContract(file, gasLimit);
+
                 if (contractStore.contract.transactionId) {
                     let count = 0;
                     while (count < 30) {
@@ -298,9 +302,16 @@ const ContractUploader: React.FunctionComponent = () => {
                         "",
                         contractStore.contract.transactionId
                     );
+                    setInlineMessage({
+                        type: "success"
+                    });
                 }
             } catch (err) {
-                errorNotification(`Error while uploading file: ${err}`);
+                errorNotification(err.message || err);
+                setInlineMessage({
+                    type: "error",
+                    message: "Failed to spawn contract."
+                });
             } finally {
                 setLoading(false);
                 setGasLimit(undefined);
@@ -346,18 +357,28 @@ const ContractUploader: React.FunctionComponent = () => {
             {loading ? (
                 <LoadingSpinner />
             ) : (
-                contractStore.contract.transactionId && (
-                    <InlineNotificationSuccess>
+                inlineMessage && (
+                    <InlineNotification className={inlineMessage.type}>
                         <div className="notification-body">
-                            <h4 className="notification-title">Success</h4>
+                            <h4 className="notification-title">
+                                {inlineMessage.type}
+                            </h4>
                             <div className="notification-message">
-                                Your smart contracts ID is:
-                                <span className="result break">
-                                    {contractStore.contract.transactionId}
-                                </span>
+                                {inlineMessage.message}
+                                {contractStore.contract.transactionId && (
+                                    <div>
+                                        Your smart contract ID:
+                                        <span className="result break">
+                                            {
+                                                contractStore.contract
+                                                    .transactionId
+                                            }
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </InlineNotificationSuccess>
+                    </InlineNotification>
                 )
             )}
         </Wrapper>

@@ -20,7 +20,7 @@ import { Flex, Box } from "@rebass/grid";
 import { loadContractFromNetwork } from "./ContractUploader";
 import LoadingSpinner from "../common/loadingSpinner";
 
-import { InlineNotificationSuccess } from "../common/notification/Notification";
+import { InlineNotification } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import BigNumber from "bignumber.js";
@@ -277,7 +277,6 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const [gasLimit, setGasLimit] = useState();
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
 
     const [loading, setLoading] = useState(false);
 
@@ -323,7 +322,6 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             const valid = validateParamItem(paramItem, value);
             if (valid || value === "") {
                 setParamValue(id)(value);
-                setErrorMessage("");
             } else {
                 console.log("Param value can't be resolved to a type");
                 errorNotification(`Param value can't be resolved to a type`);
@@ -351,7 +349,6 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         );
 
         setWasmResult("");
-        setErrorMessage("");
 
         if (emptyItem) {
             errorNotification("Error : Item can't be empty.");
@@ -505,7 +502,10 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                     ) : (
                         logMessages.map((item: any, index: number) => {
                             return (
-                                <InlineNotificationSuccess key={index}>
+                                <InlineNotification
+                                    className="success"
+                                    key={index}
+                                >
                                     <div className="notification-body">
                                         <h4 className="notification-title">
                                             Success
@@ -517,7 +517,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                             </span>
                                         </div>
                                     </div>
-                                </InlineNotificationSuccess>
+                                </InlineNotification>
                             );
                         })
                     )}

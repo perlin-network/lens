@@ -5,7 +5,8 @@ import { observer, useDisposable } from "mobx-react-lite";
 import ReactNotification from "react-notifications-component";
 import "react-notifications-component/dist/theme.css";
 import "./notification.scss";
-import Tick from "../../../assets/svg/tick.svg";
+import TickIcon from "../../../assets/svg/tick.svg";
+import WarningIcon from "../../../assets/svg/warning.svg";
 import CloseIcon from "../../../assets/svg/close-icon.svg";
 import styled from "styled-components";
 
@@ -26,6 +27,10 @@ export const InlineNotification = styled.div`
         font-size: 16px;
         margin-top: 0;
         margin: 3px 0 5px;
+
+        &::first-letter {
+            text-transform: uppercase;
+        }
     }
 
     .notification-message {
@@ -59,12 +64,23 @@ export const InlineNotification = styled.div`
         background-position: center center;
         background-repeat: no-repeat;
     }
-`;
-export const InlineNotificationSuccess = styled(InlineNotification)`
-    &::before {
+
+    &.success::before {
         background-color: #2ba746;
         background-size: 120% auto;
-        background-image: url(${Tick});
+        background-image: url(${TickIcon});
+    }
+
+    &.warning::before {
+        background-color: #eab020;
+        background-size: 60% auto;
+        background-image: url(${WarningIcon});
+    }
+
+    &.error::before {
+        background-color: #dc3646;
+        background-size: 60% auto;
+        background-image: url(${WarningIcon});
     }
 `;
 
