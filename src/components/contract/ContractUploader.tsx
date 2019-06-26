@@ -11,6 +11,7 @@ import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
+import BigNumber from "bignumber.js";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -172,7 +173,6 @@ const createSmartContract = async (file: File, gasLimit: number) => {
                 inlineExport: false
             });
             contractStore.contract.errorMessage = "";
-            successNotification("", contractStore.contract.transactionId);
         }
     } catch (error) {
         errorNotification("Error: Connection Failed");
@@ -182,13 +182,13 @@ const createSmartContract = async (file: File, gasLimit: number) => {
 export const loadContractFromNetwork = async (
     contractId: string
 ): Promise<number> => {
+    const account = await perlin.getAccount(contractId);
+
+    if (!account.is_contract) {
+        throw new Error("Address is not a contract.");
+    }
+
     try {
-        const account = await perlin.getAccount(contractId);
-
-        if (!account.is_contract) {
-            throw new Error("Address is not a contract.");
-        }
-
         const numPages = account.num_mem_pages || 0;
 
         const hexContent = await perlin.getContractCode(contractId);
@@ -244,11 +244,16 @@ const ContractUploader: React.FunctionComponent = () => {
 
                 if (contractStore.contract.transactionId) {
                     await contractStore.load(totalMemoryPages);
+                    successNotification(
+                        "",
+                        contractStore.contract.transactionId
+                    );
                 }
             } catch (err) {
                 errorNotification(`${err}`);
             } finally {
                 setLoading(false);
+                setGasLimit(undefined);
             }
         },
         [contractAddress]
@@ -258,8 +263,13 @@ const ContractUploader: React.FunctionComponent = () => {
         async (acceptedFiles: File[]) => {
             const file = acceptedFiles[0];
             setLoading(true);
+            const gasLimitNumber = new BigNumber(gasLimit);
             try {
-                if (isNaN(gasLimit)) {
+                if (
+                    gasLimitNumber.isNaN() ||
+                    gasLimitNumber.lte(0) ||
+                    gasLimitNumber.gt(perlin.account.balance)
+                ) {
                     errorNotification("Invalid Gas Limit");
                     return;
                 }
@@ -284,11 +294,16 @@ const ContractUploader: React.FunctionComponent = () => {
                     );
 
                     await contractStore.load(totalMemoryPages);
+                    successNotification(
+                        "",
+                        contractStore.contract.transactionId
+                    );
                 }
             } catch (err) {
                 errorNotification(`Error while uploading file: ${err}`);
             } finally {
                 setLoading(false);
+                setGasLimit(undefined);
             }
         },
         [gasLimit]
@@ -308,6 +323,7 @@ const ContractUploader: React.FunctionComponent = () => {
             <GasLimit
                 balance={perlin.account.balance}
                 onChange={handleUpdateGasLimit}
+                value={gasLimit}
             />
             <Button fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
@@ -327,19 +343,22 @@ const ContractUploader: React.FunctionComponent = () => {
                 />
                 <StyledButton type="submit">Load Contract</StyledButton>
             </InputWrapper>
-            {loading && <LoadingSpinner />}
-            {contractStore.contract.transactionId !== "" && (
-                <InlineNotificationSuccess>
-                    <div className="notification-body">
-                        <h4 className="notification-title">Success</h4>
-                        <div className="notification-message">
-                            Your smart contracts ID is:
-                            <span className="result break">
-                                {contractStore.contract.transactionId}
-                            </span>
+            {loading ? (
+                <LoadingSpinner />
+            ) : (
+                contractStore.contract.transactionId && (
+                    <InlineNotificationSuccess>
+                        <div className="notification-body">
+                            <h4 className="notification-title">Success</h4>
+                            <div className="notification-message">
+                                Your smart contracts ID is:
+                                <span className="result break">
+                                    {contractStore.contract.transactionId}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                </InlineNotificationSuccess>
+                    </InlineNotificationSuccess>
+                )
             )}
         </Wrapper>
     );

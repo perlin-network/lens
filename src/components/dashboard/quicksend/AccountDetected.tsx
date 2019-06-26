@@ -246,6 +246,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         <GasLimit
                                             balance={perlin.account.balance}
                                             onChange={this.updateGasLimit}
+                                            value={this.state.gasLimit}
                                             mr={3}
                                         />
                                     )}
@@ -433,7 +434,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     ),
                     dismiss: { duration: 10000 }
                 });
+
+                this.updateGasLimit("");
             });
+
         // further validation required for successful send
         return true;
     };

@@ -23,6 +23,7 @@ import LoadingSpinner from "../common/loadingSpinner";
 import { InlineNotificationSuccess } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
+import BigNumber from "bignumber.js";
 
 interface IParamItem {
     id: string;
@@ -334,7 +335,13 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         new Promise((res: any) => setTimeout(res, time));
 
     const onCall = (simulated: boolean = false) => async () => {
-        if (isNaN(gasLimit)) {
+        const gasLimitNumber = new BigNumber(gasLimit);
+        if (
+            !simulated &&
+            (gasLimitNumber.isNaN() ||
+                gasLimitNumber.lte(0) ||
+                gasLimitNumber.gt(perlin.account.balance))
+        ) {
             errorNotification("Invalid Gas Limit");
             return;
         }
@@ -381,25 +388,6 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             );
             const txId = response.tx_id;
 
-            perlin.notify({
-                title: "Function Invoked",
-                type: NotificationTypes.Success,
-                // message: "You can view your transactions details here"
-                content: (
-                    <p>
-                        You can view your transaction
-                        <Link
-                            to={"/transactions/" + txId}
-                            title={txId}
-                            target="_blank"
-                        >
-                            here
-                        </Link>
-                    </p>
-                ),
-                dismiss: { duration: 10000 }
-            });
-
             // reload memory
             let count = 0;
 
@@ -418,11 +406,31 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             );
 
             await contractStore.load(totalMemoryPages);
+
+            perlin.notify({
+                title: "Function Invoked",
+                type: NotificationTypes.Success,
+                // message: "You can view your transactions details here"
+                content: (
+                    <p>
+                        You can view your transaction
+                        <Link
+                            to={"/transactions/" + txId}
+                            title={txId}
+                            target="_blank"
+                        >
+                            here
+                        </Link>
+                    </p>
+                ),
+                dismiss: { duration: 10000 }
+            });
         } catch (err) {
             errorNotification(`Error : ${err.message || err}`);
         }
 
         setLoading(false);
+        setGasLimit(undefined);
     };
 
     const logMessages = contractStore.logs;
@@ -471,6 +479,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                     <GasLimit
                         balance={perlin.account.balance}
                         onChange={handleUpdateGasLimit}
+                        value={gasLimit}
                     />
                     <Flex
                         mt={3}
@@ -491,22 +500,27 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         </CallFunctionButton>
                     </Flex>
 
-                    {loading && <LoadingSpinner />}
-                    {logMessages.map((item: any, index: number) => {
-                        return (
-                            <InlineNotificationSuccess key={index}>
-                                <div className="notification-body">
-                                    <h4 className="notification-title">
-                                        Success
-                                    </h4>
-                                    <div className="notification-message">
-                                        Your result is:
-                                        <span className="result">{item}</span>
+                    {loading ? (
+                        <LoadingSpinner />
+                    ) : (
+                        logMessages.map((item: any, index: number) => {
+                            return (
+                                <InlineNotificationSuccess key={index}>
+                                    <div className="notification-body">
+                                        <h4 className="notification-title">
+                                            Success
+                                        </h4>
+                                        <div className="notification-message">
+                                            Your result is:
+                                            <span className="result">
+                                                {item}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            </InlineNotificationSuccess>
-                        );
-                    })}
+                                </InlineNotificationSuccess>
+                            );
+                        })
+                    )}
                 </ParamsBody>
             </Card>
         </>

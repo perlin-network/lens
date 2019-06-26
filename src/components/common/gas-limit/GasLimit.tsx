@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
 import ChoiceButtons from "./ChoiceButtons";
 import { Flex } from "@rebass/grid";
@@ -27,19 +27,27 @@ export const gasLimitValues = [
 interface IGasLimitProps {
     onChange: (value: string) => void;
     balance: string | number;
+    value?: any;
     mr?: any;
     mt?: any;
 }
 const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     balance,
     onChange,
+    value,
     mr,
     mt
 }) => {
     balance = balance + "";
-    const [gasLimit, setGasLimit] = useState();
+    const [gasLimit, setGasLimit] = useState(value);
     const [choiceReset, setChoiceReset] = useState(0);
 
+    useEffect(() => {
+        if (gasLimit !== value) {
+            setGasLimit(value);
+            setChoiceReset(choiceReset + 1);
+        }
+    }, [value]);
     const updateGasLimit = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const limit = e.target.value;
@@ -50,10 +58,10 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
         []
     );
     const calculateGasLimit = useCallback(
-        (value: number) => {
+        (newValue: number) => {
             const limit = new BigNumber(balance)
                 .div(100)
-                .times(value)
+                .times(newValue)
                 .toString();
 
             setGasLimit(limit);
