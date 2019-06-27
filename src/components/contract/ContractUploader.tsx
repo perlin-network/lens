@@ -21,8 +21,13 @@ const contractStore = ContractStore.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
-    padding: 10px 0px 0px;
+    padding: 0;
     background-color: transparent;
+`;
+
+const IntroText = styled.p`
+    font-size: 15px;
+    line-height: 1.5;
 `;
 const DividerWrapper = styled.div`
     display: flex;
@@ -331,6 +336,17 @@ const ContractUploader: React.FunctionComponent = () => {
     }
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
+            <IntroText>
+                Learn how to write your first WebAssembly smart contract by
+                clicking{" "}
+                <a
+                    href="https://wavelet.perlin.net/docs/smart-contracts"
+                    target="_blank"
+                >
+                    here
+                </a>
+                .
+            </IntroText>
             <GasLimit
                 balance={perlin.account.balance}
                 onChange={handleUpdateGasLimit}
