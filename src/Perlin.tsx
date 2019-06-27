@@ -1,13 +1,44 @@
-import { computed, observable, action } from "mobx";
+import { action, computed, observable } from "mobx";
 import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
-import { ITransaction } from "./Transaction";
-import { Tag } from "./constants";
+import { ITransaction, Tag } from "./types/Transaction";
+import { HTTP_PROTOCOL, WS_PROTOCOL } from "./constants";
+import PayloadWriter from "./payload/PayloadWriter";
+import * as Long from "long";
+import { SmartBuffer } from "smart-buffer";
+import PayloadReader from "./payload/PayloadReader";
+import { IAccount } from "./types/Account";
+import ReconnectingWebSocket from "reconnecting-websocket";
+// @ts-ignore
+import * as JSONbig from "json-bigint";
+
+export enum NotificationTypes {
+    Success = "success",
+    Default = "default",
+    Info = "info",
+    Danger = "danger",
+    Warning = "warning"
+}
 
 class Perlin {
     @computed get recentTransactions() {
         return this.transactions.recent.slice();
+    }
+
+    public get publicKeyHex(): string {
+        return Buffer.from(this.keys.publicKey).toString("hex");
+    }
+
+    public get isLoggedIn(): boolean {
+        try {
+            if (this.publicKeyHex === null) {
+                return false;
+            }
+            return storage.getSecretKey() !== null;
+        } catch (e) {
+            return false;
+        }
     }
 
     public static getInstance(): Perlin {
@@ -17,19 +48,32 @@ class Perlin {
         return Perlin.singleton;
     }
 
-    public static parseWiredTransaction(tx: any, index: number): ITransaction {
-        tx = _.extend(tx, { index });
+    public static parseTransactionPayload(data: ITransaction) {
+        if (!data.payload) {
+            return;
+        }
 
-        try {
-            tx.payload =
-                (tx.payload && JSON.parse(atob(tx.payload))) ||
-                "<error decoding>";
-        } catch (error) {
-            tx.payload = "<too large>";
+        const buffer = Buffer.from(data.payload, "base64");
+        const reader = new PayloadReader(Array.from(buffer));
+
+        return {
+            recipient: reader.buffer.readBuffer(32).toString("hex"),
+            amount: reader.readUint64().toNumber()
+        };
+    }
+
+    public static parseWiredTransaction(
+        tx: ITransaction,
+        index: number
+    ): ITransaction {
+        // By default, a transactions status is labeled as "new".
+        if (tx.status === undefined) {
+            tx.status = "new";
         }
 
         return tx;
     }
+
     private static singleton: Perlin;
 
     @observable public api = {
@@ -41,181 +85,403 @@ class Perlin {
         public_key: "",
         address: "",
         peers: [] as string[],
-        state: {}
+        round: {} as any,
+        num_accounts: 0
     };
 
-    @observable public stats = {
-        consensusDuration: 0,
-        numAcceptedTransactions: 0,
-        numAcceptedTransactionsPerSecond: 0,
-        uptime: "0s",
-        cmdline: []
+    @observable public notification: any;
+
+    @observable public account: IAccount = {
+        public_key: "",
+        balance: "0",
+        reward: 0,
+        stake: 0,
+        is_contract: false,
+        num_mem_pages: 0
     };
 
     @observable public transactions = {
-        recent: [] as ITransaction[]
+        recent: [] as ITransaction[],
+        loading: true,
+        hasMore: true,
+        offset: 0,
+        pageSize: 200
     };
 
-    public onPolledTransaction: (tx: ITransaction) => void;
+    @observable public peers: string[] = [];
+    @observable public numAccounts: number = 0;
+    @observable public initRound: any;
+
+    @observable public metrics = {
+        accepted: undefined,
+        downloaded: undefined,
+        gossiped: undefined,
+        received: undefined
+    };
+
+    public onTransactionsCreated: (txs: ITransaction[]) => void;
+    public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
+    public onTransactionApplied: (tx: ITransaction) => void;
+    public onTransactionsUpdated: () => void;
+    public onConsensusRound: (
+        accepted: number,
+        rejected: number,
+        maxDepth: number,
+        round: number,
+        startId?: string,
+        endId?: string
+    ) => void;
+    public onConsensusPrune: (round: number) => void;
 
     private keys: nacl.SignKeyPair;
+    private transactionDebounceIntv: number = 2200;
+    private peerPollIntv: number = 10000;
+    private interval: any;
 
     private constructor() {
+        const secret = storage.getSecretKey();
+        storage.watchCurrentHost(this.handleHostChange);
+
+        if (secret) {
+            this.login(secret);
+        }
+    }
+
+    @action.bound
+    public async login(hexString: string): Promise<any> {
         this.keys = nacl.sign.keyPair.fromSecretKey(
-            Buffer.from(
-                "6d6fe0c2bc913c0e3e497a0328841cf4979f932e01d2030ad21e649fca8d47fe71e6c9b83a7ef02bae6764991eefe53360a0a09be53887b2d3900d02c00a3858",
-                "hex"
-            )
+            Buffer.from(hexString, "hex")
         );
-        this.init().catch(err => console.error(err));
+        try {
+            await this.init();
+            storage.setSecretKey(hexString);
+            return Promise.resolve();
+        } catch (err) {
+            return Promise.reject(err);
+        }
     }
 
-    public async transfer(recipient: string, amount: number): Promise<any> {
-        const params = {
-            tag: Tag.Stake,
-            payload: btoa(
-                JSON.stringify({
-                    recipient,
-                    amount
-                })
-            )
+    @action.bound
+    public logout() {
+        storage.removeSecretKey();
+        clearInterval(this.interval);
+        window.location.reload();
+    }
+
+    public generateNewKeys(): any {
+        const generatedKeys = nacl.sign.keyPair();
+        return {
+            publicKey: Buffer.from(generatedKeys.publicKey).toString("hex"),
+            secretKey: Buffer.from(generatedKeys.secretKey).toString("hex")
         };
-
-        return await this.request("/transaction/send", params);
     }
 
-    // @ts-ignore
+    public prepareTransaction(tag: Tag, payload: Buffer): any {
+        const buffer = new SmartBuffer();
+        buffer.writeBuffer(new Buffer(8));
+        buffer.writeUInt8(tag);
+        buffer.writeBuffer(payload);
+
+        const signature = nacl.sign.detached(
+            new Uint8Array(buffer.toBuffer()),
+            this.keys.secretKey
+        );
+
+        return {
+            sender: this.publicKeyHex,
+            tag,
+            payload: payload.toString("hex"),
+            signature: Buffer.from(signature).toString("hex")
+        };
+    }
+
+    public notify(data: any) {
+        this.notification = data;
+    }
+    public async transfer(
+        recipient: string,
+        amount: number,
+        gasLimit: number = 0
+    ): Promise<any> {
+        if (recipient.length !== 64) {
+            throw new Error("Recipient must be a length-64 hex-encoded.");
+        }
+
+        const payload = new PayloadWriter();
+        payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
+        payload.writeUint64(Long.fromNumber(amount, true));
+
+        if (gasLimit > 0) {
+            payload.writeUint64(Long.fromNumber(gasLimit, true));
+            payload.writeString("on_money_received");
+        }
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
+        );
+    }
+
     public async placeStake(amount: number): Promise<any> {
-        const params = {
-            tag: Tag.Stake,
-            payload: btoa(
-                JSON.stringify({
-                    amount
-                })
-            )
-        };
+        const payload = new PayloadWriter();
+        payload.writeByte(1);
+        payload.writeUint64(Long.fromNumber(amount, true));
 
-        return await this.request("/transaction/send", params);
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+        );
+    }
+
+    public async withdrawStake(amount: number): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeByte(0);
+        payload.writeUint64(Long.fromNumber(amount, true));
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+        );
+    }
+
+    public async withdrawReward(amount: number): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeByte(2);
+        payload.writeUint64(Long.fromNumber(amount, true));
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
+        );
+    }
+
+    public async createSmartContract(
+        bytes: ArrayBuffer,
+        gasLimit: number
+    ): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.writeUint64(Long.fromNumber(gasLimit, true));
+        payload.writeUint32(0);
+        payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagContract, payload.buffer.toBuffer())
+        );
+    }
+
+    public async getContractCode(contractId: string): Promise<string> {
+        return await this.getText(`/contract/${contractId}`, {});
+    }
+
+    public async getContractPage(
+        contractId: string,
+        pageIndex: number
+    ): Promise<any> {
+        try {
+            return new Uint8Array(
+                await this.getBuffer(
+                    `/contract/${contractId}/page/${pageIndex}`,
+                    {}
+                )
+            );
+        } catch (err) {
+            console.log("getContractPage Error : ", err);
+            return [];
+        }
+    }
+
+    public async invokeContractFunction(
+        contractID: string,
+        amount: number,
+        funcName: string,
+        funcParams: Buffer,
+        gasLimit = 100000000000
+    ): Promise<any> {
+        const payload = new PayloadWriter();
+        payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
+        payload.writeUint64(Long.fromNumber(amount, true));
+        payload.writeUint64(Long.fromNumber(gasLimit, true));
+        payload.writeString(funcName);
+        payload.writeBuffer(funcParams);
+
+        return await this.post(
+            "/tx/send",
+            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
+        );
+    }
+
+    public async getAccount(id: string): Promise<IAccount> {
+        const dataStr = await this.getText(`/accounts/${id}`, {});
+
+        const data = JSONbig.parse(dataStr);
+
+        return {
+            public_key: data.public_key,
+
+            balance: data.balance.toString(),
+            stake: data.stake,
+            reward: data.reward,
+            is_contract: data.is_contract,
+            num_mem_pages: data.num_mem_pages,
+            nonce: data.nonce
+        };
     }
 
     // @ts-ignore
-    public async withdrawStake(amount: number): Promise<any> {
-        const params = {
-            tag: Tag.Stake,
-            payload: btoa(
-                JSON.stringify({
-                    amount: amount * -1
-                })
-            )
-        };
-
-        return await this.request("/transaction/send", params);
+    public async getTransaction(id: string): Promise<any> {
+        return await this.getJSON(`/tx/${id}`, {});
     }
 
-    public async createSmartContract(contractFile: any): Promise<any> {
-        const formData = new FormData();
-        formData.append("uploadFile", contractFile);
-
-        const response = await fetch(`http://${this.api.host}/contract/send`, {
-            method: "post",
-            headers: {
-                "X-Session-Token": this.api.token
-            },
-            body: formData
-        });
-
-        return await response.json();
-    }
-
-    public async downloadContract(txID: string): Promise<void> {
-        const params = {
-            transaction_id: txID
-        };
-
-        // get the contract payload
-        const contract = await this.request("/contract/get", params);
-
-        if (contract.hasOwnProperty("code")) {
-            // convert the contract.code into bytes
-            const byteCharacters = atob(contract.code);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
+    public async getTableTransactions(offset?: number) {
+        try {
+            if (typeof offset !== "undefined") {
+                this.transactions.offset = offset;
+                this.transactions.recent = this.transactions.recent.slice(
+                    0,
+                    offset
+                );
             }
-            const byteArray = new Uint8Array(byteNumbers);
 
-            // convert bytes into a download dialog
-            const blob = new Blob([byteArray], { type: "application/wasm" });
-            const fileName: string = `${txID}.wasm`;
-            const objectUrl: string = URL.createObjectURL(blob);
-            const a: HTMLAnchorElement = document.createElement(
-                "a"
-            ) as HTMLAnchorElement;
-            a.href = objectUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(objectUrl);
+            this.transactions.loading = true;
+            const transactions = await this.requestRecentTransactions(
+                this.transactions.offset,
+                this.transactions.pageSize
+            );
+
+            const appliedTransactions = transactions.filter(
+                tx => tx.status === "applied"
+            );
+
+            this.transactions = {
+                ...this.transactions,
+                recent: [...this.transactions.recent, ...appliedTransactions],
+                hasMore: !!transactions.length,
+                loading: false,
+                offset: this.transactions.offset + transactions.length // offset is calculated using all types of tx (both applied and non-applied)
+            };
+        } catch (err) {
+            console.log(err);
         }
     }
 
     private async init() {
         try {
-            await this.initSession();
+            // await this.startSession();
             await this.initLedger();
+            await this.initPeers();
 
-            await this.pollTransactions();
-
-            storage.watchCurrentHost(this.handleHostChange);
-            this.pollStatistics();
-            this.pollAccountUpdates();
+            this.pollTransactionUpdates();
+            this.pollConsensusUpdates();
+            this.pollMetricsUpdates();
         } catch (err) {
-            console.error(err);
+            this.notify({
+                type: NotificationTypes.Danger,
+                message: err.message
+            });
         }
     }
 
-    private async request(
+    private async getResponse(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<Response> {
+        const url = new URL(`${HTTP_PROTOCOL}://${this.api.host}${endpoint}`);
+        Object.keys(params).forEach(key =>
+            url.searchParams.append(key, params[key])
+        );
+
+        return await fetch(url.toString(), {
+            method: "get",
+            headers: {
+                ...headers
+            }
+        });
+    }
+
+    private async getJSON(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<any> {
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return await response.json();
+    }
+
+    private async getText(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<string> {
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return await response.text();
+    }
+
+    private async getBuffer(
+        endpoint: string,
+        params?: any,
+        headers?: any
+    ): Promise<ArrayBuffer> {
+        const response = await this.getResponse(endpoint, params, headers);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return await response.arrayBuffer();
+    }
+
+    private async post(
         endpoint: string,
         body?: any,
         headers?: any
     ): Promise<any> {
-        const response = await fetch(`http://${this.api.host}${endpoint}`, {
-            method: "post",
-            headers: {
-                "X-Session-Token": this.api.token,
-                ...headers
-            },
-            body: JSON.stringify(body)
-        });
+        const response = await fetch(
+            `${HTTP_PROTOCOL}://${this.api.host}${endpoint}`,
+            {
+                method: "post",
+                headers: {
+                    ...headers
+                },
+                body: JSON.stringify(body)
+            }
+        );
 
         return await response.json();
     }
 
     private async initLedger() {
-        this.ledger = await this.request("/ledger/state", {});
+        this.ledger = await this.getLedger();
+        this.peers = this.ledger.peers || [];
+        this.numAccounts = this.ledger.num_accounts;
 
-        Object.keys(this.ledger.state).forEach(publicKey => {
-            const account = this.ledger.state[publicKey];
+        this.initRound = this.ledger.round;
 
-            Object.keys(account.State).forEach(key => {
-                account.State[key] = this.decodeInt64(
-                    new Buffer(account.State[key], "base64")
-                );
-            });
-        });
-
-        this.transactions.recent = await this.requestRecentTransactions();
+        this.account = await this.getAccount(this.publicKeyHex);
+        this.pollAccountUpdates(this.publicKeyHex);
     }
 
-    private async initSession() {
-        const time = new Date().getTime();
+    private async initPeers() {
+        this.interval = setInterval(async () => {
+            // only update peers
+            const ledger = await this.getLedger();
+            this.peers = ledger.peers || [];
+            this.numAccounts = ledger.num_accounts;
+        }, this.peerPollIntv);
+    }
+
+    private async startSession() {
+        const time = Date.now();
         const auth = nacl.sign.detached(
             new Buffer(`perlin_session_init_${time}`),
             this.keys.secretKey
         );
 
-        const response = await this.request("/session/init", {
+        const response = await this.post("/session/init", {
             public_key: Buffer.from(this.keys.publicKey).toString("hex"),
             time_millis: time,
             signature: Buffer.from(auth).toString("hex")
@@ -231,112 +497,175 @@ class Perlin {
         this.api.host = host;
     }
 
-    private pollTransactions(event: string = "accepted") {
-        const ws = new WebSocket(
-            `ws://${this.api.host}/transaction/poll?event=${event}`,
-            this.api.token
+    private pollTransactionUpdates(event: string = "accepted") {
+        const url = new URL(
+            `${WS_PROTOCOL}://${this.api.host}/poll/tx?creator=${
+                this.publicKeyHex
+            }`
         );
 
-        ws.onmessage = ({ data }) => {
-            data = Perlin.parseWiredTransaction(
-                JSON.parse(data),
-                this.transactions.recent.length
-            );
-            this.transactions.recent.push(data);
+        const ws = new ReconnectingWebSocket(url.toString());
 
-            if (this.onPolledTransaction != null) {
-                this.onPolledTransaction(data);
+        const pushTransactions = _.debounce(
+            transactions => {
+                // TODO: restore approach once there's a solution to accurately calculate next page's offset
+                // this.transactions.recent = [
+                //     ...transactions,
+                //     ...lastTransactions
+                // ].slice(0, this.transactions.pageSize);
+
+                // this.transactions.offset = this.transactions.recent.length;
+                // this.transactions.hasMore = true;
+                // lastTransactions = this.transactions.recent;
+
+                this.getTableTransactions(0);
+            },
+            this.transactionDebounceIntv,
+            {
+                maxWait: 2 * this.transactionDebounceIntv
             }
+        );
 
-            if (this.transactions.recent.length > 50) {
-                this.transactions.recent.shift();
+        // let lastTransactions: ITransaction[] = this.transactions.recent;
+        ws.onmessage = async ({ data }) => {
+            if (!data) {
+                return;
             }
-        };
-    }
+            const logs = JSON.parse(data);
+            const transactions: ITransaction[] = [];
 
-    private decodeInt64(buffer: Buffer) {
-        return (
-            buffer[0] |
-            (buffer[1] << 8) |
-            (buffer[2] << 16) |
-            (buffer[3] << 24) |
-            (buffer[4] << 32) |
-            (buffer[5] << 40) |
-            (buffer[6] << 48) |
-            (buffer[7] << 56)
-        );
-    }
-
-    private pollAccountUpdates() {
-        const ws = new WebSocket(
-            `ws://${this.api.host}/account/poll`,
-            this.api.token
-        );
-
-        ws.onmessage = ({ data }) => {
-            data = JSON.parse(data);
-            const account = this.ledger.state[data.account];
-            if (account != null) {
-                account.Nonce = data.nonce;
-
-                Object.keys(data.updates).forEach(key => {
-                    account.State[key] = this.decodeInt64(
-                        new Buffer(data.updates[key], "base64")
-                    );
-                });
-            } else {
-                Object.keys(data.updates).forEach(key => {
-                    data.updates[key] = this.decodeInt64(
-                        new Buffer(data.updates[key], "base64")
-                    );
-                });
-
-                this.ledger.state[data.account] = {
-                    Nonce: data.nonce,
-                    State: data.updates
+            logs.forEach((item: any) => {
+                const tx: ITransaction = {
+                    id: item.tx_id,
+                    sender: item.sender_id,
+                    creator: item.creator_id,
+                    depth: item.depth,
+                    tag: item.tag,
+                    status: item.event || "new"
                 };
+
+                switch (item.event) {
+                    case "new":
+                    case "applied":
+                        transactions.unshift(tx);
+                        pushTransactions(transactions);
+                        break;
+                }
+            });
+        };
+    }
+
+    private pollConsensusUpdates() {
+        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/consensus`);
+
+        const ws = new ReconnectingWebSocket(url.toString());
+
+        ws.onmessage = ({ data }) => {
+            const logs = JSON.parse(data);
+
+            switch (logs.event) {
+                case "prune":
+                    console.log("Prunning #", logs.pruned_round_id);
+
+                    if (this.onConsensusPrune) {
+                        this.onConsensusPrune(logs.pruned_round_id);
+                    }
+                    break;
+                case "round_end":
+                    this.initRound = {
+                        applied: logs.num_applied_tx,
+                        rejected: logs.num_rejected_tx,
+                        depth: logs.round_depth,
+                        start_id: logs.old_root,
+                        end_id: logs.new_root
+                    };
+                    if (this.onConsensusRound) {
+                        this.onConsensusRound(
+                            logs.num_applied_tx,
+                            logs.num_rejected_tx,
+                            logs.round_depth,
+                            logs.new_round,
+                            logs.old_root,
+                            logs.new_root
+                        );
+                    }
             }
         };
     }
 
-    private async requestRecentTransactions(): Promise<ITransaction[]> {
-        const recent = await this.request("/transaction/list", {});
-        return _.map(recent, Perlin.parseWiredTransaction);
+    private pollMetricsUpdates() {
+        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/metrics`);
+
+        const ws = new ReconnectingWebSocket(url.toString());
+
+        ws.onmessage = ({ data }) => {
+            const logs = JSON.parse(data);
+
+            this.metrics.accepted = logs["tps.accepted"];
+            this.metrics.received = logs["tps.received"];
+            this.metrics.gossiped = logs["tps.gossiped"];
+            this.metrics.downloaded = logs["tps.downloaded"];
+        };
+    }
+
+    private async getLedger() {
+        return await this.getJSON("/ledger", {});
+    }
+
+    private pollAccountUpdates(id: string) {
+        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/accounts`);
+        url.searchParams.append("id", id);
+
+        const ws = new ReconnectingWebSocket(url.toString());
+
+        ws.onmessage = ({ data }) => {
+            if (!data) {
+                return;
+            }
+
+            const logs = JSONbig.parse(data);
+
+            logs.forEach((item: any) => {
+                if (item.account_id === id) {
+                    // TODO(kenta): temp fix
+                    switch (item.event) {
+                        case "balance_updated":
+                            this.account.balance = item.balance.toString();
+                            break;
+                        case "stake_updated":
+                            this.account.stake = item.stake;
+                            break;
+                        case "reward_updated":
+                            this.account.reward = item.reward;
+                            break;
+                        case "num_pages_updated":
+                            this.account.num_mem_pages = item.num_pages;
+                    }
+                }
+            });
+        };
     }
 
     // @ts-ignore
     private async listTransactions(
+        offset: number = 0,
+        limit: number = 0
+    ): Promise<ITransaction[] | undefined> {
+        return await this.getJSON(`/tx?creator=${this.publicKeyHex}`, {
+            offset,
+            limit,
+            sender: this.publicKeyHex
+        });
+    }
+
+    private async requestRecentTransactions(
         offset: number,
         limit: number
-    ): Promise<any> {
-        return await this.request("/transaction/list", { offset, limit });
-    }
-
-    // @ts-ignore
-    private async getTransaction(id: string): Promise<any> {
-        return await this.request("/transaction", id);
-    }
-
-    // @ts-ignore
-    private async getAccount(id: string): Promise<any> {
-        return await this.request("/account/get", id);
-    }
-
-    private pollStatistics() {
-        setInterval(async () => {
-            const response = await fetch(`http://${this.api.host}/debug/vars`);
-            const data = await response.json();
-
-            this.stats = {
-                consensusDuration: data.wavelet.consensus_duration || 0,
-                numAcceptedTransactions:
-                    data.wavelet.num_accepted_transactions || 0,
-                numAcceptedTransactionsPerSecond:
-                    data.wavelet.num_accepted_transactions_per_sec || 0,
-                uptime: data.wavelet.uptime || "0s",
-                cmdline: data.cmdline || [""]
-            };
-        }, 1000);
+    ): Promise<ITransaction[]> {
+        return _.map(
+            await this.listTransactions(offset, limit),
+            Perlin.parseWiredTransaction
+        );
     }
 }
 

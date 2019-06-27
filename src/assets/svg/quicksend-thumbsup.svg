@@ -1,0 +1,41 @@
+
+<svg width="120px" height="120px" viewBox="0 0 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <linearGradient x1="123.308101%" y1="0%" x2="-38.5724687%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#74FFE4" offset="0%"></stop>
+            <stop stop-color="#74FFE4" offset="16.0286646%"></stop>
+            <stop stop-color="#A078FF" offset="49.9938285%"></stop>
+            <stop stop-color="#FF95B3" offset="78.1540329%"></stop>
+            <stop stop-color="#FFA5A5" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="101.100361%" y1="0%" x2="-11.7405863%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#74FFE4" offset="0%"></stop>
+            <stop stop-color="#74FFE4" offset="16.0286646%"></stop>
+            <stop stop-color="#A078FF" offset="49.9938285%"></stop>
+            <stop stop-color="#FF95B3" offset="78.1540329%"></stop>
+            <stop stop-color="#FFA5A5" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="59.8558669%" y1="0%" x2="38.0919237%" y2="100%" id="linearGradient-3">
+            <stop stop-color="#74FFE4" offset="0%"></stop>
+            <stop stop-color="#74FFE4" offset="16.0286646%"></stop>
+            <stop stop-color="#A078FF" offset="49.9938285%"></stop>
+            <stop stop-color="#FF95B3" offset="78.1540329%"></stop>
+            <stop stop-color="#FFA5A5" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="🖥-Desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dashboard----Morph-Dropdown---Sent" transform="translate(-340.000000, -361.000000)">
+            <g id="Recipient-Dropdown" transform="translate(290.000000, 310.000000)">
+                <g id="Recipient" transform="translate(50.000000, 51.000000)">
+                    <g id="Icon" transform="translate(-0.000000, 0.000000)">
+                        <circle id="Oval" fill="url(#linearGradient-1)" opacity="0.0627557664" cx="60" cy="60" r="60"></circle>
+                        <g id="like" transform="translate(34.000000, 22.000000)" stroke-width="2">
+                            <path d="M18.197115,57.0364382 L45.0715496,57.0364382 C48.2028716,57.0407455 50.8675961,54.7548024 51.342251,51.6570952 L54.0296945,30.1397236 C54.0562199,28.7050594 53.4984608,27.3213237 52.4846668,26.3066893 C51.4708728,25.2920548 50.0882834,24.7338333 48.6548076,24.7603807 L32.5301468,24.7603807 L32.5301468,16.764884 C32.3547653,12.6995172 30.6625479,8.84776275 27.7877049,5.9703359 C26.736643,5.0149416 25.2219229,4.76880399 23.9228313,5.34230515 C22.6237396,5.91580631 21.7840681,7.20132122 21.780373,8.62235195 L21.780373,19.3810378 L11.0305991,31.9328379 L10.6156453,50.2896829" id="Path" stroke="url(#linearGradient-2)" transform="translate(32.323122, 31.036444) rotate(-15.000000) translate(-32.323122, -31.036444) "></path>
+                            <rect id="Rectangle" stroke="url(#linearGradient-3)" transform="translate(9.290542, 48.596044) rotate(-195.000000) translate(-9.290542, -48.596044) " x="3.79054173" y="33.5960436" width="11" height="30"></rect>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,39 +1,55 @@
 import * as React from "react";
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
-import DashboardIcon from "../assets/svg/Dashboard.svg";
-import WalletIcon from "../assets/svg/Wallet.svg";
-import NetworkIcon from "../assets/svg/Network.svg";
-import ValidatorIcon from "../assets/svg/Validator.svg";
-import ContractIcon from "../assets/svg/Contracts.svg";
-import SettingsIcon from "../assets/svg/Settings.svg";
+import DashboardIcon from "../assets/svg/navbar-dashboard.svg";
+import DiscordIcon from "../assets/svg/discord-icon.svg";
+import ValidatorIcon from "../assets/svg/navbar-validator.svg";
+import DeveloperIcon from "../assets/svg/navbar-developer.svg";
+import SettingsIcon from "../assets/svg/navbar-settings.svg";
+import LogoutIcon from "../assets/svg/navbar-logout.svg";
+import perlinLogo from "../assets/svg/perlin-logo.svg";
+import { Perlin } from "../Perlin";
+import { observer } from "mobx-react-lite";
 
-const NavIcon = styled.img`
-    height: 16px;
+const NavIcon = styled.img<INavItemProps>`
+    max-width: 18px;
+    max-height: 18px;
     margin-right: 10px;
+    opacity: 0.5;
+    position: relative;
+    top: -2px;
+    ${props =>
+        props.active &&
+        `{
+            font-weight: bold;
+            opacity: 1.0;
+
+        }`}
 `;
-const NavItem = styled.div<INavItemProps>`
-    font-family: Montserrat;
+const NavItem = styled.a<INavItemProps>`
+    font-family: HKGrotesk;
+    font-size: 1em;
     display: flex;
     align-items: center;
+    color: inherit !important;
     height: 36.5px;
-    padding: 10px 20px;
+    padding: 10px 30px;
     margin-bottom: 12px;
     cursor: pointer;
     position: relative;
-    width: 135px;
+    text-decoration: none;
+
+    &:hover {
+        font-weight: bold;
+        color: inherit !important;
+        text-decoration: none;
+    }
     ${props =>
         props.active &&
-        `&::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            border-bottom-right-radius: 3.2px;
-            border-top-right-radius: 3.2px;
-            box-shadow: 4px 0 7px 0 rgba(48, 48, 48, 0.1);
-            background-color: #ffffff;
+        `{
+            font-weight: bold;
+            opacity: 1.0;
+
         }`}
 `;
 
@@ -43,43 +59,80 @@ interface INavItemProps {
 
 interface INavItem {
     title: string;
-    link?: string;
+    link: string;
     icon: any;
+    external?: boolean;
 }
 
 const items: INavItem[] = [
     { title: "Dashboard", link: "/", icon: DashboardIcon },
-    { title: "Wallet", link: "/wallet", icon: WalletIcon },
-    { title: "Network", link: "/network", icon: NetworkIcon },
+    { title: "Developer", link: "/contracts", icon: DeveloperIcon },
     { title: "Validator", link: "/validator", icon: ValidatorIcon },
-    { title: "Smart contract", link: "/contracts", icon: ContractIcon },
-    { title: "Settings", link: "/settings", icon: SettingsIcon }
+    { title: "Settings", link: "/settings", icon: SettingsIcon },
+    {
+        title: "Faucet",
+        link: "https://discord.gg/dMYfDPM",
+        icon: DiscordIcon,
+        external: true
+    }
 ];
 
-class SideNav extends React.Component<RouteComponentProps, {}> {
-    public render() {
-        const { pathname } = this.props.history.location;
+const LogoWrapper = styled.img`
+    max-width: 170px;
+    padding: 30px;
+    margin-bottom: 2em;
+`;
 
-        return (
-            <>
-                {items.map(item => (
-                    <NavItem
-                        key={item.title}
-                        onClick={
-                            item.link ? this.navigateTo(item.link) : undefined
-                        }
-                        active={pathname === item.link}
-                    >
-                        <NavIcon src={item.icon} />
-                        {item.title}
-                    </NavItem>
-                ))}
-            </>
-        );
-    }
-    private navigateTo = (link: string) => () => {
-        this.props.history.push(link);
+const perlin = Perlin.getInstance();
+
+const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
+    const { pathname } = props.history.location;
+    const isLoggedIn = perlin.isLoggedIn;
+
+    const navigateTo = (link: string, external: boolean = false) => {
+        return (event: any) => {
+            if (!external) {
+                props.history.push(link);
+                event.preventDefault();
+            }
+        };
     };
-}
+    const logout = () => () => {
+        perlin.logout();
+    };
 
-export default withRouter(SideNav);
+    const login = () => () => {
+        props.history.push("/login");
+    };
+
+    return (
+        <>
+            <LogoWrapper src={perlinLogo} />
+            {isLoggedIn && (
+                <>
+                    {items.map(item => (
+                        <NavItem
+                            key={item.title}
+                            onClick={navigateTo(item.link, item.external)}
+                            active={pathname === item.link}
+                            href={item.external ? item.link : ""}
+                            target={item.external ? "_blank" : ""}
+                        >
+                            <NavIcon
+                                src={item.icon}
+                                active={pathname === item.link}
+                            />
+                            {item.title}
+                        </NavItem>
+                    ))}
+                    <NavItem onClick={logout()}>
+                        <NavIcon src={LogoutIcon} />
+                        Logout
+                    </NavItem>
+                </>
+            )}
+        </>
+    );
+};
+
+export default withRouter(observer(SideNav));

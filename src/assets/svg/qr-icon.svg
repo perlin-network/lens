@@ -1,0 +1,17 @@
+<svg id="barcode-qr" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25">
+  <path id="Shape" d="M7.954,7.954H0V0H7.954V7.953ZM1.137,1.137V6.818H6.818V1.137Z"/>
+  <path id="Path" d="M1.136,0H0V2.273H9.659V1.136H1.136Z" transform="translate(15.341 22.727)"/>
+  <rect id="Rectangle" width="3.409" height="3.409" transform="translate(2.273 2.273)"/>
+  <path id="Shape-2" data-name="Shape" d="M7.954,7.954H0V0H7.954V7.953ZM1.137,1.137V6.818H6.818V1.137Z" transform="translate(0 17.045)"/>
+  <rect id="Rectangle-2" data-name="Rectangle" width="3.409" height="3.409" transform="translate(2.273 19.318)"/>
+  <path id="Shape-3" data-name="Shape" d="M7.954,7.954H0V0H7.954V7.953ZM1.137,1.137V6.818H6.818V1.137Z" transform="translate(17.045)"/>
+  <rect id="Rectangle-3" data-name="Rectangle" width="3.409" height="3.409" transform="translate(19.318 2.273)"/>
+  <rect id="Rectangle-4" data-name="Rectangle" width="2.273" height="2.273" transform="translate(22.727 9.091)"/>
+  <rect id="Rectangle-5" data-name="Rectangle" width="2.273" height="2.273" transform="translate(0 13.636)"/>
+  <path id="Path-2" data-name="Path" d="M4.545,9.091H0v1.136H5.682V6.818H6.818V4.545H3.409V2.273H4.545V3.409H8.523V0H7.386V2.273h-1.7V0H2.273V5.682H4.545V6.818H2.273V7.955H4.545Z" transform="translate(7.386)"/>
+  <path id="Path-3" data-name="Path" d="M1.7,3.409H5.682V4.545H3.409V5.682H5.682V6.818h4.545V5.682H6.818V2.273h-1.7V.568H3.977v1.7H2.841V0H0V1.136H1.7Z" transform="translate(0 9.091)"/>
+  <path id="Path-4" data-name="Path" d="M3.409,5.114V2.273H1.136V0H0V3.409H2.273v1.7H0V6.25H2.273V7.386H5.114V6.25h-1.7Z" transform="translate(9.091 17.614)"/>
+  <path id="Path-5" data-name="Path" d="M3.409,2.841H1.136V0H0V3.977H5.682V2.841H4.545V1.7h1.7V.568H2.273V1.7H3.409Z" transform="translate(14.773 8.523)"/>
+  <path id="Path-6" data-name="Path" d="M8.523,10.227h1.7v1.136H12.5V7.386H10.227v1.7h-1.7v-1.7H7.386v1.7H6.25V4.545H5.114V3.409H3.977V0H0V2.273H1.136V1.136h1.7V5.682H5.114v4.545H8.523Z" transform="translate(8.523 11.364)"/>
+  <path id="Path-7" data-name="Path" d="M7.955,1.7H2.273V3.977H1.136V1.7H0V5.114H3.409V2.841h1.7v1.7H6.25v-1.7h1.7V6.25H6.25V9.659H9.091V8.523h-1.7V7.386h1.7V0H7.955Z" transform="translate(15.909 12.5)"/>
+</svg>

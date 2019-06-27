@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Perlin } from "./Perlin";
 import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
 import SideNav from "./components/SideNav";
+import Notification from "./components/common/notification/Notification";
 import {
     Switch,
     Route,
@@ -13,74 +13,85 @@ import {
     Redirect
 } from "react-router";
 import Dashboard from "./components/dashboard/DashboardContainer";
-import Wallet from "./components/wallet/WalletContainer";
-import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
-import BackgroundSVG from "./assets/svg/background.svg";
-
-const BackgroundWave = styled.div`
-    position: absolute;
-    top: -250px;
-    right: 0;
-    left: 0;
-    height: 800px;
-    z-index: -1;
-    background: url(${BackgroundSVG}) bottom center / auto 100% no-repeat;
-`;
+import Login from "./components/login/LoginContainer";
+import TransactionDetail from "./components/transactions/TransactionDetail";
+import { Perlin } from "./Perlin";
 
 const ContentWrapper = styled(Flex)`
-    margin: 1em 64px;
+    margin: 0px;
+    padding: 0px;
+    background-size: 100% auto;
+    min-height: 100vh;
+    background-repeat: no-repeat;
 `;
-const SideWrapper = styled(Box).attrs({
-    width: 1 / 6
-})`
-    min-width: 150px;
+const SideWrapper = styled(Box)`
+    margin: 0px;
+    padding: 0px;
+    width: 170px;
+    ${({ isLoggedIn }: { isLoggedIn: boolean }) =>
+        isLoggedIn ? "background-color: #0c112b;" : ""}
 `;
 const Content = styled(Box).attrs({
-    width: 5 / 6
-})``;
-
-const perlin = Perlin.getInstance();
+    flex: 1
+})`
+    margin: 0px;
+    padding-left: 25px;
+    padding-right: 25px;
+    min-width: 900px;
+    width: calc(100% - 170px);
+    max-width: 1340px;
+    ${({ isLoggedIn }: { isLoggedIn: boolean }) =>
+        isLoggedIn ? "" : "margin: 0 auto;"}
+`;
 
 const routes = [
-    { path: "/", component: Dashboard },
+    { path: "/", component: Dashboard, restriction: true },
+    { path: "/validator", component: Validator, restriction: true },
+    { path: "/contracts", component: Contract, restriction: true },
+    { path: "/settings", component: Settings, restriction: true },
     {
-        path: "/wallet",
-        component: Wallet
+        path: "/transactions/:id",
+        component: TransactionDetail,
+        restriction: true
     },
-    { path: "/network", component: Network },
-    { path: "/validator", component: Validator },
-    { path: "/contracts", component: Contract },
-    { path: "/settings", component: Settings }
+    { path: "/login", component: Login, restriction: false }
 ];
+
+const perlin = Perlin.getInstance();
 
 @observer
 class App extends React.Component<RouteComponentProps, {}> {
     public render() {
+        const isLoggedIn = perlin.isLoggedIn;
         return (
             <>
-                <BackgroundWave />
-                <Navbar />
                 <ContentWrapper>
-                    <SideWrapper>
+                    <SideWrapper isLoggedIn={isLoggedIn}>
                         <SideNav />
                     </SideWrapper>
-                    <Content>
+                    <Content isLoggedIn={isLoggedIn}>
+                        <Navbar />
                         <Switch>
-                            {routes.map(route => (
-                                <Route
-                                    key={route.path}
-                                    exact={true}
-                                    path={route.path}
-                                    component={route.component}
-                                />
-                            ))}
-                            <Redirect to={{ pathname: "/" }} />
+                            {routes.map(
+                                route =>
+                                    (route.restriction === isLoggedIn ||
+                                        !route.restriction) && (
+                                        <Route
+                                            key={route.path}
+                                            exact={true}
+                                            path={route.path}
+                                            component={route.component}
+                                        />
+                                    )
+                            )}
+                            <Redirect to={{ pathname: "/login" }} />
                         </Switch>
                     </Content>
                 </ContentWrapper>
+                <Notification />
             </>
         );
     }

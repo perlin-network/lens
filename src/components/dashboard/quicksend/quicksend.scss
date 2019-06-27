@@ -1,0 +1,46 @@
+.right-padding {
+    padding-right: 15px;
+    word-wrap: break-word;
+}
+
+input::placeholder {
+    color: #5a6074;
+    font-size: 14px;
+    opacity: 30%;
+}
+
+.break-word {
+    word-wrap: break-word;
+}
+
+.break-word-normal {
+    word-wrap: normal;
+}
+
+.vertical-center-align {
+    vertical-align: middle;
+}
+
+.table-outer {
+    display: table;
+}
+
+.table-inner {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.perlsSent {
+    max-width: 100%;
+    height: 100px;
+    word-wrap: break-word;
+    font-size: 20px;
+}
+
+#input_img {
+    position:absolute;
+    bottom:2px;
+    right:5px;
+    width:24px;
+    height:24px;
+}
