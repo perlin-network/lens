@@ -1,12 +1,17 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
 import { Button as RawButton, Card, Input } from "../common/core";
+import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
 import { observer } from "mobx-react-lite";
+import { Link } from "react-router-dom";
+import LoadingSpinner from "../common/loadingSpinner";
+import GasLimit from "../common/gas-limit/GasLimit";
+import BigNumber from "bignumber.js";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -16,8 +21,13 @@ const contractStore = ContractStore.getInstance();
 
 const Wrapper = styled(Card)`
     position: relative;
-    padding: 10px 0px;
+    padding: 0;
     background-color: transparent;
+`;
+
+const IntroText = styled.p`
+    font-size: 15px;
+    line-height: 1.5;
 `;
 const DividerWrapper = styled.div`
     display: flex;
@@ -38,7 +48,7 @@ const DividerText = styled.h2`
     color: #fff;
     margin: 0 16px;
 `;
-const InputWrapper = styled.div`
+const InputWrapper = styled.form`
     display: flex;
 `;
 const StyledInput = styled(Input)`
@@ -108,7 +118,31 @@ const Loader = styled.div`
     font-weight: 600;
 `;
 
-const createSmartContract = async (file: File) => {
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
+
+const successNotification = (title: string, txId: string) => {
+    perlin.notify({
+        title,
+        type: NotificationTypes.Success,
+        // message: "You can view your transactions details here"
+        content: (
+            <p>
+                You can view your smart contract
+                <Link to={"/transactions/" + txId} title={txId} target="_blank">
+                    here
+                </Link>
+            </p>
+        ),
+        dismiss: { duration: 10000 }
+    });
+};
+
+const createSmartContract = async (file: File, gasLimit: number) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -123,16 +157,13 @@ const createSmartContract = async (file: File) => {
         reader.readAsArrayBuffer(file);
     });
 
-    contractStore.contract.errorMessage = "";
     contractStore.contract.transactionId = "";
 
     try {
-        const resp = await perlin.createSmartContract(bytes);
+        const resp = await perlin.createSmartContract(bytes, gasLimit);
 
         if (resp.error) {
-            contractStore.contract.errorMessage = `${resp.status} : ${
-                resp.error
-            }`;
+            errorNotification(`${resp.status}: ${resp.error}`);
         } else {
             const wasmModule = wabt.readWasm(new Uint8Array(bytes), {
                 readDebugNames: false
@@ -145,23 +176,22 @@ const createSmartContract = async (file: File) => {
                 foldExprs: true,
                 inlineExport: false
             });
-            contractStore.contract.errorMessage = "";
         }
-    } catch (error) {
-        contractStore.contract.errorMessage = `${"Error"} : ${`Connection Failed`}`;
+    } catch (err) {
+        errorNotification(`${err.message}`);
     }
 };
 
 export const loadContractFromNetwork = async (
     contractId: string
 ): Promise<number> => {
+    const account = await perlin.getAccount(contractId);
+
+    if (!account.is_contract) {
+        throw new Error("Contract couldn't be spawned.");
+    }
+
     try {
-        const account = await perlin.getAccount(contractId);
-
-        if (!account.is_contract) {
-            throw new Error(`Address is not a contract.`);
-        }
-
         const numPages = account.num_mem_pages || 0;
 
         const hexContent = await perlin.getContractCode(contractId);
@@ -180,126 +210,192 @@ export const loadContractFromNetwork = async (
             foldExprs: true,
             inlineExport: false
         });
-        contractStore.contract.errorMessage = "";
 
         return numPages;
     } catch (err) {
-        contractStore.contract.errorMessage = `Error : ${err.message}`;
+        errorNotification(err.message || err);
         return 0;
     }
 };
 
 const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
+    const [gasLimit, setGasLimit] = useState();
     const [contractAddress, setContractAddress] = useState("");
-    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setContractAddress(e.target.value);
-    };
+    const [inlineMessage, setInlineMessage] = useState();
+    const handleAddressChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setContractAddress(e.target.value);
+        },
+        []
+    );
 
+    const handleUpdateGasLimit = useCallback((value: string) => {
+        setGasLimit(value);
+    }, []);
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
-    const handleLoadClick = useCallback(async () => {
-        setLoading(true);
-        try {
-            const totalMemoryPages = await loadContractFromNetwork(
-                contractAddress
-            );
+    const handleLoad = useCallback(
+        async (event: any) => {
+            event.preventDefault();
+            setLoading(true);
+            setInlineMessage(undefined);
+            try {
+                const totalMemoryPages = await loadContractFromNetwork(
+                    contractAddress
+                );
 
-            if (contractStore.contract.transactionId) {
-                await contractStore.load(totalMemoryPages);
+                if (contractStore.contract.transactionId) {
+                    await contractStore.load(totalMemoryPages);
+                    successNotification(
+                        "",
+                        contractStore.contract.transactionId
+                    );
+                    setInlineMessage({
+                        type: "success"
+                    });
+                }
+            } catch (err) {
+                errorNotification(err.message || err);
+            } finally {
+                setLoading(false);
+                setGasLimit(undefined);
             }
-        } catch (err) {
-            contractStore.contract.errorMessage = `${err}`;
-        } finally {
-            setLoading(false);
-        }
-    }, [contractAddress]);
+        },
+        [contractAddress]
+    );
 
-    const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
-        const file = acceptedFiles[0];
-        setLoading(true);
-        try {
-            await createSmartContract(file);
-            if (contractStore.contract.transactionId) {
-                let count = 0;
-                while (count < 30) {
-                    const tx = await perlin.getTransaction(
+    const onDropAccepted = useCallback(
+        async (acceptedFiles: File[]) => {
+            const file = acceptedFiles[0];
+            setLoading(true);
+            const gasLimitNumber = new BigNumber(gasLimit);
+            setInlineMessage(undefined);
+            try {
+                if (
+                    gasLimitNumber.isNaN() ||
+                    gasLimitNumber.lte(0) ||
+                    gasLimitNumber.gt(perlin.account.balance)
+                ) {
+                    errorNotification("Invalid Gas Limit");
+                    return;
+                }
+                await createSmartContract(file, gasLimit);
+
+                if (contractStore.contract.transactionId) {
+                    let count = 0;
+                    while (count < 30) {
+                        const tx = await perlin.getTransaction(
+                            contractStore.contract.transactionId
+                        );
+
+                        if (tx.status === "applied") {
+                            await delay(3000);
+                            break;
+                        }
+                        await delay(1000);
+                        count++;
+                    }
+
+                    const totalMemoryPages = await loadContractFromNetwork(
                         contractStore.contract.transactionId
                     );
 
-                    if (tx.status === "applied") {
-                        await delay(3000);
-                        break;
-                    }
-                    await delay(1000);
-                    count++;
+                    await contractStore.load(totalMemoryPages);
+                    successNotification(
+                        "",
+                        contractStore.contract.transactionId
+                    );
+                    setInlineMessage({
+                        type: "success"
+                    });
                 }
-
-                const totalMemoryPages = await loadContractFromNetwork(
-                    contractStore.contract.transactionId
-                );
-
-                await contractStore.load(totalMemoryPages);
+            } catch (err) {
+                errorNotification(err.message || err);
+                setInlineMessage({
+                    type: "error",
+                    message: "Failed to spawn contract."
+                });
+            } finally {
+                setLoading(false);
+                setGasLimit(undefined);
             }
-        } catch (err) {
-            console.log("Error while uploading file: ");
-            console.error(err);
-            contractStore.contract.errorMessage = `${err}`;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+        },
+        [gasLimit]
+    );
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         accept: "application/wasm",
         onDropAccepted,
         multiple: false
     });
+
+    if (contractStore.contract.errorMessage) {
+        errorNotification(contractStore.contract.errorMessage);
+    }
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
+            <IntroText>
+                Learn how to write your first WebAssembly smart contract by
+                clicking{" "}
+                <a
+                    href="https://wavelet.perlin.net/docs/smart-contracts"
+                    target="_blank"
+                >
+                    here
+                </a>
+                .
+            </IntroText>
+            <GasLimit
+                balance={perlin.account.balance}
+                onChange={handleUpdateGasLimit}
+                value={gasLimit}
+            />
             <Button fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
             </Button>
+
             <DividerWrapper>
                 <Divider />
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
-            <InputWrapper>
+            <InputWrapper onSubmit={handleLoad}>
                 <StyledInput
                     value={contractAddress}
                     placeholder="Enter the address of a deployed smart contract"
                     onChange={handleAddressChange}
                 />
-                <StyledButton onClick={handleLoadClick}>
-                    Load Contract
-                </StyledButton>
+                <StyledButton type="submit">Load Contract</StyledButton>
             </InputWrapper>
-            {loading && <Loader>Uploading Contract...</Loader>}
-            {contractStore.contract.errorMessage !== "" && (
-                <div
-                    style={{
-                        textAlign: "center",
-                        marginTop: "25px",
-                        color: "red"
-                    }}
-                >
-                    {contractStore.contract.errorMessage}
-                </div>
-            )}
-            {contractStore.contract.transactionId !== "" && (
-                <div
-                    style={{
-                        textAlign: "center",
-                        marginTop: "25px",
-                        color: "#4A41D1"
-                    }}
-                >
-                    {`Success! Your smart contracts ID is: ${
-                        contractStore.contract.transactionId
-                    }`}
-                </div>
+            {loading ? (
+                <LoadingSpinner />
+            ) : (
+                inlineMessage && (
+                    <InlineNotification className={inlineMessage.type}>
+                        <div className="notification-body">
+                            <h4 className="notification-title">
+                                {inlineMessage.type}
+                            </h4>
+                            <div className="notification-message">
+                                {inlineMessage.message}
+                                {contractStore.contract.transactionId && (
+                                    <div>
+                                        Your smart contract ID:
+                                        <span className="result break">
+                                            {
+                                                contractStore.contract
+                                                    .transactionId
+                                            }
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </InlineNotification>
+                )
             )}
         </Wrapper>
     );

@@ -3,6 +3,7 @@ import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
+import { HTTP_PROTOCOL, WS_PROTOCOL } from "./constants";
 import PayloadWriter from "./payload/PayloadWriter";
 import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
@@ -11,6 +12,14 @@ import { IAccount } from "./types/Account";
 import ReconnectingWebSocket from "reconnecting-websocket";
 // @ts-ignore
 import * as JSONbig from "json-bigint";
+
+export enum NotificationTypes {
+    Success = "success",
+    Default = "default",
+    Info = "info",
+    Danger = "danger",
+    Warning = "warning"
+}
 
 class Perlin {
     @computed get recentTransactions() {
@@ -39,8 +48,13 @@ class Perlin {
         return Perlin.singleton;
     }
 
-    public static parseTransferTransaction(b: Buffer) {
-        const reader = new PayloadReader(Array.from(b));
+    public static parseTransactionPayload(data: ITransaction) {
+        if (!data.payload) {
+            return;
+        }
+
+        const buffer = Buffer.from(data.payload, "base64");
+        const reader = new PayloadReader(Array.from(buffer));
 
         return {
             recipient: reader.buffer.readBuffer(32).toString("hex"),
@@ -75,6 +89,8 @@ class Perlin {
         num_accounts: 0
     };
 
+    @observable public notification: any;
+
     @observable public account: IAccount = {
         public_key: "",
         balance: "0",
@@ -88,7 +104,7 @@ class Perlin {
         recent: [] as ITransaction[],
         loading: true,
         hasMore: true,
-        page: 0,
+        offset: 0,
         pageSize: 200
     };
 
@@ -124,6 +140,7 @@ class Perlin {
 
     private constructor() {
         const secret = storage.getSecretKey();
+        storage.watchCurrentHost(this.handleHostChange);
 
         if (secret) {
             this.login(secret);
@@ -178,6 +195,9 @@ class Perlin {
         };
     }
 
+    public notify(data: any) {
+        this.notification = data;
+    }
     public async transfer(
         recipient: string,
         amount: number,
@@ -190,7 +210,11 @@ class Perlin {
         const payload = new PayloadWriter();
         payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
-        payload.writeUint64(Long.fromNumber(gasLimit, true));
+
+        if (gasLimit > 0) {
+            payload.writeUint64(Long.fromNumber(gasLimit, true));
+            payload.writeString("on_money_received");
+        }
 
         return await this.post(
             "/tx/send",
@@ -231,10 +255,13 @@ class Perlin {
         );
     }
 
-    public async createSmartContract(bytes: ArrayBuffer): Promise<any> {
+    public async createSmartContract(
+        bytes: ArrayBuffer,
+        gasLimit: number
+    ): Promise<any> {
         const payload = new PayloadWriter();
-        payload.writeUint64(Long.fromNumber(100000000, true));
-        payload.writeUint64(Long.fromNumber(0, true));
+        payload.writeUint64(Long.fromNumber(gasLimit, true));
+        payload.writeUint32(0);
         payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
         return await this.post(
             "/tx/send",
@@ -243,13 +270,7 @@ class Perlin {
     }
 
     public async getContractCode(contractId: string): Promise<string> {
-        return await this.getText(
-            `/contract/${contractId}`,
-            {},
-            {
-                "Content-Type": "application/wasm"
-            }
-        );
+        return await this.getText(`/contract/${contractId}`, {});
     }
 
     public async getContractPage(
@@ -273,12 +294,13 @@ class Perlin {
         contractID: string,
         amount: number,
         funcName: string,
-        funcParams: Buffer
+        funcParams: Buffer,
+        gasLimit = 100000000000
     ): Promise<any> {
         const payload = new PayloadWriter();
         payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
         payload.writeUint64(Long.fromNumber(amount, true));
-        payload.writeUint64(Long.fromNumber(100000000000, true));
+        payload.writeUint64(Long.fromNumber(gasLimit, true));
         payload.writeString(funcName);
         payload.writeBuffer(funcParams);
 
@@ -300,7 +322,8 @@ class Perlin {
             stake: data.stake,
             reward: data.reward,
             is_contract: data.is_contract,
-            num_mem_pages: data.num_mem_pages
+            num_mem_pages: data.num_mem_pages,
+            nonce: data.nonce
         };
     }
 
@@ -309,12 +332,20 @@ class Perlin {
         return await this.getJSON(`/tx/${id}`, {});
     }
 
-    public async getTableTransactions(offset: number, limit: number) {
+    public async getTableTransactions(offset?: number) {
         try {
+            if (typeof offset !== "undefined") {
+                this.transactions.offset = offset;
+                this.transactions.recent = this.transactions.recent.slice(
+                    0,
+                    offset
+                );
+            }
+
             this.transactions.loading = true;
             const transactions = await this.requestRecentTransactions(
-                offset,
-                limit
+                this.transactions.offset,
+                this.transactions.pageSize
             );
 
             const appliedTransactions = transactions.filter(
@@ -326,7 +357,7 @@ class Perlin {
                 recent: [...this.transactions.recent, ...appliedTransactions],
                 hasMore: !!transactions.length,
                 loading: false,
-                page: this.transactions.page + 1
+                offset: this.transactions.offset + transactions.length // offset is calculated using all types of tx (both applied and non-applied)
             };
         } catch (err) {
             console.log(err);
@@ -342,10 +373,11 @@ class Perlin {
             this.pollTransactionUpdates();
             this.pollConsensusUpdates();
             this.pollMetricsUpdates();
-
-            storage.watchCurrentHost(this.handleHostChange);
         } catch (err) {
-            throw new Error(err);
+            this.notify({
+                type: NotificationTypes.Danger,
+                message: err.message
+            });
         }
     }
 
@@ -354,7 +386,7 @@ class Perlin {
         params?: any,
         headers?: any
     ): Promise<Response> {
-        const url = new URL(`http://${this.api.host}${endpoint}`);
+        const url = new URL(`${HTTP_PROTOCOL}://${this.api.host}${endpoint}`);
         Object.keys(params).forEach(key =>
             url.searchParams.append(key, params[key])
         );
@@ -408,13 +440,16 @@ class Perlin {
         body?: any,
         headers?: any
     ): Promise<any> {
-        const response = await fetch(`http://${this.api.host}${endpoint}`, {
-            method: "post",
-            headers: {
-                ...headers
-            },
-            body: JSON.stringify(body)
-        });
+        const response = await fetch(
+            `${HTTP_PROTOCOL}://${this.api.host}${endpoint}`,
+            {
+                method: "post",
+                headers: {
+                    ...headers
+                },
+                body: JSON.stringify(body)
+            }
+        );
 
         return await response.json();
     }
@@ -464,21 +499,26 @@ class Perlin {
 
     private pollTransactionUpdates(event: string = "accepted") {
         const url = new URL(
-            `ws://${this.api.host}/poll/tx?sender=${this.publicKeyHex}`
+            `${WS_PROTOCOL}://${this.api.host}/poll/tx?creator=${
+                this.publicKeyHex
+            }`
         );
 
         const ws = new ReconnectingWebSocket(url.toString());
 
         const pushTransactions = _.debounce(
             transactions => {
-                this.transactions.recent = [
-                    ...transactions,
-                    ...lastTransactions
-                ].slice(0, this.transactions.pageSize);
+                // TODO: restore approach once there's a solution to accurately calculate next page's offset
+                // this.transactions.recent = [
+                //     ...transactions,
+                //     ...lastTransactions
+                // ].slice(0, this.transactions.pageSize);
 
-                this.transactions.page = 1;
-                this.transactions.hasMore = true;
-                lastTransactions = this.transactions.recent;
+                // this.transactions.offset = this.transactions.recent.length;
+                // this.transactions.hasMore = true;
+                // lastTransactions = this.transactions.recent;
+
+                this.getTableTransactions(0);
             },
             this.transactionDebounceIntv,
             {
@@ -486,7 +526,7 @@ class Perlin {
             }
         );
 
-        let lastTransactions: ITransaction[] = this.transactions.recent;
+        // let lastTransactions: ITransaction[] = this.transactions.recent;
         ws.onmessage = async ({ data }) => {
             if (!data) {
                 return;
@@ -516,7 +556,7 @@ class Perlin {
     }
 
     private pollConsensusUpdates() {
-        const url = new URL(`ws://${this.api.host}/poll/consensus`);
+        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/consensus`);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -554,7 +594,7 @@ class Perlin {
     }
 
     private pollMetricsUpdates() {
-        const url = new URL(`ws://${this.api.host}/poll/metrics`);
+        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/metrics`);
 
         const ws = new ReconnectingWebSocket(url.toString());
 
@@ -573,7 +613,7 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(`ws://${this.api.host}/poll/accounts`);
+        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/accounts`);
         url.searchParams.append("id", id);
 
         const ws = new ReconnectingWebSocket(url.toString());
@@ -611,7 +651,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<ITransaction[] | undefined> {
-        return await this.getJSON(`/tx?sender=${this.publicKeyHex}`, {
+        return await this.getJSON(`/tx?creator=${this.publicKeyHex}`, {
             offset,
             limit,
             sender: this.publicKeyHex

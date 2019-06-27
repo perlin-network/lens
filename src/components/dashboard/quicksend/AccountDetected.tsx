@@ -1,28 +1,36 @@
 import * as React from "react";
-import { Perlin } from "../../../Perlin";
+import { Perlin, NotificationTypes } from "../../../Perlin";
 import styled from "styled-components";
 import "./quicksend.scss";
 import { Flex, Box } from "@rebass/grid";
 import { observer } from "mobx-react";
 import {
-    QuickSendSuccessIcon,
     QuickSendThumbsUpIcon,
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { QRCodeModal, QRCodeWidget } from "../../common/qr";
+import DeltaTag from "../../common/deltaTag";
+import { QRCodeWidget } from "../../common/qr";
+import { numberWithCommas } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
+import { Link } from "react-router-dom";
+import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
+import BigNumber from "bignumber.js";
+import GasLimit from "../../common/gas-limit/GasLimit";
 
 interface IProps {
     recipient: any;
     changeComponent: (component: string) => void;
     toggleComponent: string;
+    validContract: boolean;
 }
 
 interface IState {
     inputPerls: string;
     doubleChecked: boolean;
     errorMessage: string;
+    gasLimit?: string;
+    gasChoiceReset: number;
 }
 
 const Wrapper = styled.div`
@@ -38,69 +46,13 @@ const Row = styled(Flex)`
 
 const InputWrapper = styled.div`
     display: flex;
+    flex: 1;
 `;
-
-const SendPerlsInput = styled.input`
-    font-family: HKGrotesk;
-    font-size: 16px;
-    font-weight: 400;
-    background-color: #121834;
-    border-radius: 5px 0px 0px 5px;
-    border: 1px solid #2e345100;
-    color: white;
-    width: 100%;
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    height: 48px;
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        border: 1px solid #4a41d1;
-        outline: 0;
-    }
-    &::placeholder {
-        font-size: 16px;
-    }
-`;
-
-const Fees = styled.button.attrs({ hideOverflow: true })`
-    height: 48px;
-    border-radius: 0px 5px 5px 0px;
-    background-color: #121834;
-    font-size: 16px;
-    font-weight: 400;
-    color: white;
-    width: auto;
-    display: inline;
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border: 0px;
-
-    &:focus {
-        border: 0px;
-        outline: 0;
-    }
-`;
-
-const Divider = styled.button`
-    height: 48px;
-    background-color: #121834;
-    font-size: 24px;
-    font-weight: 400;
-    color: #3a3f5b;
-    width: auto;
-    display: inline;
-    padding: 0px;
-    margin: 10px 0;
-    border: 0px;
-
-    &:focus {
-        border: 0px;
-        outline: 0;
+const DetailsLinkWrapper = styled.div`
+    padding: 0 20px 20px 20px;
+    a {
+        color: #fff !important;
+        margin-left: 5px;
     }
 `;
 
@@ -118,18 +70,16 @@ const SendPerlsButton = styled.button`
     border-radius: 5px;
     border: 1px solid #00000000;
     color: #151b35;
-    padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    padding: 15px;
+    margin: 10px 0;
+
     min-width: 110px;
 
-    &:hover {
+    &:hover,
+    &:focus {
         cursor: pointer;
         background-color: #d4d5da;
-    }
-    &:focus {
-        background-color: #d4d5da;
-        border: 1px solid #4a41d1;
+        border: 1px solid #d4d5da;
         outline: 0;
     }
 `;
@@ -162,6 +112,36 @@ const InfoLine = styled.tr`
     }
 `;
 
+const TransferIntroRow = styled(Row)`
+    padding: 20px 20px 0 40px;
+    color: #a6aab1;
+    font-size: 18px;
+
+    h4 {
+        color: #fff;
+        font-size: 22px;
+        margin: 10px 0;
+    }
+`;
+const TransferRow = styled(Row)`
+    padding: 20px;
+    border: 1px solid #686c7c;
+    border-radius: 5px;
+    margin: 0 20px 20px;
+    color: #a6aab1;
+    line-height: 1.6;
+
+    .address {
+        color: #fff;
+        font-weight: 400;
+        font-size: 16px;
+        margin: 5px 0;
+    }
+
+    .balance {
+        margin-right: 5px;
+    }
+`;
 const perlin = Perlin.getInstance();
 
 @observer
@@ -171,7 +151,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         this.state = {
             inputPerls: "",
             doubleChecked: false,
-            errorMessage: ""
+            errorMessage: "",
+            gasChoiceReset: 0
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -179,6 +160,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
 
     public render() {
         const { recipient } = this.props;
+        const recipientBalance = new BigNumber(recipient.balance);
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -233,66 +215,66 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                 {recipient.stake}
                                             </td>
                                         </InfoLine>
-                                        <InfoLine>
-                                            <td className="label">Nonce</td>
-                                            <td className="value">
-                                                {recipient.nonce}
-                                            </td>
-                                        </InfoLine>
+                                        {typeof recipient.nonce !==
+                                            "undefined" && (
+                                            <InfoLine>
+                                                <td className="label">Nonce</td>
+                                                <td className="value">
+                                                    {recipient.nonce}
+                                                </td>
+                                            </InfoLine>
+                                        )}
                                     </tbody>
                                 </InfoTable>
                             </Box>
                             <Box width={1 / 2} className="break-word">
                                 <InputWrapper>
-                                    <SendPerlsInput
+                                    <DividerInput
                                         placeholder="Enter Amount"
                                         value={this.state.inputPerls}
                                         onChange={this.updateInputPerls}
                                     />
                                     <Divider>|</Divider>
-                                    <Fees>Fee:&nbsp;0.00001&nbsp;PERLs</Fees>
+                                    <DividerAside>Fee: 2 PERLs</DividerAside>
                                 </InputWrapper>
 
                                 <Flex
                                     alignItems="center"
                                     justifyContent="space-between"
                                 >
-                                    <Flex alignItems="top">
-                                        <input
-                                            type="checkbox"
-                                            id="confirmSendPerls"
-                                            name="confirmSendPerls"
-                                            checked={this.state.doubleChecked}
-                                            onChange={this.handleCheckboxChange}
-                                            style={{
-                                                border: "1px solid #3a3f5b",
-                                                backgroundColor: "#00000000",
-                                                margin: "2px 10px 0 0"
-                                            }}
+                                    {this.props.validContract && (
+                                        <GasLimit
+                                            balance={perlin.account.balance}
+                                            onChange={this.updateGasLimit}
+                                            value={this.state.gasLimit}
+                                            mr={3}
                                         />
-                                        <label
-                                            htmlFor="confirmSendPerls"
-                                            style={{
-                                                flex: 1,
-                                                marginRight: "10px"
-                                            }}
-                                        >
-                                            I have double checked the address
-                                        </label>
-                                    </Flex>
+                                    )}
+
                                     <Box>
                                         <SendPerlsButton
                                             onClick={this.handleSendButton}
                                         >
-                                            Send {this.state.inputPerls} PERLs
+                                            Send {this.state.inputPerls} PERL(s)
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
-                                <div>
-                                    <this.ErrorMessage />
-                                </div>
                             </Box>
                         </Flex>
+                        {this.props.validContract && (
+                            <DetailsLinkWrapper>
+                                Valid Contract ID has been detected.
+                                <Link
+                                    to={`/transactions/${
+                                        this.props.recipient.public_key
+                                    }`}
+                                >
+                                    <b>
+                                        <u>Go to the detail</u>.
+                                    </b>
+                                </Link>
+                            </DetailsLinkWrapper>
+                        )}
                     </AccountDetectedContent>
                 </AccountDetectedAnimation>
 
@@ -300,39 +282,27 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                     in={this.props.toggleComponent === "showSendConfirmation"}
                 >
                     <CancelCardIcon onClick={this.cancelSend} />
-                    <Row style={{ padding: "40px 20px 0 40px" }}>
+                    <TransferIntroRow>
                         <Box width={1 / 7}>
                             <QuickSendThumbsUpIcon />
                         </Box>
-                        <Box
-                            width={4 / 7}
-                            style={{ height: "100px" }}
-                            className="table-outer"
-                        >
-                            <div className="perlsSent table-inner break-word-normal">
-                                <span style={{ fontWeight: 500 }}>
-                                    Your {this.state.inputPerls} PERLs are on
+                        <Box width={4 / 7} className="table-outer">
+                            <div className="table-inner break-word-normal">
+                                <h4>
+                                    Your {this.state.inputPerls} PERL(s) are on
                                     their way!
-                                </span>
-                                <br />
-                                <span style={{ opacity: 0.6 }}>
-                                    Your PERL tokens are being processed by our
-                                    lighting fast consensus mechanism and will
-                                    be transferred in a few seconds.
-                                </span>
+                                </h4>
+                                <p>
+                                    Your PERL token(s) are being processed by
+                                    our lighting fast consensus mechanism and
+                                    will be transferred in a few seconds.
+                                </p>
                             </div>
                         </Box>
-                    </Row>
-                    <Row
-                        style={{
-                            padding: "40px",
-                            border: "1px solid #686C7C",
-                            borderRadius: "4px",
-                            margin: "0 20px 20px"
-                        }}
-                    >
+                    </TransferIntroRow>
+                    <TransferRow>
                         <Box
-                            width={1 / 8}
+                            mr={3}
                             className="break-word vertical-center-align"
                         >
                             <QRCodeWidget
@@ -344,30 +314,25 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
-                            <div
-                                style={{
-                                    fontWeight: 400,
-                                    fontSize: "12px",
-                                    paddingLeft: "10px",
-                                    paddingTop: "7px"
-                                }}
-                            >
-                                {perlin.publicKeyHex}
-                                <br />
-                                <span style={{ opacity: 0.6 }}>
-                                    My Balance: {perlin.account.balance}
-                                </span>
-                            </div>
+                            <div className="address">{perlin.publicKeyHex}</div>
+                            <span className="balance">
+                                My Balance:{" "}
+                                {numberWithCommas(perlin.account.balance)}
+                            </span>
+                            <DeltaTag value={-this.state.inputPerls} />
                         </Box>
                         <Box
-                            width={2 / 8}
+                            ml={2}
+                            mr={2}
+                            pt={3}
+                            width={1 / 8}
                             className="vertical-center-align"
                             style={{ textAlign: "center" }}
                         >
-                            <QuickSendArrowIcon style={{ paddingTop: 15 }} />
+                            <QuickSendArrowIcon />
                         </Box>
                         <Box
-                            width={1 / 8}
+                            mr={3}
                             className="break-word vertical-center-align"
                         >
                             <QRCodeWidget
@@ -379,82 +344,104 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             />
                         </Box>
                         <Box width={3 / 8} className="break-word">
-                            <div
-                                style={{
-                                    fontWeight: 400,
-                                    fontSize: "12px",
-                                    paddingLeft: "10px",
-                                    paddingTop: "7px"
-                                }}
-                            >
+                            <div className="address">
                                 {recipient.public_key}
-                                <br />
-                                <span style={{ opacity: 0.6 }}>
-                                    Recipient Balance: {recipient.balance}
-                                </span>
                             </div>
+                            <span className="balance">
+                                Recipient Balance:{" "}
+                                {numberWithCommas(
+                                    recipientBalance
+                                        .plus(this.state.inputPerls)
+                                        .toString()
+                                )}
+                            </span>
+                            <DeltaTag value={this.state.inputPerls} />
                         </Box>
-                    </Row>
+                    </TransferRow>
                 </AccountDetectedAnimation>
             </Wrapper>
         );
     }
 
+    private updateGasLimit = (gasLimit: string) => {
+        this.setState({ gasLimit });
+    };
+
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ inputPerls: e.target.value });
     }
     private handleSendButton = () => {
-        const successfulSend = this.successfulSend();
-        if (successfulSend === "Success") {
-            this.setState({
-                errorMessage: "Success"
-            });
+        if (this.successfulSend()) {
             this.props.changeComponent("showSendConfirmation");
-        } else {
-            this.setState({
-                errorMessage: successfulSend
-            }); // if fail, toggle error component
-            this.props.changeComponent("showDetectedAccount");
         }
     };
     private handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
         const doubleChecked = e.target.checked;
         this.setState({ doubleChecked });
     }
+
     private successfulSend = () => {
-        if (
-            this.state.inputPerls === "" ||
-            isNaN(Number(this.state.inputPerls))
-        ) {
-            return "Invalid input";
-        } else if (this.state.doubleChecked === false) {
-            return "No double-check";
-        } else {
-            perlin.transfer(
+        let gasLimit;
+        const perls = new BigNumber(this.state.inputPerls);
+
+        if (this.props.validContract) {
+            gasLimit = new BigNumber(this.state.gasLimit || "0");
+
+            if (
+                gasLimit.isNaN() ||
+                gasLimit.lte(0) ||
+                gasLimit.gt(perlin.account.balance)
+            ) {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: "Please enter a valid Gas Limit"
+                });
+                return false;
+            }
+
+            gasLimit = gasLimit.toNumber();
+        }
+
+        if (perls.isNaN() || perls.lte(0) || perls.gt(perlin.account.balance)) {
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                message: "Please enter a valid amount of PERLs"
+            });
+            return false;
+        }
+        perlin
+            .transfer(
                 this.props.recipient.public_key,
-                Number(this.state.inputPerls)
-            );
-            // further validation required for successful send
-            return "Success";
-        }
+                perls.toNumber(),
+                gasLimit
+            )
+            .then(response => {
+                perlin.notify({
+                    title: "PERL(s) Sent",
+                    type: NotificationTypes.Success,
+                    // message: "You can view your transactions details here"
+                    content: (
+                        <p>
+                            You can view your transaction
+                            <Link
+                                to={"/transactions/" + response.tx_id}
+                                title={response.tx_id}
+                                target="_blank"
+                            >
+                                here
+                            </Link>
+                        </p>
+                    ),
+                    dismiss: { duration: 10000 }
+                });
+
+                this.updateGasLimit("");
+            });
+
+        // further validation required for successful send
+        return true;
     };
-    private ErrorMessage = () => {
-        if (this.state.errorMessage === "Invalid input") {
-            return (
-                <div style={{ color: "red" }}>
-                    Please enter a valid number of PERLs.
-                </div>
-            );
-        } else if (this.state.errorMessage === "No double-check") {
-            return (
-                <div style={{ color: "red" }}>
-                    Please double-check the recipient address.
-                </div>
-            );
-        } else {
-            return null;
-        }
-    };
+
     private cancelSend = () => {
         this.props.changeComponent("");
         this.setState({

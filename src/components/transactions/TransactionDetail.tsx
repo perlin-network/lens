@@ -5,6 +5,7 @@ import { Box, Flex } from "@rebass/grid";
 import { match as Match } from "react-router-dom";
 import { Perlin } from "../../Perlin";
 import { ITransaction, Tag } from "../../types/Transaction";
+import LoadingSpinner from "../common/loadingSpinner";
 
 const perlin = Perlin.getInstance();
 
@@ -17,7 +18,7 @@ const Title = styled.p`
 `;
 
 const Wrapper = styled.div`
-    width: 80%;
+    width: 90%;
     margin-top: 25px;
     padding: 0px 25px 25px 0px;
     margin-bottom: 50px;
@@ -50,12 +51,18 @@ const Col = styled(Box)`
     font-weight: 400;
     width: 80%;
     word-wrap: break-word;
+
+    &.truncated {
+        max-height: 400px;
+        overflow: auto;
+    }
 `;
 
 const HeadCol = styled(Box)`
     font-weight: 600;
     opacity: 0.6;
     font-size: 16px;
+    padding-right: 10px;
     width: 20%;
 `;
 
@@ -97,36 +104,40 @@ const renderTagBadge = (tagId: number) => {
 };
 
 const renderTransactionDataView = (data: any) => {
+    let payload: any;
+    if (data.payload) {
+        payload = Perlin.parseTransactionPayload(data);
+    }
     return (
         <div>
             <hr color="#717985" />
             <Row>
-                <HeadCol>Transaction ID&nbsp;:</HeadCol>
+                <HeadCol>Transaction ID:</HeadCol>
                 <Col>{data.id}</Col>
             </Row>
             <Row>
-                <HeadCol>Tag&nbsp;:</HeadCol>
+                <HeadCol>Tag:</HeadCol>
                 <Col>{renderTagBadge(data.tag)}</Col>
             </Row>
             <Row>
-                <HeadCol>Sender&nbsp;:</HeadCol>
+                <HeadCol>Sender:</HeadCol>
                 <Col>{data.sender}</Col>
             </Row>
             <Row>
-                <HeadCol>Sender Signature&nbsp;:</HeadCol>
+                <HeadCol>Sender Signature:</HeadCol>
                 <Col>{data.sender_signature}</Col>
             </Row>
 
             <Row>
-                <HeadCol>Creator&nbsp;:</HeadCol>
+                <HeadCol>Creator:</HeadCol>
                 <Col>{data.creator}</Col>
             </Row>
             <Row>
-                <HeadCol>Creator Signature&nbsp;:</HeadCol>
+                <HeadCol>Creator Signature:</HeadCol>
                 <Col>{data.creator_signature}</Col>
             </Row>
             <Row>
-                <HeadCol>Parents&nbsp;:</HeadCol>
+                <HeadCol>Parents:</HeadCol>
                 <Col>
                     {/*
                         todo : put comma
@@ -137,35 +148,30 @@ const renderTransactionDataView = (data: any) => {
                 </Col>
             </Row>
             <Row>
-                <HeadCol>Nonce&nbsp;:</HeadCol>
+                <HeadCol>Nonce:</HeadCol>
                 <Col>{data.nonce}</Col>
             </Row>
             <Row>
-                <HeadCol>Depth&nbsp;:</HeadCol>
+                <HeadCol>Depth:</HeadCol>
                 <Col>{data.depth}</Col>
             </Row>
-            <Row>
-                <HeadCol>Confidence&nbsp;:</HeadCol>
-                <Col>{data.confidence}</Col>
-            </Row>
-            <Row>
-                <HeadCol>Contract Address&nbsp;:</HeadCol>
-                <Col>00000000000000000000000000000000</Col>
-            </Row>
 
-            <Row>
-                <HeadCol>Accounts Root&nbsp;:</HeadCol>
-                <Col>{data.accounts_root}</Col>
-            </Row>
-            <Row>
-                <HeadCol>
-                    {/*
-                        todo : transcate the input data  
-                    */}
-                    Input Data&nbsp;:
-                </HeadCol>
-                <Col>{data.payload}</Col>
-            </Row>
+            {payload && (
+                <>
+                    <Row>
+                        <HeadCol>Input Data:</HeadCol>
+                        <Col className="truncated">{data.payload}</Col>
+                    </Row>
+                    <hr color="#717985" />
+                    <h2>Payload</h2>
+                    {Object.keys(payload).map((key: string, index: number) => (
+                        <Row key={index}>
+                            <HeadCol>{key}</HeadCol>
+                            <Col>{payload[key]}</Col>
+                        </Row>
+                    ))}
+                </>
+            )}
             <hr color="#717985" />
         </div>
     );
@@ -203,17 +209,7 @@ const TransactionDetail: React.FunctionComponent<IDetailProps> = ({
     return (
         <>
             <Title>Transaction Details</Title>
-            {loading && (
-                <div
-                    style={{
-                        marginTop: "10px",
-                        marginBottom: "10px",
-                        color: "#4A41D1"
-                    }}
-                >
-                    Loading...
-                </div>
-            )}
+            {loading && <LoadingSpinner />}
             {errorMessage !== "" && (
                 <div
                     style={{

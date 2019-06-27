@@ -113,7 +113,11 @@ const columns = [
         Header: "Transaction ID",
         accessor: "id",
         Cell: (row: any) => (
-            <Link to={"/transactions/" + row.value} title={row.value}>
+            <Link
+                to={"/transactions/" + row.value}
+                title={row.value}
+                target="_blank"
+            >
                 {row.value}
             </Link>
         )
@@ -165,23 +169,17 @@ const TransactionsTable: React.FunctionComponent = () => {
     useEffect(() => {
         (async () => {
             if (!perlin.transactions.recent.length) {
-                await perlin.getTableTransactions(
-                    0,
-                    perlin.transactions.pageSize
-                );
+                await perlin.getTableTransactions(0);
             }
             setFirstLoad(true);
         })();
     }, []);
-    const loadFunc = useCallback(
-        _.debounce(async () => {
-            await perlin.getTableTransactions(
-                perlin.transactions.page * perlin.transactions.pageSize,
-                perlin.transactions.pageSize
-            );
-        }, 100),
-        [perlin.transactions.page]
-    );
+
+    const loadFunc = useCallback(() => {
+        if (!perlin.transactions.loading) {
+            perlin.getTableTransactions();
+        }
+    }, []);
 
     console.log("Transactions #", data.length);
 

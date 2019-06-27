@@ -1,12 +1,15 @@
-import * as React from "react";
+import React, { useCallback } from "react";
 import { useState, useEffect } from "react";
-import { Card as OriginalCard } from "../common/core";
+import {
+    Card as OriginalCard,
+    Button as RawButton,
+    ButtonOutlined
+} from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
-import { Perlin } from "../../Perlin";
-import { Button as RawButton } from "../common/core";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
@@ -15,6 +18,12 @@ import * as Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
 import { loadContractFromNetwork } from "./ContractUploader";
+import LoadingSpinner from "../common/loadingSpinner";
+
+import { InlineNotification } from "../common/notification/Notification";
+import GasLimit from "../common/gas-limit/GasLimit";
+import { Link } from "react-router-dom";
+import BigNumber from "bignumber.js";
 
 interface IParamItem {
     id: string;
@@ -25,6 +34,13 @@ interface IParamItem {
 const perlin = Perlin.getInstance();
 const contractStore = ContractStore.getInstance();
 const watFunctionRegex = /\(export "_contract_([a-zA-Z0-9_]+)" \(func \d+\)\)/g;
+
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
 
 const useContractFunctions = () => {
     return useComputed(() => {
@@ -52,6 +68,7 @@ const useParams = () => {
         getEmptyParam()
     ]);
     const setParamType = (id: string) => (type: ParamType) => {
+        contractStore.logs = [];
         setParamsList(prevList =>
             prevList.map(item => {
                 if (item.id === id) {
@@ -78,9 +95,11 @@ const useParams = () => {
         );
     };
     const deleteParam = (id: string) => () => {
+        contractStore.logs = [];
         setParamsList(prevList => prevList.filter(item => item.id !== id));
     };
     const addParam = () => {
+        contractStore.logs = [];
         setParamsList(prevList => prevList.concat(getEmptyParam()));
     };
     const clearParams = () => {
@@ -114,11 +133,17 @@ const Button = styled(RawButton)`
     font-size: 16px;
     font-weight: 600;
     color: #151b35;
-    margin-top: 20px;
     border-radius: 5px;
     &:active {
         background-color: #d4d5da;
     }
+`;
+
+const CallFunctionButton = styled(Button)`
+    width: auto;
+    font-size: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
 `;
 
 const Title = styled.h2`
@@ -249,17 +274,21 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         addParam,
         clearParams
     } = useParams();
+    const [gasLimit, setGasLimit] = useState();
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
 
     const [loading, setLoading] = useState(false);
 
+    const handleUpdateGasLimit = useCallback((value: string) => {
+        setGasLimit(value);
+    }, []);
     useEffect(() => {
         setFunc(funcList[0]);
     }, [funcList]);
 
     const handleFuncChange = (name: string) => {
+        contractStore.logs = [];
         setFunc(name);
         clearParams();
     };
@@ -285,6 +314,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     };
 
     const handleParamChange = (id: string) => (value: string) => {
+        contractStore.logs = [];
         const paramItem: IParamItem | undefined = paramsList.find(
             item => item.id === id
         );
@@ -292,10 +322,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             const valid = validateParamItem(paramItem, value);
             if (valid || value === "") {
                 setParamValue(id)(value);
-                setErrorMessage("");
             } else {
                 console.log("Param value can't be resolved to a type");
-                setErrorMessage(`Param value can't be resolved to a type`);
+                errorNotification(`Param value can't be resolved to a type`);
             }
         }
     };
@@ -303,39 +332,56 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
-    const onCall = async () => {
+    const onCall = (simulated: boolean = false) => async () => {
+        const gasLimitNumber = new BigNumber(gasLimit);
+        if (
+            !simulated &&
+            (gasLimitNumber.isNaN() ||
+                gasLimitNumber.lte(0) ||
+                gasLimitNumber.gt(perlin.account.balance))
+        ) {
+            errorNotification("Invalid Gas Limit");
+            return;
+        }
+
         const emptyItem: IParamItem | undefined = paramsList.find(
             item => item.value === "" || item.type === undefined
         );
 
         setWasmResult("");
-        setErrorMessage("");
 
-        if (!emptyItem) {
+        if (emptyItem) {
+            errorNotification("Error : Item can't be empty.");
+            return;
+        }
+
+        setLoading(true);
+        try {
             const buf = writeToBuffer(paramsList);
-            setLoading(true);
-            try {
-                const result: any = await contractStore.call(currFunc, buf);
-                /*
-                const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
+            const result: any = await contractStore.call(currFunc, buf);
 
-                setWasmResult(
-                    `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-                );
-                console.log(
-                    `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-                );
-                */
-            } catch (e) {
-                setErrorMessage(`Error : ${e}`);
+            // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
+
+            // setWasmResult(
+            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+            // );
+
+            // console.log(
+            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
+            // );
+            if (simulated) {
+                setLoading(false);
+                return;
             }
+
             const params = writeToBuffer(paramsList);
 
             const response = await perlin.invokeContractFunction(
                 contractStore.contract.transactionId,
                 0,
                 currFunc,
-                params
+                params,
+                gasLimit
             );
             const txId = response.tx_id;
 
@@ -358,10 +404,30 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
             await contractStore.load(totalMemoryPages);
 
-            setLoading(false);
-        } else {
-            setErrorMessage(`Error : Item can't be empty.`);
+            perlin.notify({
+                title: "Function Invoked",
+                type: NotificationTypes.Success,
+                // message: "You can view your transactions details here"
+                content: (
+                    <p>
+                        You can view your transaction
+                        <Link
+                            to={"/transactions/" + txId}
+                            title={txId}
+                            target="_blank"
+                        >
+                            here
+                        </Link>
+                    </p>
+                ),
+                dismiss: { duration: 10000 }
+            });
+        } catch (err) {
+            errorNotification(`Error : ${err.message || err}`);
         }
+
+        setLoading(false);
+        setGasLimit(undefined);
     };
 
     const logMessages = contractStore.logs;
@@ -407,48 +473,54 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         </Box>
                     </Flex>
 
-                    <Button disabled={loading} fontSize="14px" onClick={onCall}>
-                        Call Function
-                    </Button>
-                    {loading && (
-                        <div
-                            style={{
-                                textAlign: "center",
-                                marginTop: "25px",
-                                marginBottom: "10px",
-                                color: "#4A41D1"
-                            }}
+                    <GasLimit
+                        balance={perlin.account.balance}
+                        onChange={handleUpdateGasLimit}
+                        value={gasLimit}
+                    />
+                    <Flex
+                        mt={3}
+                        alignItems="center"
+                        justifyContent="space-between"
+                    >
+                        <ButtonOutlined
+                            disabled={loading}
+                            onClick={onCall(true)}
                         >
-                            Processing...
-                        </div>
-                    )}
-                    {errorMessage !== "" && (
-                        <div
-                            style={{
-                                marginTop: "25px",
-                                textAlign: "center",
-                                marginBottom: "10px",
-                                color: "red"
-                            }}
+                            Simulate Call
+                        </ButtonOutlined>
+                        <CallFunctionButton
+                            disabled={loading}
+                            onClick={onCall(false)}
                         >
-                            {errorMessage}
-                        </div>
+                            Call Function
+                        </CallFunctionButton>
+                    </Flex>
+
+                    {loading ? (
+                        <LoadingSpinner />
+                    ) : (
+                        logMessages.map((item: any, index: number) => {
+                            return (
+                                <InlineNotification
+                                    className="success"
+                                    key={index}
+                                >
+                                    <div className="notification-body">
+                                        <h4 className="notification-title">
+                                            Success
+                                        </h4>
+                                        <div className="notification-message">
+                                            Your result is:
+                                            <span className="result">
+                                                {item}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </InlineNotification>
+                            );
+                        })
                     )}
-                    {logMessages.map((item: any, index: number) => {
-                        return (
-                            <div
-                                key={index}
-                                style={{
-                                    textAlign: "center",
-                                    marginTop: "10px",
-                                    marginBottom: "10px",
-                                    color: "#4A41D1"
-                                }}
-                            >
-                                {item}
-                            </div>
-                        );
-                    })}
                 </ParamsBody>
             </Card>
         </>

@@ -60,6 +60,7 @@
         "react-dropdown": "^1.6.4",
         "react-dropzone": "^10.0.0",
         "react-infinite-scroller": "^1.2.4",
+        "react-notifications-component": "^1.1.1",
         "react-qr-code": "^0.1.3",
         "react-qr-svg": "^2.2.1",
         "react-router-dom": "^4.3.1",
@@ -95,7 +96,9 @@
     },
     "scripts": {
         "start": "node scripts/start.js",
-        "build": "node scripts/build.js",
+        "start-secure": "REACT_APP_HTTPS=true node scripts/start.js",
+        "build": "GENERATE_SOURCEMAP=false node scripts/build.js",
+        "build-secure": "GENERATE_SOURCEMAP=false REACT_APP_HTTPS=true node scripts/build.js",
         "test": "node scripts/test.js --env=jsdom",
         "lint:prettier": "prettier --write src/**/*.{js,jsx,ts,tsx}"
     },

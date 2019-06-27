@@ -1,18 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import {
-    WalletIcon,
-    StakeIcon,
-    NetworkIcon,
-    EarningsIcon
-} from "./common/typography";
+import { WalletIcon, StakeIcon, EarningsIcon } from "./common/typography";
 import "../index.scss";
 import { Flex, Box } from "@rebass/grid";
-import { Perlin } from "../Perlin";
+import { Perlin, NotificationTypes } from "../Perlin";
 import { observer } from "mobx-react-lite";
-import { CopyIcon, QrCodeIcon } from "./common/typography";
+import { CopyIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
-import Address from "./common/address";
+import { numberWithCommas } from "./common/core";
 
 const Header = styled(Flex)`
     padding: 10px 0px 10px 0px;
@@ -78,6 +73,10 @@ const Item = styled(Box)`
     &.align-left {
         text-align: left;
     }
+
+    &:last-child {
+        padding-right: 0;
+    }
 `;
 
 const WalletItem = styled(Item)`
@@ -105,6 +104,11 @@ const Navbar: React.FunctionComponent<{}> = () => {
             el.select();
             document.execCommand("copy");
             document.body.removeChild(el);
+
+            perlin.notify({
+                type: NotificationTypes.Success,
+                message: "Public Key copied to clipboard"
+            });
         }
     };
 
@@ -134,7 +138,9 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             Your Balance
                         </span>
                         <Value title={balance}>
-                            <span className="truncate">{balance || 0}</span>{" "}
+                            <span className="truncate">
+                                {numberWithCommas(balance)}
+                            </span>{" "}
                             PERLs
                         </Value>
                     </Item>
@@ -144,7 +150,10 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             Your Stake
                         </span>
                         <Value title={stake + ""}>
-                            <span className="truncate">{stake || 0}</span> PERLs
+                            <span className="truncate">
+                                {numberWithCommas(stake)}
+                            </span>{" "}
+                            PERLs
                         </Value>
                     </Item>
                     <Item flex="0 0 auto">
@@ -153,7 +162,9 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             Available Rewards
                         </span>
                         <Value title={reward + ""}>
-                            <span className="truncate">{reward || 0}</span>{" "}
+                            <span className="truncate">
+                                {numberWithCommas(reward)}
+                            </span>{" "}
                             PERLs
                         </Value>
                     </Item>

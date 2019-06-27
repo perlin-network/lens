@@ -22,6 +22,7 @@ const Wrapper = styled.div<{
         padding: 10px 15px;
         text-align: center;
         line-height: 1.4;
+        z-index: 2;
 
         &.active {
             opacity: 1;

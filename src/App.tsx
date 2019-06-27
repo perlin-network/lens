@@ -4,6 +4,7 @@ import { Flex, Box } from "@rebass/grid";
 import styled from "styled-components";
 import Navbar from "./components/Navbar";
 import SideNav from "./components/SideNav";
+import Notification from "./components/common/notification/Notification";
 import {
     Switch,
     Route,
@@ -12,13 +13,10 @@ import {
     Redirect
 } from "react-router";
 import Dashboard from "./components/dashboard/DashboardContainer";
-import Wallet from "./components/wallet/WalletContainer";
-import Network from "./components/network/NetworkContainer";
 import Validator from "./components/validator/ValidatorContainer";
 import Contract from "./components/contract/ContractContainer";
 import Settings from "./components/settings/SettingsContainer";
 import Login from "./components/login/LoginContainer";
-import MainBackgroundSVG from "./assets/svg/main-background.svg";
 import TransactionDetail from "./components/transactions/TransactionDetail";
 import { Perlin } from "./Perlin";
 
@@ -30,10 +28,11 @@ const ContentWrapper = styled(Flex)`
     background-repeat: no-repeat;
 `;
 const SideWrapper = styled(Box)`
-    background-color: #0c112b;
     margin: 0px;
     padding: 0px;
-    width: 160px;
+    width: 170px;
+    ${({ isLoggedIn }: { isLoggedIn: boolean }) =>
+        isLoggedIn ? "background-color: #0c112b;" : ""}
 `;
 const Content = styled(Box).attrs({
     flex: 1
@@ -41,17 +40,18 @@ const Content = styled(Box).attrs({
     margin: 0px;
     padding-left: 25px;
     padding-right: 25px;
-    max-width: 1340px;
     min-width: 900px;
-    width: calc(100% - 160px);
+    width: calc(100% - 170px);
+    max-width: 1340px;
+    ${({ isLoggedIn }: { isLoggedIn: boolean }) =>
+        isLoggedIn ? "" : "margin: 0 auto;"}
 `;
 
 const routes = [
     { path: "/", component: Dashboard, restriction: true },
-    { path: "/network", component: Network, restriction: true },
     { path: "/validator", component: Validator, restriction: true },
     { path: "/contracts", component: Contract, restriction: true },
-    { path: "/settings", component: Settings, restriction: false },
+    { path: "/settings", component: Settings, restriction: true },
     {
         path: "/transactions/:id",
         component: TransactionDetail,
@@ -69,10 +69,10 @@ class App extends React.Component<RouteComponentProps, {}> {
         return (
             <>
                 <ContentWrapper>
-                    <SideWrapper>
+                    <SideWrapper isLoggedIn={isLoggedIn}>
                         <SideNav />
                     </SideWrapper>
-                    <Content>
+                    <Content isLoggedIn={isLoggedIn}>
                         <Navbar />
                         <Switch>
                             {routes.map(
@@ -91,6 +91,7 @@ class App extends React.Component<RouteComponentProps, {}> {
                         </Switch>
                     </Content>
                 </ContentWrapper>
+                <Notification />
             </>
         );
     }

@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { ErrorMessage, Input, RoundButton, LargeInput } from "../common/core";
 import { Box, Flex } from "@rebass/grid";
-import { WhiteButton } from "../common/core";
+import { WhiteButton, numberWithCommas } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -25,19 +25,18 @@ const RewardAmount = styled.h2`
 
 interface IRewardCardProps {
     reward: number;
-    onSubmit: (amount: number) => void;
-    errorMessage: string;
+    onSubmit: (amount: number) => Promise<boolean>;
 }
 const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
     reward,
-    onSubmit,
-    errorMessage
+    onSubmit
 }) => {
     const [amount, setAmount] = useState();
     const [showAmountBox, setShowAmountBox] = useState(false);
-    const handleOnClick = useCallback(() => {
-        onSubmit(amount);
-        setShowAmountBox(false);
+    const handleOnClick = useCallback(async () => {
+        if (await onSubmit(amount)) {
+            setShowAmountBox(false);
+        }
     }, [amount]);
 
     const handleShowAmountBox = useCallback(() => {
@@ -48,12 +47,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.target.value;
-            // if (/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/i.test(value) || (value[value.length -1] === "." && (value.indexOf(".") === value.lastIndexOf("."))) ) {
-            if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
-                setAmount(parseInt(value, 10));
-            } else if (value === "") {
-                setAmount(0);
-            }
+            setAmount(parseInt(value, 10));
         },
         []
     );
@@ -65,7 +59,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
             <CardBody>
                 <Row>
                     <Col width={1 / 2}>
-                        <RewardAmount>{reward || 0}</RewardAmount>
+                        <RewardAmount>{numberWithCommas(reward)}</RewardAmount>
                         PERLs
                     </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
@@ -97,7 +91,6 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
                         </Row>
                     </div>
                 )}
-                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
             </CardBody>
         </Wrapper>
     );

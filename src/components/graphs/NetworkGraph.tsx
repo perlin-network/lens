@@ -1,4 +1,4 @@
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import * as PIXI from "pixi.js";
 import * as d3 from "d3";
 import { withSize } from "react-sizeme";
@@ -18,7 +18,10 @@ const networkTooltip = {
     visible: false,
     title: ""
 };
-const Wrapper = styled.div`
+interface IWrapperProps {
+    showPointer: boolean;
+}
+const Wrapper = styled.div<IWrapperProps>`
     position: relative;
 
     .graph-container {
@@ -26,9 +29,18 @@ const Wrapper = styled.div`
         height: 300px;
         margin-bottom: 0;
     }
+
+    ${({ showPointer }) => (showPointer ? "cursor: pointer;" : "")}
 `;
 
-class NGraph extends React.PureComponent<{ size: any }, {}> {
+class NGraph extends React.PureComponent<
+    { size: any },
+    { showPointer: boolean }
+> {
+    public state = {
+        showPointer: false
+    };
+
     private networkGraphRef: React.RefObject<any> = createRef();
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
 
@@ -87,16 +99,19 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
 
         const simulation = d3
             .forceSimulation(this.nodes)
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("charge", d3.forceManyBody().strength(-50))
+            .force("y", d3.forceY().y(height / 2))
+            .force("x", d3.forceX().x(width / 2))
             .force(
                 "link",
-                d3.forceLink(this.edges).id((d: any) => d.id)
-                //            .distance(100)
+                d3
+                    .forceLink(this.edges)
+                    .id((d: any) => d.id)
+                    .strength(0)
             )
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("charge", d3.forceManyBody().strength(-500))
-            // .force("collide", d3.forceCollide().radius(3))
-            // .force("x", d3.forceX())
-            // .force("y", d3.forceY())
+            .force("collide", d3.forceCollide((d: any) => d.r + 10))
+
             .alphaDecay(0.1)
             .alphaTarget(0);
 
@@ -108,11 +123,18 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
 
             links.clear();
 
-            this.edges.forEach(link => {
+            this.edges.forEach((link, index: number) => {
                 const { source, target } = link;
                 links.lineStyle(1, 0x413bb6);
                 links.moveTo(source.x, source.y);
-                links.lineTo(target.x, target.y);
+
+                const clockWise = index % 2 === 0;
+                const { offsetX, offsetY } = getLineOffset(
+                    source,
+                    target,
+                    clockWise
+                );
+                links.quadraticCurveTo(offsetX, offsetY, target.x, target.y);
             });
 
             links.endFill();
@@ -151,13 +173,19 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
                     return;
                 }
                 this.localNode = getInteractiveNode(
-                    perlin.ledger.address,
+                    {
+                        address: perlin.ledger.address,
+                        public_key: perlin.ledger.public_key
+                    },
                     mouseHandleUpdate,
-                    true
+                    true,
+                    this
                 );
                 this.nodes.push(this.localNode);
                 this.stage.addChild(this.localNode.gfx);
+
                 this.checkPeers(perlin.ledger.peers, mouseHandleUpdate);
+                this.addNonPeers(9);
 
                 update();
             }
@@ -166,28 +194,41 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
 
     public render() {
         return (
-            <Wrapper>
+            <Wrapper showPointer={this.state.showPointer}>
                 <div className="graph-container" ref={this.networkGraphRef} />
                 <Tooltip {...networkTooltip} />
             </Wrapper>
         );
     }
 
-    private checkPeers(peers: string[], mouseHandleUpdate: () => void) {
+    private addNonPeers(nonPeerNum: number) {
+        let counter = 0;
+        while (counter < nonPeerNum) {
+            const node = getDisconnectedNode(counter + 1 + "");
+            this.nodes.push(node);
+            this.stage.addChild(node.gfx);
+            counter++;
+        }
+    }
+
+    private checkPeers(peers: any[], mouseHandleUpdate: () => void) {
         let isDirty = false;
-        peers.forEach((peer: string) => {
-            if (peer !== this.localNode.id && !this.peerMap.get(peer)) {
+        peers.forEach((peer: any) => {
+            if (
+                peer.address !== this.localNode.id &&
+                !this.peerMap.get(peer.address)
+            ) {
                 isDirty = true;
                 this.addPeer(peer, mouseHandleUpdate);
             }
         });
 
         this.nodes = this.nodes.filter((node: any) => {
-            if (node.id === this.localNode.id) {
+            if (node.id === this.localNode.id || node.id.length < 2) {
                 return true;
             }
             const foundIndex = peers.findIndex(
-                (peer: string) => node.id === peer
+                (peer: any) => node.id === peer.address
             );
             // if new peers array doesn't contain a node then remove it
             if (foundIndex === -1) {
@@ -206,13 +247,18 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
         return isDirty;
     }
 
-    private addPeer(peer: string, mouseHandleUpdate: () => void) {
-        const peerNode = getInteractiveNode(peer, mouseHandleUpdate);
+    private addPeer(peer: any, mouseHandleUpdate: () => void) {
+        const peerNode = getInteractiveNode(
+            peer,
+            mouseHandleUpdate,
+            false,
+            this
+        );
         this.nodes.push(peerNode);
         this.stage.addChild(peerNode.gfx);
 
         // Add the temporary peer node to the map
-        this.peerMap.set(peer, [
+        this.peerMap.set(peer.address, [
             {
                 id: this.localNode.id,
                 label: this.localNode.id
@@ -224,14 +270,68 @@ class NGraph extends React.PureComponent<{ size: any }, {}> {
     }
 }
 
+const copyPubkeyToClipboard = (pubKey: string) => {
+    const el = document.createElement("textarea");
+    if (pubKey !== undefined) {
+        el.value = pubKey;
+        el.setAttribute("readonly", "");
+        el.style.position = "absolute";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+
+        perlin.notify({
+            type: NotificationTypes.Success,
+            message: "Node Public Key copied to clipboard"
+        });
+    }
+};
+
+function getLineOffset(source: any, target: any, clockwise = false) {
+    const midpointX = (source.x + target.x) / 2;
+    const midpointY = (source.y + target.y) / 2;
+
+    const inc = clockwise ? -1 : 1;
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+
+    const normalise = Math.sqrt(dx * dx + dy * dy);
+
+    const offset = normalise * 0.15 * inc;
+    const offsetX = midpointX + offset * (dy / normalise);
+    const offsetY = midpointY - offset * (dx / normalise);
+
+    return { offsetX, offsetY };
+}
+
+function getDisconnectedNode(id: string) {
+    const node = {
+        id,
+        gfx: new PIXI.Graphics()
+    };
+    const nodeSize = 6;
+
+    node.gfx.interactive = false;
+
+    node.gfx.beginFill(0x313647);
+    node.gfx.lineStyle(1, 0x0c122b);
+    node.gfx.drawCircle(0, 0, nodeSize);
+
+    node.gfx.addChild(node.gfx);
+
+    return node;
+}
 function getInteractiveNode(
-    self: string,
+    self: any,
     mouseUpdate: () => void,
-    isLocal: boolean = false
+    isLocal: boolean = false,
+    context: any
 ) {
     const node = {
-        id: self,
-        label: self,
+        id: self.address,
+        label: self.public_key,
         gfx: new PIXI.Graphics()
     };
     const nodeSize = isLocal ? 12 : 6;
@@ -245,6 +345,11 @@ function getInteractiveNode(
 
     node.gfx.addChild(node.gfx);
 
+    node.gfx.on("mouseout", () => {
+        context.setState({
+            showPointer: false
+        });
+    });
     // on node mouseover
     node.gfx.on("mouseover", () => {
         const {
@@ -270,13 +375,17 @@ function getInteractiveNode(
         networkTooltip.x = transformedX;
         networkTooltip.y = transformedY - (node.gfx.height / 2) * scale;
 
-        networkTooltip.text = self;
-        networkTooltip.title = isLocal ? "Local address" : "Peer address";
+        networkTooltip.text = self.public_key;
+        networkTooltip.title = self.address || "Local Node";
         networkTooltip.visible = true;
-
+        context.setState({
+            showPointer: true
+        });
         mouseUpdate();
     });
-
+    node.gfx.on("click", () => {
+        copyPubkeyToClipboard(self.public_key);
+    });
     // on node mouseout
     node.gfx.on("mouseout", () => {
         node.gfx.removeChildren();

@@ -41,7 +41,7 @@ body {
 
 body {
     background: #0c112b url(./assets/svg/main-background.svg) repeat-x;
-    background-size: 100% auto;
+    background-size: 100% 1200px;
 }
 
 .tag-list {
@@ -194,4 +194,92 @@ svg {
     grid-template-areas: "QR-grid-row1 QR-grid-row2";
     grid-row-gap: 10px;
     grid-column-gap: 10px;
+}
+
+input, textarea, button {
+    &:focus, &:active, &:hover {
+        outline: none;
+    }
+}
+
+.Dropdown-control {
+    position: relative;
+    overflow: hidden;
+    background-color: #171d39;
+    border: none;
+    border-radius: 3px;
+    /* color: #fff; */
+    box-sizing: border-box;
+    color: #fff;
+    cursor: default;
+    outline: none;
+    padding: 10px 52px 10px 10px;
+    transition: all 200ms ease;
+}
+
+.Dropdown-arrow {
+    border-color: #999 transparent transparent;
+    border-style: solid;
+    border-width: 5px 5px 0;
+    content: ' ';
+    display: block;
+    height: 0;
+    margin-top: -ceil(2.5);
+    position: absolute;
+    right: 10px;
+    top: 17px;
+    width: 0;
+}
+
+.Dropdown-option {
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: block;
+    padding: 8px 10px;
+}
+
+.Dropdown-option:hover {
+    background-color: #222846;
+    color: #fff;
+}
+
+.Dropdown-option.is-selected {
+    background-color: #343b5c;
+    color: #fff;
+}
+
+.Dropdown-menu {
+    background-color: #171d39;
+    border: none;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+    margin-top: -1px;
+    max-height: 200px;
+    overflow-y: auto;
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    color: #fff;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 3px 2px rgba(0,0,0,0.5);
+    z-index: 1000;
+    -webkit-overflow-scrolling: touch;
+}
+
+#doorbell-button {
+    background: #4a41d1;
+    transition: all 0.15s ease-out;
+    transform: translateY(5px);
+    opacity: 0.6;
+    box-shadow: 0 -2px 2px rgba(0,0,0,0.1);
+
+    &:hover, &:active {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+.notification-container-top-right.notification-container-top-right {
+    top: 80px;
 }

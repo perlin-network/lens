@@ -78,6 +78,7 @@ interface IState {
     validAccount: boolean;
     validContract: boolean;
     validTx: boolean;
+    payload?: any;
 }
 
 const perlin = Perlin.getInstance();
@@ -116,16 +117,18 @@ export default class QuickSend extends React.Component<{}, IState> {
                     {this.state.validTx && (
                         <StyledTag>Transaction ID</StyledTag>
                     )}
-                    {this.state.validContract && (
+                    {this.state.validContract ? (
                         <StyledTag>Contract ID</StyledTag>
-                    )}
-                    {this.state.validAccount && (
+                    ) : this.state.validAccount ? (
                         <StyledTag>Account ID</StyledTag>
+                    ) : (
+                        ""
                     )}
                 </QuickSendInputAnimation>
 
                 <AccountDetected
                     recipient={this.state.recipient}
+                    validContract={this.state.validContract}
                     changeComponent={this.handleRestart}
                     toggleComponent={this.state.toggleComponent}
                 />
@@ -141,6 +144,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                 >
                     <TxDetected
                         txId={this.state.inputID}
+                        payload={this.state.payload}
                         restartComponents={this.handleRestart}
                         validContract={this.state.validContract}
                         validTx={this.state.validTx}
@@ -165,7 +169,32 @@ export default class QuickSend extends React.Component<{}, IState> {
     };
     private updateinputID(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.target.value;
-        this.setState({ inputID: value });
+        this.setState({ inputID: value }, () => {
+            if (value.length === 64) {
+                this.checkInput();
+            }
+        });
+    }
+    private async checkInput() {
+        if (await this.validtxId()) {
+            this.setState({
+                toggleComponent: "showDetectedTx"
+            });
+        } else if (this.validInputID()) {
+            try {
+                const recipient = await perlin.getAccount(this.state.inputID);
+
+                this.setState({
+                    toggleComponent: "showDetectedAccount",
+                    recipient,
+                    validAccount: true
+                });
+            } catch (err) {
+                console.log(err);
+            }
+        } else {
+            this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
+        }
     }
     private async onKeyDown(e: any) {
         this.setState({
@@ -174,27 +203,7 @@ export default class QuickSend extends React.Component<{}, IState> {
             validTx: false
         });
         if (e.keyCode === 13) {
-            if (await this.validtxId()) {
-                this.setState({
-                    toggleComponent: "showDetectedTx"
-                });
-            } else if (this.validInputID()) {
-                try {
-                    const recipient = await perlin.getAccount(
-                        this.state.inputID
-                    );
-
-                    this.setState({
-                        toggleComponent: "showDetectedAccount",
-                        recipient,
-                        validAccount: true
-                    });
-                } catch (err) {
-                    console.log(err);
-                }
-            } else {
-                this.setState({ toggleComponent: "showSendFail" }); // if fail, toggle fail component
-            }
+            this.checkInput();
         } else {
             this.setState({ toggleComponent: "" });
         }
@@ -209,11 +218,14 @@ export default class QuickSend extends React.Component<{}, IState> {
             const payload = await perlin.getTransaction(txId);
             if (payload.tag && payload.tag === 2) {
                 this.setState({
-                    validContract: true
+                    validContract: true,
+                    payload
                 });
+                return Promise.resolve(false);
             } else {
                 this.setState({
-                    validTx: true
+                    validTx: true,
+                    payload
                 });
             }
             return Promise.resolve(true);

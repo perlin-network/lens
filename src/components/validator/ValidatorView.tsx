@@ -3,10 +3,11 @@ import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 import { Box, Flex } from "@rebass/grid";
 
-import { Perlin } from "../../Perlin";
+import { Perlin, NotificationTypes } from "../../Perlin";
 import { observer, useComputed } from "mobx-react-lite";
 import { ValidatorChart } from "./ValidatorChart";
 import { SectionTitle } from "../common/typography";
+import { Link } from "react-router-dom";
 
 import { StakeCard } from "./StakeCard";
 import RewardCard from "./RewardCard";
@@ -44,46 +45,87 @@ const ChartSubtitle = styled.span`
     font-weight: 500;
 `;
 
+const errorNotification = (message: string) => {
+    perlin.notify({
+        type: NotificationTypes.Danger,
+        message
+    });
+};
+
+const successNotification = (title: string, txId: string) => {
+    perlin.notify({
+        title,
+        type: NotificationTypes.Success,
+        // message: "You can view your transactions details here"
+        content: (
+            <p>
+                You can view your transaction
+                <Link to={"/transactions/" + txId} title={txId} target="_blank">
+                    here
+                </Link>
+            </p>
+        ),
+        dismiss: { duration: 10000 }
+    });
+};
+
 const ValidatorView: React.FunctionComponent<{}> = () => {
     const stake = useWalletStake();
     const reward = perlin.account.reward;
 
     const [action, setAction] = useState(StakeActions.None);
-    const [stakeErrorMessage, setStakeErrorMessage] = useState("");
-    const [rewardErrorMessage, setTewardErrorMessage] = useState("");
-
-    const handlePlaceStake = async (amount: number) => {
-        setStakeErrorMessage("");
-        setAction(StakeActions.None);
-        if (!isNaN(amount)) {
+    const handlePlaceStake = useCallback(async (amount: number) => {
+        if (
+            amount <= 0 ||
+            isNaN(amount) ||
+            amount > parseInt(perlin.account.balance, 10)
+        ) {
+            errorNotification("You have entered and invalid amount");
+        } else {
             const results = await perlin.placeStake(amount);
             if (results.error) {
-                setStakeErrorMessage(`${results.error}`);
-            }
-        }
-        // display error message
-    };
-    const handleWithdrawStake = async (amount: number) => {
-        setStakeErrorMessage("");
-        setAction(StakeActions.None);
-        if (!isNaN(amount)) {
-            const results = await perlin.withdrawStake(amount);
-            if (results.error) {
-                setStakeErrorMessage(`${results.error}`);
-            }
-        }
-        // display error message
-    };
-
-    const handleWithdrawReward = useCallback(async (amount: number) => {
-        setTewardErrorMessage("");
-        if (!isNaN(amount)) {
-            const results = await perlin.withdrawReward(amount);
-            if (results.error) {
-                setTewardErrorMessage(`${results.error}`);
+                errorNotification(results.error);
+            } else {
+                setAction(StakeActions.None);
+                successNotification("Stake Placed", results.tx_id);
             }
         }
     }, []);
+    const handleWithdrawStake = useCallback(
+        async (amount: number) => {
+            if (amount <= 0 || isNaN(amount) || amount > stake) {
+                errorNotification("You have entered and invalid amount");
+            } else {
+                const results = await perlin.withdrawStake(amount);
+                if (results.error) {
+                    errorNotification(results.error);
+                } else {
+                    setAction(StakeActions.None);
+                    successNotification("Stake Withdrawn", results.tx_id);
+                }
+            }
+        },
+        [stake]
+    );
+
+    const handleWithdrawReward = useCallback(
+        async (amount: number) => {
+            if (amount <= 0 || isNaN(amount) || amount > reward) {
+                errorNotification("You have entered and invalid amount");
+                return false;
+            } else {
+                const results = await perlin.withdrawReward(amount);
+                if (results.error) {
+                    errorNotification(results.error);
+                    return false;
+                } else {
+                    successNotification("Reward Withdrawn", results.tx_id);
+                    return true;
+                }
+            }
+        },
+        [reward]
+    );
 
     return (
         <Flex>
@@ -115,20 +157,12 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                     stake={stake}
                     setAction={setAction}
                     action={action}
-                    onSubmit={
-                        action === StakeActions.Place
-                            ? handlePlaceStake
-                            : handleWithdrawStake
-                    }
-                    errorMessage={stakeErrorMessage}
+                    onPlace={handlePlaceStake}
+                    onWithdraw={handleWithdrawStake}
                 />
             </Box>
             <Box width={6 / 12}>
-                <RewardCard
-                    reward={reward}
-                    onSubmit={handleWithdrawReward}
-                    errorMessage={rewardErrorMessage}
-                />
+                <RewardCard reward={reward} onSubmit={handleWithdrawReward} />
             </Box>
         </Flex>
     );
@@ -156,7 +190,7 @@ const useWalletStake = () => {
             return perlin.account.stake;
         }
 
-        return null;
+        return 0;
     }, [perlin.ledger]);
     return stake;
 };
