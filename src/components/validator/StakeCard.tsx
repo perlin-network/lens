@@ -18,7 +18,8 @@ interface IStakeCardProps {
     stake?: number;
     action: StakeActions;
     setAction: (action: StakeActions) => void;
-    onSubmit: (amount: number) => void;
+    onPlace: (amount: number) => void;
+    onWithdraw: (amount: number) => void;
 }
 
 const Row = styled(Flex)`
@@ -42,7 +43,8 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
     stake = 0,
     action,
     setAction,
-    onSubmit
+    onPlace,
+    onWithdraw
 }) => {
     const [amount, setAmount] = useState();
 
@@ -71,9 +73,13 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
     );
 
     const handleSubmit = useCallback(() => {
-        // todo: add validation
-        onSubmit(amount);
-    }, [amount]);
+        if (action === StakeActions.Place) {
+            onPlace(amount);
+        }
+        if (action === StakeActions.Withdraw) {
+            onWithdraw(amount);
+        }
+    }, [amount, action]);
 
     return (
         <Card style={{ marginRight: "20px" }}>

@@ -74,8 +74,12 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
     const reward = perlin.account.reward;
 
     const [action, setAction] = useState(StakeActions.None);
-    const handlePlaceStake = async (amount: number) => {
-        if (isNaN(amount)) {
+    const handlePlaceStake = useCallback(async (amount: number) => {
+        if (
+            amount <= 0 ||
+            isNaN(amount) ||
+            amount > parseInt(perlin.account.balance, 10)
+        ) {
             errorNotification("You have entered and invalid amount");
         } else {
             const results = await perlin.placeStake(amount);
@@ -86,10 +90,10 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                 successNotification("Stake Placed", results.tx_id);
             }
         }
-    };
+    }, []);
     const handleWithdrawStake = useCallback(
         async (amount: number) => {
-            if (isNaN(amount) || amount > stake) {
+            if (amount <= 0 || isNaN(amount) || amount > stake) {
                 errorNotification("You have entered and invalid amount");
             } else {
                 const results = await perlin.withdrawStake(amount);
@@ -106,7 +110,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
 
     const handleWithdrawReward = useCallback(
         async (amount: number) => {
-            if (isNaN(amount) || amount > reward) {
+            if (amount <= 0 || isNaN(amount) || amount > reward) {
                 errorNotification("You have entered and invalid amount");
                 return false;
             } else {
@@ -153,11 +157,8 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                     stake={stake}
                     setAction={setAction}
                     action={action}
-                    onSubmit={
-                        action === StakeActions.Place
-                            ? handlePlaceStake
-                            : handleWithdrawStake
-                    }
+                    onPlace={handlePlaceStake}
+                    onWithdraw={handleWithdrawStake}
                 />
             </Box>
             <Box width={6 / 12}>
