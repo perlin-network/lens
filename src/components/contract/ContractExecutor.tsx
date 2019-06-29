@@ -180,9 +180,7 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     let valid = false;
     switch (paramItem.type) {
         case ParamType.String:
-            if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
-                valid = true;
-            }
+            valid = true;
             break;
         case ParamType.Uint16:
             if (/^[0-9]+$/i.test(value)) {
@@ -227,7 +225,9 @@ const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
         if (param.type && param.value) {
             switch (param.type) {
                 case ParamType.String:
+                    const bufferNull = new Buffer([0x00]);
                     payload.writeString(param.value);
+                    payload.writeBuffer(bufferNull);
                     break;
                 case ParamType.Bytes:
                     payload.writeBuffer(Buffer.from(param.value, "hex"));
