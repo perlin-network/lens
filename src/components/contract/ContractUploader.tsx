@@ -4,7 +4,7 @@ import { Button as RawButton, Card, Input } from "../common/core";
 import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
-import { Perlin, NotificationTypes } from "../../Perlin";
+import { NotificationTypes, Perlin } from "../../Perlin";
 import ContractStore from "./ContractStore";
 import * as Wabt from "wabt";
 import { observer } from "mobx-react-lite";
@@ -194,12 +194,7 @@ export const loadContractFromNetwork = async (
     try {
         const numPages = account.num_mem_pages || 0;
 
-        const hexContent = await perlin.getContractCode(contractId);
-
-        const bytes = new Uint8Array(Math.ceil(hexContent.length / 2));
-        for (let i = 0; i < bytes.length; i++) {
-            bytes[i] = parseInt(hexContent.substr(i * 2, 2), 16);
-        }
+        const bytes = await perlin.getContractCode(contractId);
 
         const module = wabt.readWasm(bytes, { readDebugNames: false });
         module.applyNames();

@@ -269,8 +269,10 @@ class Perlin {
         );
     }
 
-    public async getContractCode(contractId: string): Promise<string> {
-        return await this.getText(`/contract/${contractId}`, {});
+    public async getContractCode(contractId: string): Promise<ArrayBuffer> {
+        return new Uint8Array(
+            await this.getBuffer(`/contract/${contractId}`, {})
+        );
     }
 
     public async getContractPage(
