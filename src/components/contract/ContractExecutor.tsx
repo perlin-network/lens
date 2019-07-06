@@ -24,6 +24,8 @@ import { InlineNotification } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import BigNumber from "bignumber.js";
+import { TAG_TRANSFER, Contract } from "wavelet-client";
+import JSBI from "jsbi";
 
 interface IParamItem {
     id: string;
@@ -61,7 +63,7 @@ const useContractFunctions = () => {
 const useParams = () => {
     const getEmptyParam = () => ({
         id: nanoid(),
-        type: ParamType.Bytes,
+        type: ParamType.Raw,
         value: ""
     });
     const [paramsList, setParamsList] = useState<IParamItem[]>([
@@ -179,15 +181,46 @@ const ParamsBody = styled(CardBody)`
 const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     let valid = false;
     switch (paramItem.type) {
-        case ParamType.String:
-            if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
-                valid = true;
+        case ParamType.Int16:
+            if (/^\-?[0-9]*$/i.test(value)) {
+                if (value === "-") {
+                    valid = true;
+                }
+                const num = parseInt(value, 10);
+                if (num >= Math.pow(-2, 15) && num <= Math.pow(2, 15)) {
+                    valid = true;
+                }
+            }
+            break;
+        case ParamType.Int32:
+            if (/^\-?[0-9]*$/i.test(value)) {
+                if (value === "-") {
+                    valid = true;
+                }
+                const num = parseInt(value, 10);
+                if (num >= Math.pow(-2, 31) && num <= Math.pow(2, 31)) {
+                    valid = true;
+                }
+            }
+            break;
+        case ParamType.Int64:
+            if (/^\-?[0-9]*$/i.test(value)) {
+                if (value === "-") {
+                    valid = true;
+                }
+                const num = Long.fromString(value, true);
+                if (
+                    num.greaterThanOrEqual(Long.MIN_VALUE) &&
+                    num.lessThanOrEqual(Long.MAX_VALUE)
+                ) {
+                    valid = true;
+                }
             }
             break;
         case ParamType.Uint16:
             if (/^[0-9]+$/i.test(value)) {
                 const num = parseInt(value, 10);
-                if (num > 0 && num < Math.pow(2, 16)) {
+                if (num >= 0 && num <= Math.pow(2, 16)) {
                     valid = true;
                 }
             }
@@ -195,7 +228,7 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
         case ParamType.Uint32:
             if (/^[0-9]+$/i.test(value)) {
                 const num = parseInt(value, 10);
-                if (num > 0 && num < Math.pow(2, 32)) {
+                if (num >= 0 && num <= Math.pow(2, 32)) {
                     valid = true;
                 }
             }
@@ -204,16 +237,16 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
             if (/^[0-9]+$/i.test(value)) {
                 const num = Long.fromString(value, true);
                 if (
-                    num.greaterThan(0) &&
+                    num.greaterThanOrEqual(0) &&
                     num.lessThanOrEqual(Long.MAX_UNSIGNED_VALUE)
                 ) {
                     valid = true;
                 }
             }
             break;
+        case ParamType.String:
+        case ParamType.Raw:
         case ParamType.Bytes:
-            valid = true;
-            break;
         case ParamType.Byte:
             valid = true;
             break;
@@ -329,6 +362,18 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
     };
 
+    const listenForApplied = (txId: string) =>
+        new Promise(resolve => {
+            perlin.client.pollTransactions(
+                {
+                    onTransactionApplied: (data: any) => {
+                        debugger;
+                        resolve(data);
+                    }
+                },
+                { tag: TAG_TRANSFER, id: txId }
+            );
+        });
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
@@ -357,47 +402,46 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
         setLoading(true);
         try {
-            const buf = writeToBuffer(paramsList);
-            const result: any = await contractStore.call(currFunc, buf);
+            const contract = new Contract(
+                perlin.client,
+                contractStore.contract.transactionId
+            );
+            await contract.init();
 
-            // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
+            const clonedParamList = paramsList.map(param => ({ ...param }));
+            const { result, logs } = contract.test(
+                currFunc,
+                BigInt(0),
+                ...clonedParamList
+            );
 
-            // setWasmResult(
-            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-            // );
+            if (result) {
+                contractStore.logs.push(result);
+            }
 
-            // console.log(
-            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-            // );
+            if (logs) {
+                contractStore.logs.push(logs.join("\n"));
+            }
+
             if (simulated) {
                 setLoading(false);
                 return;
             }
 
-            const params = writeToBuffer(paramsList);
-
-            const response = await perlin.invokeContractFunction(
-                contractStore.contract.transactionId,
-                0,
+            const callClonedParamList = paramsList.map(param => ({ ...param }));
+            const response = await contract.call(
+                perlin.keys,
                 currFunc,
-                params,
-                gasLimit
+                JSBI.BigInt(0),
+                JSBI.BigInt(Math.floor(gasLimit)),
+                ...callClonedParamList
             );
+
             const txId = response.tx_id;
 
+            await listenForApplied(txId);
+
             // reload memory
-            let count = 0;
-
-            while (count < 30) {
-                const tx = await perlin.getTransaction(txId);
-                if (tx.status === "applied") {
-                    await delay(3000);
-                    break;
-                }
-                await delay(1000);
-                count++;
-            }
-
             const totalMemoryPages = await loadContractFromNetwork(
                 contractStore.contract.transactionId
             );

@@ -10,6 +10,8 @@ import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
 import ReconnectingWebSocket from "reconnecting-websocket";
+import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
+import JSBI from "jsbi";
 // @ts-ignore
 import * as JSONbig from "json-bigint";
 
@@ -123,6 +125,7 @@ class Perlin {
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
     public onTransactionsUpdated: () => void;
+    public keys: nacl.SignKeyPair;
     public onConsensusRound: (
         accepted: number,
         rejected: number,
@@ -132,8 +135,8 @@ class Perlin {
         endId?: string
     ) => void;
     public onConsensusPrune: (round: number) => void;
+    public client: any;
 
-    private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2200;
     private peerPollIntv: number = 10000;
     private interval: any;
@@ -145,6 +148,7 @@ class Perlin {
         if (secret) {
             this.login(secret);
         }
+        this.client = new Wavelet(`${HTTP_PROTOCOL}://${this.api.host}`);
     }
 
     @action.bound
@@ -206,73 +210,36 @@ class Perlin {
         if (recipient.length !== 64) {
             throw new Error("Recipient must be a length-64 hex-encoded.");
         }
-
-        const payload = new PayloadWriter();
-        payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        if (gasLimit > 0) {
-            payload.writeUint64(Long.fromNumber(gasLimit, true));
-            payload.writeString("on_money_received");
-        }
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
+        return await this.client.transfer(
+            this.keys,
+            recipient,
+            JSBI.BigInt(amount),
+            JSBI.BigInt(gasLimit)
         );
     }
 
     public async placeStake(amount: number): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeByte(1);
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
-        );
+        return await this.client.placeStake(this.keys, JSBI.BigInt(amount));
     }
 
     public async withdrawStake(amount: number): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeByte(0);
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
-        );
+        return await this.client.withdrawStake(this.keys, JSBI.BigInt(amount));
     }
 
     public async withdrawReward(amount: number): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeByte(2);
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
-        );
+        return await this.client.withdrawReward(this.keys, JSBI.BigInt(amount));
     }
 
     public async createSmartContract(
         bytes: ArrayBuffer,
-        gasLimit: number
+        gasLimit: JSBI,
+        params?: ArrayBuffer
     ): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeUint64(Long.fromNumber(gasLimit, true));
-        payload.writeUint32(0);
-        payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagContract, payload.buffer.toBuffer())
-        );
+        return this.client.deployContract(this.keys, bytes, gasLimit, params);
     }
 
     public async getContractCode(contractId: string): Promise<ArrayBuffer> {
-        return new Uint8Array(
-            await this.getBuffer(`/contract/${contractId}`, {})
-        );
+        return this.client.getCode(contractId);
     }
 
     public async getContractPage(
@@ -290,6 +257,9 @@ class Perlin {
             console.log("getContractPage Error : ", err);
             return [];
         }
+    }
+    public async getContractPages(contractId: string, numPages: number) {
+        return await this.client.getMemoryPages(contractId, numPages);
     }
 
     public async invokeContractFunction(
@@ -313,9 +283,7 @@ class Perlin {
     }
 
     public async getAccount(id: string): Promise<IAccount> {
-        const dataStr = await this.getText(`/accounts/${id}`, {});
-
-        const data = JSONbig.parse(dataStr);
+        const data = await this.client.getAccount(id);
 
         return {
             public_key: data.public_key,
@@ -331,7 +299,7 @@ class Perlin {
 
     // @ts-ignore
     public async getTransaction(id: string): Promise<any> {
-        return await this.getJSON(`/tx/${id}`, {});
+        return await this.client.getTransaction(id);
     }
 
     public async getTableTransactions(offset?: number) {

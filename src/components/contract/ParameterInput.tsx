@@ -15,21 +15,29 @@ interface IParameterInputProps {
 }
 
 export enum ParamType {
-    Bytes = "Bytes",
-    Uint64 = "Uint64",
-    String = "String",
-    Uint16 = "Uint16",
-    Uint32 = "Uint32",
-    Byte = "Byte"
+    Int16 = "int16",
+    Int32 = "int32",
+    Int64 = "int64",
+    Uint16 = "uint16",
+    Uint32 = "uint32",
+    Uint64 = "uint64",
+    Byte = "byte",
+    Raw = "raw",
+    Bytes = "bytes",
+    String = "string"
 }
 
 const typeOptions = [
-    ParamType.String,
-    ParamType.Bytes,
-    ParamType.Byte,
-    ParamType.Uint64,
+    ParamType.Int16,
+    ParamType.Int32,
+    ParamType.Int64,
+    ParamType.Uint16,
     ParamType.Uint32,
-    ParamType.Uint16
+    ParamType.Uint64,
+    ParamType.Byte,
+    ParamType.Raw,
+    ParamType.Bytes,
+    ParamType.String
 ];
 
 const Wrapper = styled(Flex)`

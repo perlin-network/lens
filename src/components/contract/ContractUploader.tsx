@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import BigNumber from "bignumber.js";
-
+import JSBI from "jsbi";
 // @ts-ignore
 const wabt = Wabt();
 
@@ -142,7 +142,7 @@ const successNotification = (title: string, txId: string) => {
     });
 };
 
-const createSmartContract = async (file: File, gasLimit: number) => {
+const createSmartContract = async (file: File, gasLimit: JSBI) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -265,18 +265,20 @@ const ContractUploader: React.FunctionComponent = () => {
         async (acceptedFiles: File[]) => {
             const file = acceptedFiles[0];
             setLoading(true);
-            const gasLimitNumber = new BigNumber(gasLimit);
+            const gasLimitNumber = JSBI.BigInt(gasLimit);
             setInlineMessage(undefined);
             try {
                 if (
-                    gasLimitNumber.isNaN() ||
-                    gasLimitNumber.lte(0) ||
-                    gasLimitNumber.gt(perlin.account.balance)
+                    JSBI.lessThan(gasLimitNumber, JSBI.BigInt(0)) ||
+                    JSBI.greaterThan(
+                        gasLimitNumber,
+                        JSBI.BigInt(perlin.account.balance)
+                    )
                 ) {
                     errorNotification("Invalid Gas Limit");
                     return;
                 }
-                await createSmartContract(file, gasLimit);
+                await createSmartContract(file, gasLimitNumber);
 
                 if (contractStore.contract.transactionId) {
                     let count = 0;

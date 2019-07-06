@@ -65,24 +65,10 @@ export default class ContractStore {
         // load memory from the network
         if (totalMemoryPages && totalMemoryPages > 0) {
             console.log("load memory....");
-            const memory = new Uint8Array(
-                new ArrayBuffer(WEB_ASSEMBLY_PAGE_SIZE * totalMemoryPages)
+            this.memory = await perlin.getContractPages(
+                this.contract.transactionId,
+                totalMemoryPages
             );
-            for (let idx = 0; idx < totalMemoryPages; idx++) {
-                const page = await perlin.getContractPage(
-                    this.contract.transactionId,
-                    idx
-                );
-
-                if (page.length === 0) {
-                    continue;
-                }
-
-                for (let i = 0; i < WEB_ASSEMBLY_PAGE_SIZE; i++) {
-                    memory[WEB_ASSEMBLY_PAGE_SIZE * idx + i] = page[i];
-                }
-            }
-            this.memory = memory;
         }
     }
 
