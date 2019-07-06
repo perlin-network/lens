@@ -451,7 +451,6 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             perlin.notify({
                 title: "Function Invoked",
                 type: NotificationTypes.Success,
-                // message: "You can view your transactions details here"
                 content: (
                     <p>
                         You can view your transaction

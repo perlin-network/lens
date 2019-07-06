@@ -56,7 +56,6 @@ const successNotification = (title: string, txId: string) => {
     perlin.notify({
         title,
         type: NotificationTypes.Success,
-        // message: "You can view your transactions details here"
         content: (
             <p>
                 You can view your transaction

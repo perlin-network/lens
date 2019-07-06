@@ -419,7 +419,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                 perlin.notify({
                     title: "PERL(s) Sent",
                     type: NotificationTypes.Success,
-                    // message: "You can view your transactions details here"
                     content: (
                         <p>
                             You can view your transaction

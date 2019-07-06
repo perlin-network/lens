@@ -129,7 +129,6 @@ const successNotification = (title: string, txId: string) => {
     perlin.notify({
         title,
         type: NotificationTypes.Success,
-        // message: "You can view your transactions details here"
         content: (
             <p>
                 You can view your smart contract
@@ -269,6 +268,7 @@ const ContractUploader: React.FunctionComponent = () => {
             setInlineMessage(undefined);
             try {
                 if (
+                    // gasLimitNumber.isNaN() ||
                     JSBI.lessThan(gasLimitNumber, JSBI.BigInt(0)) ||
                     JSBI.greaterThan(
                         gasLimitNumber,
