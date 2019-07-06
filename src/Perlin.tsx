@@ -153,9 +153,7 @@ class Perlin {
 
     @action.bound
     public async login(hexString: string): Promise<any> {
-        this.keys = nacl.sign.keyPair.fromSecretKey(
-            Buffer.from(hexString, "hex")
-        );
+        this.keys = Wavelet.loadWalletFromPrivateKey(hexString);
         try {
             await this.init();
             storage.setSecretKey(hexString);
@@ -242,44 +240,8 @@ class Perlin {
         return this.client.getCode(contractId);
     }
 
-    public async getContractPage(
-        contractId: string,
-        pageIndex: number
-    ): Promise<any> {
-        try {
-            return new Uint8Array(
-                await this.getBuffer(
-                    `/contract/${contractId}/page/${pageIndex}`,
-                    {}
-                )
-            );
-        } catch (err) {
-            console.log("getContractPage Error : ", err);
-            return [];
-        }
-    }
     public async getContractPages(contractId: string, numPages: number) {
         return await this.client.getMemoryPages(contractId, numPages);
-    }
-
-    public async invokeContractFunction(
-        contractID: string,
-        amount: number,
-        funcName: string,
-        funcParams: Buffer,
-        gasLimit = 100000000000
-    ): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
-        payload.writeUint64(Long.fromNumber(amount, true));
-        payload.writeUint64(Long.fromNumber(gasLimit, true));
-        payload.writeString(funcName);
-        payload.writeBuffer(funcParams);
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
-        );
     }
 
     public async getAccount(id: string): Promise<IAccount> {
@@ -468,26 +430,8 @@ class Perlin {
     }
 
     private pollTransactionUpdates(event: string = "accepted") {
-        const url = new URL(
-            `${WS_PROTOCOL}://${this.api.host}/poll/tx?creator=${
-                this.publicKeyHex
-            }`
-        );
-
-        const ws = new ReconnectingWebSocket(url.toString());
-
         const pushTransactions = _.debounce(
             transactions => {
-                // TODO: restore approach once there's a solution to accurately calculate next page's offset
-                // this.transactions.recent = [
-                //     ...transactions,
-                //     ...lastTransactions
-                // ].slice(0, this.transactions.pageSize);
-
-                // this.transactions.offset = this.transactions.recent.length;
-                // this.transactions.hasMore = true;
-                // lastTransactions = this.transactions.recent;
-
                 this.getTableTransactions(0);
             },
             this.transactionDebounceIntv,
@@ -495,72 +439,37 @@ class Perlin {
                 maxWait: 2 * this.transactionDebounceIntv
             }
         );
-
-        // let lastTransactions: ITransaction[] = this.transactions.recent;
-        ws.onmessage = async ({ data }) => {
-            if (!data) {
-                return;
-            }
-            const logs = JSON.parse(data);
-            const transactions: ITransaction[] = [];
-
-            logs.forEach((item: any) => {
-                const tx: ITransaction = {
-                    id: item.tx_id,
-                    sender: item.sender_id,
-                    creator: item.creator_id,
-                    depth: item.depth,
-                    tag: item.tag,
-                    status: item.event || "new"
-                };
-
-                switch (item.event) {
-                    case "new":
-                    case "applied":
-                        transactions.unshift(tx);
-                        pushTransactions(transactions);
-                        break;
-                }
-            });
-        };
+        this.client.pollTransactions(
+            {
+                onTransactionApplied: pushTransactions
+            },
+            { tag: TAG_TRANSFER, creator: this.publicKeyHex }
+        );
     }
 
     private pollConsensusUpdates() {
-        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/consensus`);
-
-        const ws = new ReconnectingWebSocket(url.toString());
-
-        ws.onmessage = ({ data }) => {
-            const logs = JSON.parse(data);
-
-            switch (logs.event) {
-                case "prune":
-                    console.log("Prunning #", logs.pruned_round_id);
-
-                    if (this.onConsensusPrune) {
-                        this.onConsensusPrune(logs.pruned_round_id);
-                    }
-                    break;
-                case "round_end":
-                    this.initRound = {
-                        applied: logs.num_applied_tx,
-                        rejected: logs.num_rejected_tx,
-                        depth: logs.round_depth,
-                        start_id: logs.old_root,
-                        end_id: logs.new_root
-                    };
-                    if (this.onConsensusRound) {
-                        this.onConsensusRound(
-                            logs.num_applied_tx,
-                            logs.num_rejected_tx,
-                            logs.round_depth,
-                            logs.new_round,
-                            logs.old_root,
-                            logs.new_root
-                        );
-                    }
-            }
-        };
+        this.client.pollConsensus({
+            onRoundEnded: (logs: any) => {
+                this.initRound = {
+                    applied: logs.num_applied_tx,
+                    rejected: logs.num_rejected_tx,
+                    depth: logs.round_depth,
+                    start_id: logs.old_root,
+                    end_id: logs.new_root
+                };
+                if (this.onConsensusRound) {
+                    this.onConsensusRound(
+                        logs.num_applied_tx,
+                        logs.num_rejected_tx,
+                        logs.round_depth,
+                        logs.new_round,
+                        logs.old_root,
+                        logs.new_root
+                    );
+                }
+            },
+            onRoundPruned: this.onConsensusPrune
+        });
     }
 
     private pollMetricsUpdates() {
@@ -583,37 +492,28 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/accounts`);
-        url.searchParams.append("id", id);
-
-        const ws = new ReconnectingWebSocket(url.toString());
-
-        ws.onmessage = ({ data }) => {
-            if (!data) {
-                return;
-            }
-
-            const logs = JSONbig.parse(data);
-
-            logs.forEach((item: any) => {
-                if (item.account_id === id) {
-                    // TODO(kenta): temp fix
-                    switch (item.event) {
-                        case "balance_updated":
-                            this.account.balance = item.balance.toString();
-                            break;
-                        case "stake_updated":
-                            this.account.stake = item.stake;
-                            break;
-                        case "reward_updated":
-                            this.account.reward = item.reward;
-                            break;
-                        case "num_pages_updated":
-                            this.account.num_mem_pages = item.num_pages;
-                    }
+        this.client.pollAccounts(
+            {
+                onAccountUpdated: (logs: any) => {
+                    logs.forEach((item: any) => {
+                        switch (item.event) {
+                            case "balance_updated":
+                                this.account.balance = item.balance.toString();
+                                break;
+                            case "stake_updated":
+                                this.account.stake = item.stake;
+                                break;
+                            case "reward_updated":
+                                this.account.reward = item.reward;
+                                break;
+                            case "num_pages_updated":
+                                this.account.num_mem_pages = item.num_pages;
+                        }
+                    });
                 }
-            });
-        };
+            },
+            { id }
+        );
     }
 
     // @ts-ignore

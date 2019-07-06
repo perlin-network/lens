@@ -264,7 +264,7 @@ const ContractUploader: React.FunctionComponent = () => {
         async (acceptedFiles: File[]) => {
             const file = acceptedFiles[0];
             setLoading(true);
-            const gasLimitNumber = JSBI.BigInt(gasLimit);
+            const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit));
             setInlineMessage(undefined);
             try {
                 if (

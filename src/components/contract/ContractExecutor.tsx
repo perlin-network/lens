@@ -363,12 +363,11 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     };
 
     const listenForApplied = (txId: string) =>
-        new Promise(resolve => {
-            perlin.client.pollTransactions(
+        new Promise<WebSocket>(resolve => {
+            const poll = perlin.client.pollTransactions(
                 {
                     onTransactionApplied: (data: any) => {
-                        debugger;
-                        resolve(data);
+                        resolve(poll);
                     }
                 },
                 { tag: TAG_TRANSFER, id: txId }
@@ -378,12 +377,14 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         new Promise((res: any) => setTimeout(res, time));
 
     const onCall = (simulated: boolean = false) => async () => {
-        const gasLimitNumber = new BigNumber(gasLimit);
+        const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit));
         if (
-            !simulated &&
-            (gasLimitNumber.isNaN() ||
-                gasLimitNumber.lte(0) ||
-                gasLimitNumber.gt(perlin.account.balance))
+            (!simulated &&
+                JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
+            JSBI.greaterThan(
+                gasLimitNumber,
+                JSBI.BigInt(perlin.account.balance)
+            )
         ) {
             errorNotification("Invalid Gas Limit");
             return;
@@ -439,8 +440,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
             const txId = response.tx_id;
 
-            await listenForApplied(txId);
+            const poll = await listenForApplied(txId);
 
+            poll.close();
             // reload memory
             const totalMemoryPages = await loadContractFromNetwork(
                 contractStore.contract.transactionId
