@@ -13,19 +13,17 @@ import { Perlin, NotificationTypes } from "../../Perlin";
 import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
-import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
-import { loadContractFromNetwork } from "./ContractUploader";
 import LoadingSpinner from "../common/loadingSpinner";
 
 import { InlineNotification } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import BigNumber from "bignumber.js";
-import { TAG_TRANSFER, Contract } from "wavelet-client";
 import JSBI from "jsbi";
+import { TAG_TRANSFER } from "wavelet-client";
 
 interface IParamItem {
     id: string;
@@ -362,18 +360,6 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
     };
 
-    const listenForApplied = (txId: string) =>
-        new Promise<WebSocket>(resolve => {
-            const poll = perlin.client.pollTransactions(
-                {
-                    onTransactionApplied: (data: any) => {
-                        resolve(poll);
-                    }
-                },
-                { tag: TAG_TRANSFER, id: txId }
-            );
-        });
-
     const onCall = (simulated: boolean = false) => async () => {
         const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
         if (
@@ -400,18 +386,12 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
 
         setLoading(true);
-        try {
-            const contract = new Contract(
-                perlin.client,
-                contractStore.contract.transactionId
-            );
-            await contract.init();
-
-            const clonedParamList = paramsList.map(param => ({ ...param }));
-            const { result, logs } = contract.test(
+        const localCall = (params: any) => {
+            contractStore.logs = [];
+            const { result, logs } = contractStore.waveletContract.test(
                 currFunc,
                 BigInt(0),
-                ...clonedParamList
+                ...params
             );
 
             if (result) {
@@ -421,14 +401,19 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             if (logs) {
                 contractStore.logs.push(logs.join("\n"));
             }
+        };
+
+        try {
+            const clonedParamList = paramsList.map(param => ({ ...param }));
 
             if (simulated) {
+                localCall(clonedParamList);
                 setLoading(false);
                 return;
             }
 
             const callClonedParamList = paramsList.map(param => ({ ...param }));
-            const response = await contract.call(
+            const response = await contractStore.waveletContract.call(
                 perlin.keys,
                 currFunc,
                 JSBI.BigInt(0),
@@ -437,16 +422,8 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             );
 
             const txId = response.tx_id;
-
-            const poll = await listenForApplied(txId);
-
-            poll.close();
-            // reload memory
-            const totalMemoryPages = await loadContractFromNetwork(
-                contractStore.contract.transactionId
-            );
-
-            await contractStore.load(totalMemoryPages);
+            await contractStore.listenForApplied(TAG_TRANSFER, txId);
+            await contractStore.waveletContract.fetchAndPopulateMemoryPages();
 
             perlin.notify({
                 title: "Function Invoked",

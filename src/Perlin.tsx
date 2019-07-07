@@ -494,22 +494,20 @@ class Perlin {
     private pollAccountUpdates(id: string) {
         this.client.pollAccounts(
             {
-                onAccountUpdated: (logs: any) => {
-                    logs.forEach((item: any) => {
-                        switch (item.event) {
-                            case "balance_updated":
-                                this.account.balance = item.balance.toString();
-                                break;
-                            case "stake_updated":
-                                this.account.stake = item.stake;
-                                break;
-                            case "reward_updated":
-                                this.account.reward = item.reward;
-                                break;
-                            case "num_pages_updated":
-                                this.account.num_mem_pages = item.num_pages;
-                        }
-                    });
+                onAccountUpdated: (data: any) => {
+                    switch (data.event) {
+                        case "balance_updated":
+                            this.account.balance = data.balance.toString();
+                            break;
+                        case "stake_updated":
+                            this.account.stake = data.stake;
+                            break;
+                        case "reward_updated":
+                            this.account.reward = data.reward;
+                            break;
+                        case "num_pages_updated":
+                            this.account.num_mem_pages = data.num_pages;
+                    }
                 }
             },
             { id }

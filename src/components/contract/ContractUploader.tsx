@@ -11,8 +11,9 @@ import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
-import BigNumber from "bignumber.js";
+import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
+
 // @ts-ignore
 const wabt = Wabt();
 
@@ -236,12 +237,15 @@ const ContractUploader: React.FunctionComponent = () => {
             setLoading(true);
             setInlineMessage(undefined);
             try {
-                const totalMemoryPages = await loadContractFromNetwork(
-                    contractAddress
-                );
+                await loadContractFromNetwork(contractAddress);
 
                 if (contractStore.contract.transactionId) {
-                    await contractStore.load(totalMemoryPages);
+                    contractStore.waveletContract = new Contract(
+                        perlin.client,
+                        contractStore.contract.transactionId
+                    );
+                    await contractStore.waveletContract.init();
+
                     successNotification(
                         "",
                         contractStore.contract.transactionId
@@ -281,25 +285,17 @@ const ContractUploader: React.FunctionComponent = () => {
                 await createSmartContract(file, gasLimitNumber);
 
                 if (contractStore.contract.transactionId) {
-                    let count = 0;
-                    while (count < 30) {
-                        const tx = await perlin.getTransaction(
-                            contractStore.contract.transactionId
-                        );
-
-                        if (tx.status === "applied") {
-                            await delay(3000);
-                            break;
-                        }
-                        await delay(1000);
-                        count++;
-                    }
-
-                    const totalMemoryPages = await loadContractFromNetwork(
+                    const tx = await contractStore.listenForApplied(
+                        TAG_CONTRACT,
                         contractStore.contract.transactionId
                     );
 
-                    await contractStore.load(totalMemoryPages);
+                    contractStore.waveletContract = new Contract(
+                        perlin.client,
+                        tx.id
+                    );
+                    await contractStore.waveletContract.init();
+
                     successNotification(
                         "",
                         contractStore.contract.transactionId
