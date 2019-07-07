@@ -264,12 +264,12 @@ const ContractUploader: React.FunctionComponent = () => {
         async (acceptedFiles: File[]) => {
             const file = acceptedFiles[0];
             setLoading(true);
-            const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit));
+            const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
             setInlineMessage(undefined);
             try {
                 if (
                     // gasLimitNumber.isNaN() ||
-                    JSBI.lessThan(gasLimitNumber, JSBI.BigInt(0)) ||
+                    JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0)) ||
                     JSBI.greaterThan(
                         gasLimitNumber,
                         JSBI.BigInt(perlin.account.balance)

@@ -373,11 +373,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 { tag: TAG_TRANSFER, id: txId }
             );
         });
-    const delay = (time: any) =>
-        new Promise((res: any) => setTimeout(res, time));
 
     const onCall = (simulated: boolean = false) => async () => {
-        const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit));
+        const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
         if (
             (!simulated &&
                 JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
