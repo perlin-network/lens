@@ -73,8 +73,10 @@ export default class ContractStore {
                         resolve(tx);
                         poll.close();
                     },
-                    onTransactionRejected: (data: ITransaction) => {
-                        reject(new Error(`Transaction ${txId} was rejected`));
+                    onTransactionRejected: (data: any) => {
+                        const message =
+                            data.error || `Transaction was rejected`;
+                        reject(new Error(message));
                         poll.close();
                     }
                 },

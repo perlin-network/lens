@@ -13,6 +13,7 @@ import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
+import { GAS_FEE } from "src/constants";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -119,10 +120,11 @@ const Loader = styled.div`
     font-weight: 600;
 `;
 
-const errorNotification = (message: string) => {
+const errorNotification = (message: string, duration?: number) => {
     perlin.notify({
         type: NotificationTypes.Danger,
-        message
+        message,
+        dismiss: typeof duration !== "undefined" ? { duration } : undefined
     });
 };
 
@@ -268,7 +270,11 @@ const ContractUploader: React.FunctionComponent = () => {
         async (acceptedFiles: File[]) => {
             const file = acceptedFiles[0];
             setLoading(true);
-            const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+            let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+            gasLimitNumber = JSBI.subtract(
+                gasLimitNumber,
+                JSBI.BigInt(GAS_FEE)
+            );
             setInlineMessage(undefined);
             try {
                 if (
@@ -305,7 +311,7 @@ const ContractUploader: React.FunctionComponent = () => {
                     });
                 }
             } catch (err) {
-                errorNotification(err.message || err);
+                errorNotification(err.message || err, 8000);
                 setInlineMessage({
                     type: "error",
                     message: "Failed to spawn contract."

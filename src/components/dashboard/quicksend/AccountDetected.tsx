@@ -9,6 +9,7 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
+import { GAS_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import { numberWithCommas } from "../../common/core";
@@ -235,7 +236,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         onChange={this.updateInputPerls}
                                     />
                                     <Divider>|</Divider>
-                                    <DividerAside>Fee: 2 PERLs</DividerAside>
+                                    <DividerAside>
+                                        Fee: {GAS_FEE} PERLs
+                                    </DividerAside>
                                 </InputWrapper>
 
                                 <Flex
@@ -265,9 +268,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             <DetailsLinkWrapper>
                                 Valid Contract ID has been detected.
                                 <Link
-                                    to={`/transactions/${
-                                        this.props.recipient.public_key
-                                    }`}
+                                    to={`/transactions/${this.props.recipient.public_key}`}
                                 >
                                     <b>
                                         <u>Go to the detail</u>.

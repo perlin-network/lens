@@ -110,6 +110,7 @@
 
 .notification-body {
     flex: 1;
+    min-width: 0;
 }
 .notification-success,
 .notification-danger,

@@ -24,6 +24,7 @@ import { Link } from "react-router-dom";
 import BigNumber from "bignumber.js";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
+import { GAS_FEE } from "src/constants";
 
 interface IParamItem {
     id: string;
@@ -361,7 +362,8 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     };
 
     const onCall = (simulated: boolean = false) => async () => {
-        const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+        let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(GAS_FEE));
         if (
             (!simulated &&
                 JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
@@ -417,7 +419,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 perlin.keys,
                 currFunc,
                 JSBI.BigInt(0),
-                JSBI.BigInt(Math.floor(gasLimit)),
+                gasLimitNumber,
                 ...callClonedParamList
             );
 
