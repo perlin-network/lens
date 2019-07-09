@@ -10,7 +10,6 @@ import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin, NotificationTypes } from "../../Perlin";
-import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
 import * as Long from "long";
@@ -21,7 +20,6 @@ import LoadingSpinner from "../common/loadingSpinner";
 import { InlineNotification } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
-import BigNumber from "bignumber.js";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
 import { GAS_FEE } from "src/constants";
@@ -29,7 +27,7 @@ import { GAS_FEE } from "src/constants";
 interface IParamItem {
     id: string;
     type: ParamType | undefined;
-    value: string;
+    value: any;
 }
 
 const perlin = Perlin.getInstance();
@@ -59,6 +57,23 @@ const useContractFunctions = () => {
     }, [contractStore.contract.textContent]);
 };
 
+const getValue = (value: string, type?: string) => {
+    switch (type) {
+        case ParamType.Int16:
+        case ParamType.Int32:
+        case ParamType.Uint16:
+        case ParamType.Uint32:
+            return parseInt(value, 10);
+        case ParamType.Bytes:
+        case ParamType.Byte:
+            return Buffer.from(value, "hex");
+        case ParamType.Int64:
+        case ParamType.Uint64:
+            return JSBI.BigInt(value);
+        default:
+            return value;
+    }
+};
 const useParams = () => {
     const getEmptyParam = () => ({
         id: nanoid(),
@@ -88,7 +103,7 @@ const useParams = () => {
                 if (item.id === id) {
                     return {
                         ...item,
-                        value
+                        value: getValue(value, item.type)
                     };
                 }
                 return item;
@@ -115,17 +130,6 @@ const useParams = () => {
         addParam,
         clearParams
     };
-};
-
-const isHexString = (text: string): boolean => {
-    const hex = parseInt(text, 16);
-    return hex.toString(16) === text;
-};
-
-const isBase64String = (text: string): boolean => {
-    return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i.test(
-        text
-    );
 };
 
 const Button = styled(RawButton)`
@@ -252,49 +256,6 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     }
     return valid;
 };
-
-const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
-    const payload = new SmartBuffer();
-    for (const param of paramsList) {
-        if (param.type && param.value) {
-            switch (param.type) {
-                case ParamType.String:
-                    payload.writeString(param.value);
-                    break;
-                case ParamType.Bytes:
-                    payload.writeBuffer(Buffer.from(param.value, "hex"));
-                    break;
-                case ParamType.Byte:
-                    payload.writeBuffer(Buffer.from(param.value, "hex"));
-                    break;
-                case ParamType.Uint64:
-                    const long = Long.fromString(param.value, true);
-                    payload.writeBuffer(Buffer.from(long.toBytesLE()));
-                    break;
-                case ParamType.Uint32:
-                    payload.writeUInt32LE(parseInt(param.value, 10));
-                    break;
-                case ParamType.Uint16:
-                    payload.writeUInt16LE(parseInt(param.value, 10));
-                    break;
-            }
-        }
-    }
-    return payload.toBuffer();
-};
-
-// todo : use smart buffer
-function bytesToInt64(buffer: any, littleEndian = true) {
-    const arr = new ArrayBuffer(8);
-    const view = new DataView(arr);
-    buffer.forEach((value: any, index: any) => view.setUint8(index, value));
-    const left = view.getUint32(0, littleEndian);
-    const right = view.getUint32(4, littleEndian);
-    const combined = littleEndian
-        ? left + 2 ** 32 * right
-        : 2 ** 32 * left + right;
-    return combined;
-}
 
 const ContractExecutor: React.FunctionComponent = observer(() => {
     const funcList = useContractFunctions();
