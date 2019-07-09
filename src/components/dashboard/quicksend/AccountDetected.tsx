@@ -384,7 +384,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
 
     private successfulSend = () => {
         const gasLimit = +(this.state.gasLimit + "");
-        const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+        let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(GAS_FEE));
         const perls = JSBI.BigInt(this.state.inputPerls);
 
         if (this.props.validContract) {
