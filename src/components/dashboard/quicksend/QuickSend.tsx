@@ -106,8 +106,8 @@ export default class QuickSend extends React.Component<{}, IState> {
     public componentWillUnmount() {
         this.closePollAccount();
     }
-    public componentDidUpdate(_: any, prevState: IState) {
-        if (prevState.toggleComponent !== this.state.toggleComponent) {
+    public componentDidUpdate() {
+        if (this.state.toggleComponent === "") {
             this.closePollAccount();
         }
     }
