@@ -84,6 +84,8 @@ interface IState {
 const perlin = Perlin.getInstance();
 
 export default class QuickSend extends React.Component<{}, IState> {
+    private poll: WebSocket;
+
     constructor(props: any) {
         super(props);
         this.state = {
@@ -100,6 +102,14 @@ export default class QuickSend extends React.Component<{}, IState> {
         this.updateinputID = this.updateinputID.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.handleRestart = this.handleRestart.bind(this);
+    }
+    public componentWillUnmount() {
+        this.closePollAccount();
+    }
+    public componentDidUpdate(_: any, prevState: IState) {
+        if (prevState.toggleComponent !== this.state.toggleComponent) {
+            this.closePollAccount();
+        }
     }
     public render() {
         return (
@@ -175,6 +185,23 @@ export default class QuickSend extends React.Component<{}, IState> {
             }
         });
     }
+    private async pollAccount(id: string, cb: (recipient: any) => void) {
+        this.closePollAccount();
+        const poll = await perlin.pollAccountUpdates(
+            id,
+            () => this.state.recipient,
+            recipient => {
+                cb(recipient);
+            }
+        );
+
+        this.poll = poll;
+    }
+    private closePollAccount() {
+        if (this.poll) {
+            this.poll.close();
+        }
+    }
     private async checkInput() {
         if (await this.validtxId()) {
             this.setState({
@@ -182,13 +209,17 @@ export default class QuickSend extends React.Component<{}, IState> {
             });
         } else if (this.validInputID()) {
             try {
-                const recipient = await perlin.getAccount(this.state.inputID);
-
+                const updateRecipient = (recipient: any) => {
+                    this.setState({ recipient: { ...recipient } });
+                };
+                const response = await perlin.getAccount(this.state.inputID);
                 this.setState({
                     toggleComponent: "showDetectedAccount",
-                    recipient,
                     validAccount: true
                 });
+                updateRecipient(response);
+
+                this.pollAccount(this.state.inputID, updateRecipient);
             } catch (err) {
                 console.log(err);
             }

@@ -320,7 +320,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 My Balance:{" "}
                                 {numberWithCommas(perlin.account.balance)}
                             </span>
-                            <DeltaTag value={-this.state.inputPerls} />
+                            <DeltaTag
+                                value={-this.state.inputPerls - GAS_FEE}
+                            />
                         </Box>
                         <Box
                             ml={2}
@@ -350,11 +352,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             </div>
                             <span className="balance">
                                 Recipient Balance:{" "}
-                                {numberWithCommas(
-                                    recipientBalance
-                                        .plus(this.state.inputPerls)
-                                        .toString()
-                                )}
+                                {numberWithCommas(recipientBalance.toString())}
                             </span>
                             <DeltaTag value={this.state.inputPerls} />
                         </Box>

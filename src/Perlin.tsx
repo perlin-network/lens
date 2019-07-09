@@ -296,6 +296,38 @@ class Perlin {
         }
     }
 
+    public async pollAccountUpdates(
+        id: string,
+        target: any,
+        cb?: (data: any) => void
+    ) {
+        return await this.client.pollAccounts(
+            {
+                onAccountUpdated: (data: any) => {
+                    if (typeof target === "function") {
+                        target = target();
+                    }
+                    switch (data.event) {
+                        case "balance_updated":
+                            target.balance = data.balance.toString();
+                            break;
+                        case "stake_updated":
+                            target.stake = data.stake;
+                            break;
+                        case "reward_updated":
+                            target.reward = data.reward;
+                            break;
+                        case "num_pages_updated":
+                            target.num_mem_pages = data.num_pages;
+                    }
+                    if (cb) {
+                        cb(target);
+                    }
+                }
+            },
+            { id }
+        );
+    }
     private async init() {
         try {
             // await this.startSession();
@@ -394,7 +426,7 @@ class Perlin {
         this.initRound = this.ledger.round;
 
         this.account = await this.getAccount(this.publicKeyHex);
-        this.pollAccountUpdates(this.publicKeyHex);
+        this.pollAccountUpdates(this.publicKeyHex, this.account);
     }
 
     private async initPeers() {
@@ -489,29 +521,6 @@ class Perlin {
 
     private async getLedger() {
         return await this.getJSON("/ledger", {});
-    }
-
-    private pollAccountUpdates(id: string) {
-        this.client.pollAccounts(
-            {
-                onAccountUpdated: (data: any) => {
-                    switch (data.event) {
-                        case "balance_updated":
-                            this.account.balance = data.balance.toString();
-                            break;
-                        case "stake_updated":
-                            this.account.stake = data.stake;
-                            break;
-                        case "reward_updated":
-                            this.account.reward = data.reward;
-                            break;
-                        case "num_pages_updated":
-                            this.account.num_mem_pages = data.num_pages;
-                    }
-                }
-            },
-            { id }
-        );
     }
 
     // @ts-ignore
