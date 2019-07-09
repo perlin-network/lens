@@ -202,8 +202,8 @@ class Perlin {
     }
     public async transfer(
         recipient: string,
-        amount: number,
-        gasLimit: number = 0
+        amount: any,
+        gasLimit: any = JSBI.BigInt(0)
     ): Promise<any> {
         if (recipient.length !== 64) {
             throw new Error("Recipient must be a length-64 hex-encoded.");
@@ -211,8 +211,8 @@ class Perlin {
         return await this.client.transfer(
             this.keys,
             recipient,
-            JSBI.BigInt(amount),
-            JSBI.BigInt(gasLimit)
+            amount,
+            gasLimit
         );
     }
 

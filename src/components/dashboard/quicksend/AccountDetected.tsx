@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
 import BigNumber from "bignumber.js";
 import GasLimit from "../../common/gas-limit/GasLimit";
+import JSBI from "jsbi";
 
 interface IProps {
     recipient: any;
@@ -380,16 +381,17 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     }
 
     private successfulSend = () => {
-        let gasLimit;
-        const perls = new BigNumber(this.state.inputPerls);
+        const gasLimit = +(this.state.gasLimit + "");
+        const gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+        const perls = JSBI.BigInt(this.state.inputPerls);
 
         if (this.props.validContract) {
-            gasLimit = new BigNumber(this.state.gasLimit || "0");
-
             if (
-                gasLimit.isNaN() ||
-                gasLimit.lte(0) ||
-                gasLimit.gt(perlin.account.balance)
+                JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0)) ||
+                JSBI.greaterThan(
+                    gasLimitNumber,
+                    JSBI.BigInt(perlin.account.balance)
+                )
             ) {
                 perlin.notify({
                     type: NotificationTypes.Danger,
@@ -397,11 +399,12 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                 });
                 return false;
             }
-
-            gasLimit = gasLimit.toNumber();
         }
 
-        if (perls.isNaN() || perls.lte(0) || perls.gt(perlin.account.balance)) {
+        if (
+            JSBI.lessThanOrEqual(perls, JSBI.BigInt(0)) ||
+            JSBI.greaterThan(perls, JSBI.BigInt(perlin.account.balance))
+        ) {
             perlin.notify({
                 type: NotificationTypes.Danger,
                 message: "Please enter a valid amount of PERLs"
@@ -409,11 +412,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             return false;
         }
         perlin
-            .transfer(
-                this.props.recipient.public_key,
-                perls.toNumber(),
-                gasLimit
-            )
+            .transfer(this.props.recipient.public_key, perls, gasLimitNumber)
             .then(response => {
                 perlin.notify({
                     title: "PERL(s) Sent",
