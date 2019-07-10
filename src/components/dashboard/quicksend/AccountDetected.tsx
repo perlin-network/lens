@@ -9,7 +9,7 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { GAS_FEE } from "src/constants";
+import { TX_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import { numberWithCommas } from "../../common/core";
@@ -238,7 +238,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     />
                                     <Divider>|</Divider>
                                     <DividerAside>
-                                        Fee: {GAS_FEE} PERLs
+                                        Fee: {TX_FEE} PERLs
                                     </DividerAside>
                                 </InputWrapper>
 
@@ -385,7 +385,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     private successfulSend = () => {
         const gasLimit = +(this.state.gasLimit + "");
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(GAS_FEE));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
         const perls = JSBI.BigInt(this.state.inputPerls);
 
         if (this.props.validContract) {

@@ -22,7 +22,7 @@ import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
-import { GAS_FEE } from "src/constants";
+import { TX_FEE } from "src/constants";
 
 interface IParamItem {
     id: string;
@@ -324,7 +324,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const onCall = (simulated: boolean = false) => async () => {
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(GAS_FEE));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
         if (
             (!simulated &&
                 JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||

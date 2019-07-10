@@ -13,7 +13,7 @@ import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
-import { GAS_FEE } from "src/constants";
+import { TX_FEE } from "src/constants";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -271,10 +271,7 @@ const ContractUploader: React.FunctionComponent = () => {
             const file = acceptedFiles[0];
             setLoading(true);
             let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-            gasLimitNumber = JSBI.subtract(
-                gasLimitNumber,
-                JSBI.BigInt(GAS_FEE)
-            );
+            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
             setInlineMessage(undefined);
             try {
                 if (
