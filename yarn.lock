@@ -11149,10 +11149,10 @@ watchpack@^1.4.0:
     graceful-fs "^4.1.2"
     neo-async "^2.5.0"
 
-wavelet-client@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-1.0.9.tgz#8bd7ee3d6b7f53ee4927c4324072d524cec2ccd7"
-  integrity sha512-jX81AZU/xA/gwDpGYjf/HXGKXks4eYTXXwxDXyCODpBPHmHLKRXAs/1ysbUHEfatIhRELUQfvVQarW7++gxgtA==
+wavelet-client@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-1.0.10.tgz#8308b92f3a7a1ba6e6f9e5cada1eed331e92d0c4"
+  integrity sha512-H/nymyd7940Ee/pyNiTagtYrl96bP8350jWuPSYKCR3FkudPBoDwjr0OJnBQtdi2AewrDmLgc0JjN0gb5qOCrw==
   dependencies:
     atob "^2.1.2"
     axios "^0.19.0"

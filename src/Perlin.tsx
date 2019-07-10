@@ -4,8 +4,6 @@ import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
 import { HTTP_PROTOCOL, WS_PROTOCOL } from "./constants";
-import PayloadWriter from "./payload/PayloadWriter";
-import * as Long from "long";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
@@ -13,7 +11,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
 import JSBI from "jsbi";
 // @ts-ignore
-window.useNativeBigIntsIfAvailable = false;
+window.useNativeBigIntsIfAvailable = true;
 
 export enum NotificationTypes {
     Success = "success",
