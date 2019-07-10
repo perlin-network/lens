@@ -13,7 +13,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
 import JSBI from "jsbi";
 // @ts-ignore
-window.useNativeBigIntsIfAvailable = true;
+window.useNativeBigIntsIfAvailable = false;
 
 export enum NotificationTypes {
     Success = "success",
