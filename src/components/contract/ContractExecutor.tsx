@@ -57,15 +57,16 @@ const useContractFunctions = () => {
     }, [contractStore.contract.textContent]);
 };
 
-const getValue = (value: string, type?: string) => {
+const getParamValue = (value: string, type: string) => {
     switch (type) {
         case ParamType.Int16:
         case ParamType.Int32:
         case ParamType.Uint16:
         case ParamType.Uint32:
             return parseInt(value, 10);
-        case ParamType.Bytes:
         case ParamType.Byte:
+            return parseInt(value, 16);
+        case ParamType.Bytes:
             return Buffer.from(value, "hex");
         case ParamType.Int64:
         case ParamType.Uint64:
@@ -73,6 +74,15 @@ const getValue = (value: string, type?: string) => {
         default:
             return value;
     }
+};
+
+const parseParamList = (paramList: any) => {
+    return paramList.map((param: any) => {
+        return {
+            type: param.type,
+            value: getParamValue(param.value, param.type)
+        };
+    });
 };
 const useParams = () => {
     const getEmptyParam = () => ({
@@ -103,7 +113,7 @@ const useParams = () => {
                 if (item.id === id) {
                     return {
                         ...item,
-                        value: getValue(value, item.type)
+                        value
                     };
                 }
                 return item;
@@ -247,10 +257,18 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
                 }
             }
             break;
+        case ParamType.Byte:
+            if (/^[0-9a-f]{1,2}$/i.test(value)) {
+                valid = true;
+            }
+            break;
+        case ParamType.Bytes:
+            if (/^[0-9a-f]+$/i.test(value)) {
+                valid = true;
+            }
+            break;
         case ParamType.String:
         case ParamType.Raw:
-        case ParamType.Bytes:
-        case ParamType.Byte:
             valid = true;
             break;
     }
@@ -367,7 +385,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         };
 
         try {
-            const clonedParamList = paramsList.map(param => ({ ...param }));
+            const clonedParamList = parseParamList(paramsList);
 
             if (simulated) {
                 localCall(clonedParamList);
@@ -375,7 +393,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 return;
             }
 
-            const callClonedParamList = paramsList.map(param => ({ ...param }));
+            const callClonedParamList = parseParamList(paramsList);
             const response = await contractStore.waveletContract.call(
                 perlin.keys,
                 currFunc,
