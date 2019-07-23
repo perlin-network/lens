@@ -391,11 +391,12 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
 
         setLoading(true);
-        const localCall = (params: any) => {
+        const localCall = (amount: JSBI, params: any) => {
             contractStore.logs = [];
             const { result, logs } = contractStore.waveletContract.test(
+                perlin.keys,
                 currFunc,
-                BigInt(0),
+                amount,
                 ...params
             );
 
@@ -409,15 +410,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         };
 
         try {
-            const clonedParamList = parseParamList(paramsList);
-
-            if (simulated) {
-                localCall(clonedParamList);
-                setLoading(false);
-                return;
-            }
-
-            let perls = JSBI.BigInt(inputPerls);
+            let perls = JSBI.BigInt(inputPerls || "0");
             if (
                 JSBI.lessThan(perls, JSBI.BigInt(0)) ||
                 JSBI.greaterThan(perls, JSBI.BigInt(perlin.account.balance))
@@ -426,6 +419,14 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                     type: NotificationTypes.Danger,
                     message: "Please enter a valid amount of PERLs"
                 });
+                return;
+            }
+
+            const clonedParamList = parseParamList(paramsList);
+
+            if (simulated) {
+                localCall(perls, clonedParamList);
+                setLoading(false);
                 return;
             }
 
