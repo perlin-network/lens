@@ -1,8 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Input } from "../common/core";
+import { StyledInput, StyledDropdown } from "../common/core";
 import { Flex, Box } from "@rebass/grid";
-import Dropdown, { Option } from "react-dropdown";
+import { Option } from "react-dropdown";
+
 import CloseIconSVG from "../../assets/svg/close-icon.svg";
 
 interface IParameterInputProps {
@@ -43,29 +44,7 @@ const typeOptions = [
 const Wrapper = styled(Flex)`
     margin-bottom: 30px;
 `;
-const StyledInput = styled(Input)`
-    margin-left: 10px;
-    margin-right: 15px;
-    flex-grow: 1;
-    height: 100%;
-    width: 90%;
-    font-size: 16px;
-    font-weight: 400;
-    font-family: HKGrotesk;
-    color: #fff;
-    background-color: #171d39;
-    border: 1px solid #2e345100;
-    border-radius: 5px;
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        cursor: text;
-        border: 1px solid #4a41d1;
-        outline: 0;
-    }
-`;
+
 const DeleteIcon = styled.img.attrs({ src: CloseIconSVG })`
     height: 15px;
     width: 15px;
@@ -73,14 +52,6 @@ const DeleteIcon = styled.img.attrs({ src: CloseIconSVG })`
     cursor: pointer;
     color: #fff;
     opacity: 0.3;
-`;
-
-// todo : fix background color
-const StyledDropdown = styled(Dropdown)`
-    height: 100%;
-    font-size: 16px;
-    font-weight: 400;
-    font-family: HKGrotesk;
 `;
 
 const ParameterInput: React.SFC<IParameterInputProps> = ({
@@ -103,7 +74,7 @@ const ParameterInput: React.SFC<IParameterInputProps> = ({
 
     return (
         <Wrapper alignItems="center">
-            <Box width={4 / 12}>
+            <Box width={4 / 12} mr={3}>
                 <StyledDropdown
                     options={typeOptions}
                     placeholder="Select Type"
@@ -111,7 +82,7 @@ const ParameterInput: React.SFC<IParameterInputProps> = ({
                     onChange={handleTypeChange}
                 />
             </Box>
-            <Box width={8 / 12}>
+            <Box width={8 / 12} mr={3}>
                 <StyledInput
                     disabled={!type}
                     placeholder="Add parameter here"

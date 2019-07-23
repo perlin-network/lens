@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import {
     Card as OriginalCard,
     Button as RawButton,
-    ButtonOutlined
+    ButtonOutlined,
+    InputWrapper,
+    StyledDropdown
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
@@ -23,6 +25,7 @@ import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
 import { TX_FEE } from "src/constants";
+import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
 
 interface IParamItem {
     id: string;
@@ -274,7 +277,16 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     }
     return valid;
 };
-
+const inputTypes = [
+    {
+        label: "Send",
+        value: "send-perls"
+    },
+    {
+        label: "Deposit Gas",
+        value: "deposit-gas"
+    }
+];
 const ContractExecutor: React.FunctionComponent = observer(() => {
     const funcList = useContractFunctions();
     const {
@@ -288,8 +300,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const [gasLimit, setGasLimit] = useState();
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
-
+    const [inputType, setInputType] = useState(inputTypes[0].value);
     const [loading, setLoading] = useState(false);
+    const [inputPerls, setInputPerls] = useState();
 
     const handleUpdateGasLimit = useCallback((value: string) => {
         setGasLimit(value);
@@ -303,6 +316,17 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         setFunc(name);
         clearParams();
     };
+
+    const handleInputType = useCallback((option: any) => {
+        setInputType(option.value);
+    }, []);
+
+    const updateInputPerls = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setInputPerls(e.target.value);
+        },
+        []
+    );
 
     const handleTypeChange = (id: string) => (type: ParamType) => {
         const paramItem: IParamItem | undefined = paramsList.find(
@@ -393,12 +417,31 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 return;
             }
 
+            let perls = JSBI.BigInt(inputPerls);
+            if (
+                JSBI.lessThan(perls, JSBI.BigInt(0)) ||
+                JSBI.greaterThan(perls, JSBI.BigInt(perlin.account.balance))
+            ) {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: "Please enter a valid amount of PERLs"
+                });
+                return;
+            }
+
+            let gasDeposit = JSBI.BigInt(0);
+
+            if (inputType === inputTypes[1].value) {
+                gasDeposit = perls;
+                perls = JSBI.BigInt(0);
+            }
             const callClonedParamList = parseParamList(paramsList);
             const response = await contractStore.waveletContract.call(
                 perlin.keys,
                 currFunc,
-                JSBI.BigInt(0),
+                perls,
                 gasLimitNumber,
+                gasDeposit,
                 ...callClonedParamList
             );
 
@@ -472,6 +515,27 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                 Add more parameters +
                             </AddMoreText>
                         </Box>
+                    </Flex>
+
+                    <Flex alignItems="center">
+                        <Box mr={2}>
+                            <StyledDropdown
+                                className="fixed-width"
+                                options={inputTypes}
+                                value={inputType}
+                                onChange={handleInputType}
+                            />
+                        </Box>
+
+                        <InputWrapper>
+                            <DividerInput
+                                placeholder="Enter Amount"
+                                value={inputPerls}
+                                onChange={updateInputPerls}
+                            />
+                            <Divider>|</Divider>
+                            <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                        </InputWrapper>
                     </Flex>
 
                     <GasLimit

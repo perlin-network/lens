@@ -201,7 +201,8 @@ class Perlin {
     public async transfer(
         recipient: string,
         amount: any,
-        gasLimit: any = JSBI.BigInt(0)
+        gasLimit: any = JSBI.BigInt(0),
+        gasDeposit: any = JSBI.BigInt(0)
     ): Promise<any> {
         if (recipient.length !== 64) {
             throw new Error("Recipient must be a length-64 hex-encoded.");
@@ -210,7 +211,8 @@ class Perlin {
             this.keys,
             recipient,
             amount,
-            gasLimit
+            gasLimit,
+            gasDeposit
         );
     }
 
@@ -229,9 +231,16 @@ class Perlin {
     public async createSmartContract(
         bytes: ArrayBuffer,
         gasLimit: JSBI,
+        gasDeposit: JSBI = JSBI.BigInt(0),
         params?: ArrayBuffer
     ): Promise<any> {
-        return this.client.deployContract(this.keys, bytes, gasLimit, params);
+        return this.client.deployContract(
+            this.keys,
+            bytes,
+            gasLimit,
+            gasDeposit,
+            params
+        );
     }
 
     public async getContractCode(contractId: string): Promise<ArrayBuffer> {
@@ -249,6 +258,7 @@ class Perlin {
             public_key: data.public_key,
 
             balance: data.balance.toString(),
+            gas_balance: data.gas_balance.toString(),
             stake: data.stake,
             reward: data.reward,
             is_contract: data.is_contract,

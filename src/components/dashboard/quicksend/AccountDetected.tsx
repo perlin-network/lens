@@ -12,7 +12,11 @@ import {
 import { TX_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
-import { numberWithCommas } from "../../common/core";
+import {
+    numberWithCommas,
+    StyledDropdown,
+    InputWrapper
+} from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 import { Link } from "react-router-dom";
 import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
@@ -32,7 +36,9 @@ interface IState {
     doubleChecked: boolean;
     errorMessage: string;
     gasLimit?: string;
+    gasDeposit?: string;
     gasChoiceReset: number;
+    inputType: string;
 }
 
 const Wrapper = styled.div`
@@ -46,12 +52,8 @@ const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
 `;
 
-const InputWrapper = styled.div`
-    display: flex;
-    flex: 1;
-`;
 const DetailsLinkWrapper = styled.div`
-    padding: 0 20px 20px 20px;
+    padding-top: 12px;
     a {
         color: #fff !important;
         margin-left: 5px;
@@ -74,7 +76,7 @@ const SendPerlsButton = styled.button`
     color: #151b35;
     padding: 15px;
     margin: 10px 0;
-
+    white-space: nowrap;
     min-width: 110px;
 
     &:hover,
@@ -108,7 +110,7 @@ const InfoLine = styled.tr`
         vertical-align: top;
     }
     .label {
-        width: 60px;
+        width: 80px;
         white-space: nowrap;
         opacity: 0.6;
     }
@@ -144,6 +146,16 @@ const TransferRow = styled(Row)`
         margin-right: 5px;
     }
 `;
+const inputTypes = [
+    {
+        label: "Send",
+        value: "send-perls"
+    },
+    {
+        label: "Deposit Gas",
+        value: "deposit-gas"
+    }
+];
 const perlin = Perlin.getInstance();
 
 @observer
@@ -154,7 +166,8 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             inputPerls: "",
             doubleChecked: false,
             errorMessage: "",
-            gasChoiceReset: 0
+            gasChoiceReset: 0,
+            inputType: inputTypes[0].value
         };
         this.updateInputPerls = this.updateInputPerls.bind(this);
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
@@ -205,6 +218,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                 {recipient.balance}
                                             </td>
                                         </InfoLine>
+                                        {this.props.validContract && (
+                                            <InfoLine>
+                                                <td className="label">
+                                                    Gas Balance
+                                                </td>
+                                                <td className="value">
+                                                    {recipient.gas_balance}
+                                                </td>
+                                            </InfoLine>
+                                        )}
                                         <InfoLine>
                                             <td className="label">Reward</td>
                                             <td className="value">
@@ -230,17 +253,30 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 </InfoTable>
                             </Box>
                             <Box width={1 / 2} className="break-word">
-                                <InputWrapper>
-                                    <DividerInput
-                                        placeholder="Enter Amount"
-                                        value={this.state.inputPerls}
-                                        onChange={this.updateInputPerls}
-                                    />
-                                    <Divider>|</Divider>
-                                    <DividerAside>
-                                        Fee: {TX_FEE} PERLs
-                                    </DividerAside>
-                                </InputWrapper>
+                                <Flex alignItems="center">
+                                    {this.props.validContract && (
+                                        <Box mr={2}>
+                                            <StyledDropdown
+                                                className="fixed-width"
+                                                options={inputTypes}
+                                                value={this.state.inputType}
+                                                onChange={this.handleInputType}
+                                            />
+                                        </Box>
+                                    )}
+
+                                    <InputWrapper>
+                                        <DividerInput
+                                            placeholder="Enter Amount"
+                                            value={this.state.inputPerls}
+                                            onChange={this.updateInputPerls}
+                                        />
+                                        <Divider>|</Divider>
+                                        <DividerAside>
+                                            Fee: {TX_FEE} PERLs
+                                        </DividerAside>
+                                    </InputWrapper>
+                                </Flex>
 
                                 <Flex
                                     alignItems="center"
@@ -248,35 +284,38 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 >
                                     {this.props.validContract && (
                                         <GasLimit
+                                            mr={2}
                                             balance={perlin.account.balance}
                                             onChange={this.updateGasLimit}
                                             value={this.state.gasLimit}
-                                            mr={3}
                                         />
                                     )}
-
                                     <Box>
                                         <SendPerlsButton
                                             onClick={this.handleSendButton}
                                         >
-                                            Send {this.state.inputPerls} PERL(s)
+                                            {this.state.inputType ===
+                                            inputTypes[1].value
+                                                ? "Deposit"
+                                                : "Send"}{" "}
+                                            {this.state.inputPerls} PERL(s)
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
+                                {this.props.validContract && (
+                                    <DetailsLinkWrapper>
+                                        Valid Contract ID has been detected.
+                                        <Link
+                                            to={`/transactions/${this.props.recipient.public_key}`}
+                                        >
+                                            <b>
+                                                <u>Go to the detail</u>.
+                                            </b>
+                                        </Link>
+                                    </DetailsLinkWrapper>
+                                )}
                             </Box>
                         </Flex>
-                        {this.props.validContract && (
-                            <DetailsLinkWrapper>
-                                Valid Contract ID has been detected.
-                                <Link
-                                    to={`/transactions/${this.props.recipient.public_key}`}
-                                >
-                                    <b>
-                                        <u>Go to the detail</u>.
-                                    </b>
-                                </Link>
-                            </DetailsLinkWrapper>
-                        )}
                     </AccountDetectedContent>
                 </AccountDetectedAnimation>
 
@@ -349,14 +388,26 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             <div className="address">
                                 {recipient.public_key}
                             </div>
-                            <span className="balance">
-                                Recipient Balance:{" "}
-                                {numberWithCommas(
-                                    recipientBalance
-                                        .plus(this.state.inputPerls)
-                                        .toString()
-                                )}
-                            </span>
+                            {this.state.inputType === inputTypes[1].value ? (
+                                <span className="balance">
+                                    Recipient Gas Balance:{" "}
+                                    {numberWithCommas(
+                                        new BigNumber(recipient.gas_balance)
+                                            .plus(this.state.inputPerls)
+                                            .toString()
+                                    )}
+                                </span>
+                            ) : (
+                                <span className="balance">
+                                    Recipient Balance:{" "}
+                                    {numberWithCommas(
+                                        recipientBalance
+                                            .plus(this.state.inputPerls)
+                                            .toString()
+                                    )}
+                                </span>
+                            )}
+
                             <DeltaTag value={this.state.inputPerls} />
                         </Box>
                     </TransferRow>
@@ -367,6 +418,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
 
     private updateGasLimit = (gasLimit: string) => {
         this.setState({ gasLimit });
+    };
+
+    private handleInputType = (option: any) => {
+        this.setState({ inputType: option.value });
     };
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
@@ -384,9 +439,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
 
     private successfulSend = () => {
         const gasLimit = +(this.state.gasLimit + "");
+
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
         gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
-        const perls = JSBI.BigInt(this.state.inputPerls);
+
+        let perls = JSBI.BigInt(this.state.inputPerls);
 
         if (this.props.validContract) {
             if (
@@ -414,8 +471,21 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             });
             return false;
         }
+
+        let gasDeposit;
+
+        if (this.state.inputType === inputTypes[1].value) {
+            gasDeposit = perls;
+            perls = JSBI.BigInt(0);
+        }
+
         perlin
-            .transfer(this.props.recipient.public_key, perls, gasLimitNumber)
+            .transfer(
+                this.props.recipient.public_key,
+                perls,
+                gasLimitNumber,
+                gasDeposit
+            )
             .then(response => {
                 perlin.notify({
                     title: "PERL(s) Sent",
