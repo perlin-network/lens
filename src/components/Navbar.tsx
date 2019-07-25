@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState, useCallback } from "react";
 import styled from "styled-components";
 import { WalletIcon, StakeIcon, EarningsIcon } from "./common/typography";
 import "../index.scss";
@@ -7,7 +7,9 @@ import { Perlin, NotificationTypes } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
-import { numberWithCommas } from "./common/core";
+import Modal from "./common/modal";
+import Faucet from "./Faucet";
+import { numberWithCommas, WhiteButton } from "./common/core";
 
 const Header = styled(Flex)`
     padding: 10px 0px 10px 0px;
@@ -47,7 +49,7 @@ const LinkValue = styled(Value).attrs({
 const Container = styled(Flex)`
     width: 100%;
     margin-bottom: 16px;
-    margin-right: 16px;
+    margin-right: 0;
     justify-content: flex-end;
 
     ${CopyIcon} {
@@ -79,6 +81,10 @@ const Item = styled(Box)`
     }
 `;
 
+const FaucetButton = styled(WhiteButton)`
+    padding: 12px 10px;
+    font-size: 14px;
+`;
 const WalletItem = styled(Item)`
     flex: 1;
     text-align: left;
@@ -86,6 +92,7 @@ const WalletItem = styled(Item)`
 const perlin = Perlin.getInstance();
 
 const Navbar: React.FunctionComponent<{}> = () => {
+    const [openedFaucet, setOpenedFaucet] = useState(false);
     const balance = perlin.account.balance;
     const isLoggedIn = perlin.isLoggedIn;
 
@@ -111,6 +118,12 @@ const Navbar: React.FunctionComponent<{}> = () => {
             });
         }
     };
+    const openFaucet = useCallback(() => {
+        setOpenedFaucet(true);
+    }, []);
+    const closeFaucet = useCallback(() => {
+        setOpenedFaucet(false);
+    }, []);
 
     const LoggedBar = () => {
         return (
@@ -167,6 +180,12 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             </span>{" "}
                             PERLs
                         </Value>
+                    </Item>
+                    <Item flex="0 0 auto">
+                        <FaucetButton onClick={openFaucet}>Faucet</FaucetButton>
+                        <Modal open={openedFaucet} onClose={closeFaucet}>
+                            <Faucet />
+                        </Modal>
                     </Item>
                 </Container>
             </Header>

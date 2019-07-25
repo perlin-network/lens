@@ -64,7 +64,7 @@ export const Button = styled.button`
             : ""}
 
     &:active {
-        background: rgba(34, 34, 142, 0.5);
+        background-color: rgba(34, 34, 142, 0.5);
     }
 
     &:focus {
@@ -91,7 +91,7 @@ export const ButtonOutlined = styled(Button)`
     &:hover,
     &:active {
         color: #151a36;
-        background: #fff;
+        background-color: #fff;
         border-color: #fff;
     }
 `;

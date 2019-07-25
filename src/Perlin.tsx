@@ -3,7 +3,7 @@ import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
-import { HTTP_PROTOCOL, WS_PROTOCOL } from "./constants";
+import { HTTP_PROTOCOL, WS_PROTOCOL, FAUCET_URL } from "./constants";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
@@ -75,6 +75,8 @@ class Perlin {
     }
 
     private static singleton: Perlin;
+
+    public lastFaucetFetch = 0;
 
     @observable public api = {
         host: storage.getCurrentHost(),
@@ -228,6 +230,17 @@ class Perlin {
         return await this.client.withdrawReward(this.keys, JSBI.BigInt(amount));
     }
 
+    public async getPerls(address: string) {
+        return await fetch(FAUCET_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                address
+            })
+        }).then(response => {
+            this.lastFaucetFetch = Date.now();
+            return response.json();
+        });
+    }
     public async createSmartContract(
         bytes: ArrayBuffer,
         gasLimit: JSBI,
