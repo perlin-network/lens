@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { WalletIcon, StakeIcon, EarningsIcon } from "./common/typography";
 import "../index.scss";
@@ -7,9 +7,8 @@ import { Perlin, NotificationTypes } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
-import Modal from "./common/modal";
-import Faucet from "./Faucet";
 import { numberWithCommas, WhiteButton } from "./common/core";
+import WaveletFaucet from "@claudiucelfilip/wavelet-faucet";
 
 const Header = styled(Flex)`
     padding: 10px 0px 10px 0px;
@@ -92,7 +91,6 @@ const WalletItem = styled(Item)`
 const perlin = Perlin.getInstance();
 
 const Navbar: React.FunctionComponent<{}> = () => {
-    const [openedFaucet, setOpenedFaucet] = useState(false);
     const balance = perlin.account.balance;
     const isLoggedIn = perlin.isLoggedIn;
 
@@ -118,11 +116,19 @@ const Navbar: React.FunctionComponent<{}> = () => {
             });
         }
     };
-    const openFaucet = useCallback(() => {
-        setOpenedFaucet(true);
+
+    const onFaucetSuccess = useCallback(() => {
+        perlin.notify({
+            type: NotificationTypes.Success,
+            message: "Wallet received some PERLs"
+        });
     }, []);
-    const closeFaucet = useCallback(() => {
-        setOpenedFaucet(false);
+
+    const onFaucetError = useCallback(err => {
+        perlin.notify({
+            type: NotificationTypes.Danger,
+            message: err.message || err
+        });
     }, []);
 
     const LoggedBar = () => {
@@ -182,10 +188,13 @@ const Navbar: React.FunctionComponent<{}> = () => {
                         </Value>
                     </Item>
                     <Item flex="0 0 auto">
-                        <FaucetButton onClick={openFaucet}>Faucet</FaucetButton>
-                        <Modal open={openedFaucet} onClose={closeFaucet}>
-                            <Faucet />
-                        </Modal>
+                        <FaucetButton id="fauceButton">Faucet</FaucetButton>
+                        <WaveletFaucet
+                            address={perlin.publicKeyHex}
+                            onSuccess={onFaucetSuccess}
+                            onError={onFaucetError}
+                            trigger="#fauceButton"
+                        />
                     </Item>
                 </Container>
             </Header>

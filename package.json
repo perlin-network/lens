@@ -5,6 +5,7 @@
     "dependencies": {
         "@blueprintjs/core": "^3.4.0",
         "@blueprintjs/select": "^3.6.0",
+        "@claudiucelfilip/wavelet-faucet": "1.0.9",
         "@rebass/grid": "^6.0.0-7",
         "@types/animejs": "^2.0.2",
         "@types/bignumber.js": "^5.0.0",
