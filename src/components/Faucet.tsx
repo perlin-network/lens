@@ -160,7 +160,7 @@ const Faucet: React.FunctionComponent = () => {
                 )}
             </CenterContent>
             <div>
-                You can get more PERLs on the chat
+                Get more PERLs on our Discord:
                 <a href="https://discord.gg/dMYfDPM" target="_blank">
                     <FaucetLink>Faucet</FaucetLink>
                 </a>
