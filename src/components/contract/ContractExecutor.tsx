@@ -424,24 +424,25 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
             const clonedParamList = parseParamList(paramsList);
 
-            if (simulated) {
-                localCall(perls, clonedParamList);
-                setLoading(false);
-                return;
-            }
-
             let gasDeposit = JSBI.BigInt(0);
 
             if (inputType === inputTypes[1].value) {
                 gasDeposit = perls;
                 perls = JSBI.BigInt(0);
             }
+
+            if (simulated) {
+                localCall(perls, clonedParamList);
+                setLoading(false);
+                return;
+            }
+
             const callClonedParamList = parseParamList(paramsList);
             const response = await contractStore.waveletContract.call(
                 perlin.keys,
                 currFunc,
                 perls,
-                gasLimitNumber,
+                JSBI.subtract(gasLimitNumber, perls),
                 gasDeposit,
                 ...callClonedParamList
             );
