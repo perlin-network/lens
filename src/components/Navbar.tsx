@@ -7,8 +7,8 @@ import { Perlin, NotificationTypes } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
-import { numberWithCommas, WhiteButton } from "./common/core";
-import WaveletFaucet from "@claudiucelfilip/wavelet-faucet";
+import { numberWithCommas } from "./common/core";
+import WF from "wavelet-faucet";
 
 const Header = styled(Flex)`
     padding: 10px 0px 10px 0px;
@@ -79,11 +79,61 @@ const Item = styled(Box)`
         padding-right: 0;
     }
 `;
+const FaucetItem = styled(Item)`
+    .faucet-modal-wrapper {
+        padding-bottom: 40px;
+        max-width: 770px;
+    }
+    .faucet-modal-header {
+        margin-bottom: 0;
+    }
+    .faucet-modal-close-button {
+        font-family: inherit;
+        font-size: 25px;
+        padding-right: 10px;
+        font-weight: 400;
+        text-transform: lowercase;
+    }
+    .faucet-form {
+        margin-bottom: 10px;
 
-const FaucetButton = styled(WhiteButton)`
-    padding: 12px 10px;
-    font-size: 14px;
+        .faucet-input {
+            height: auto;
+            padding: 12px 10px 10px;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-color: rgb(46, 52, 81);
+        }
+        .faucet-submit {
+            height: auto;
+            padding: 5px 10px;
+            font-weight: 600;
+            font-size: inherit;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+
+            &:hover {
+                background: #fff;
+            }
+        }
+    }
+    button {
+        font-size: inherit;
+    }
 `;
+
+const FaucetButton = WF.FaucetButton;
+const FaucetButtonStyle = {
+    position: "relative",
+    color: "#1a223c",
+    fontSize: "14px",
+    fontWeight: "inherit",
+    fontFamily: "inherit",
+    paddingLeft: "10px",
+    paddingRight: "10px",
+    width: "auto"
+};
+
 const WalletItem = styled(Item)`
     flex: 1;
     text-align: left;
@@ -187,15 +237,15 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             PERLs
                         </Value>
                     </Item>
-                    <Item flex="0 0 auto">
-                        <FaucetButton id="fauceButton">Faucet</FaucetButton>
-                        <WaveletFaucet
+                    <FaucetItem flex="0 0 auto">
+                        <FaucetButton
                             address={perlin.publicKeyHex}
-                            onSuccess={onFaucetSuccess}
-                            onError={onFaucetError}
-                            trigger="#fauceButton"
-                        />
-                    </Item>
+                            style={FaucetButtonStyle}
+                            classPrefix="faucet"
+                        >
+                            Faucet
+                        </FaucetButton>
+                    </FaucetItem>
                 </Container>
             </Header>
         );

@@ -1,1 +1,1 @@
-declare module "@claudiucelfilip/wavelet-faucet";
+declare module "wavelet-faucet";
