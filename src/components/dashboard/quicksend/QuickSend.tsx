@@ -187,6 +187,7 @@ export default class QuickSend extends React.Component<{}, IState> {
                 this.setState({
                     toggleComponent: "showDetectedAccount",
                     recipient,
+                    validContract: recipient.is_contract,
                     validAccount: true
                 });
             } catch (err) {
