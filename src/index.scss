@@ -205,15 +205,15 @@ input, textarea, button {
 .Dropdown-control {
     position: relative;
     overflow: hidden;
-    background-color: #171d39;
+    background-color: #121734;
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     /* color: #fff; */
     box-sizing: border-box;
     color: #fff;
     cursor: default;
     outline: none;
-    padding: 10px 52px 10px 10px;
+    padding: 14px 35px 14px 15px;
     transition: all 200ms ease;
 }
 
@@ -224,19 +224,27 @@ input, textarea, button {
     content: ' ';
     display: block;
     height: 0;
-    margin-top: -ceil(2.5);
     position: absolute;
-    right: 10px;
-    top: 17px;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 0;
 }
 
+.Dropdown-root {
+    &.fixed-width {
+        width: 140px;
+    }
+}
 .Dropdown-option {
     box-sizing: border-box;
     color: #fff;
     cursor: pointer;
     display: block;
-    padding: 8px 10px;
+    padding: 10px 15px;
+    white-space: nowrap;
+
+    
 }
 
 .Dropdown-option:hover {

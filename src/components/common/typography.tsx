@@ -50,7 +50,8 @@ const QuestionIcon = styled.img.attrs({ src: QuestionAlert })`
 const EarningsIcon = styled.img.attrs({ src: DataCardEarnings })`
     max-height: 24px;
     max-width: 24px;
-    margin-top: 2px;
+    top: 2px;
+    position: relative;
 `;
 const WalletIcon = styled.img.attrs({ src: DataCardWallet })`
     max-height: 24px;

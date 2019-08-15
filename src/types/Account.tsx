@@ -3,6 +3,7 @@ interface IAccount {
 
     reward: number;
     balance: string;
+    gas_balance?: string;
     stake: number;
 
     is_contract: boolean;

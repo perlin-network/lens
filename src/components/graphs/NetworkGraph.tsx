@@ -211,7 +211,7 @@ class NGraph extends React.PureComponent<
         }
     }
 
-    private checkPeers(peers: any[], mouseHandleUpdate: () => void) {
+    private checkPeers(peers: any[] = [], mouseHandleUpdate: () => void) {
         let isDirty = false;
         peers.forEach((peer: any) => {
             if (

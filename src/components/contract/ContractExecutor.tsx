@@ -3,32 +3,34 @@ import { useState, useEffect } from "react";
 import {
     Card as OriginalCard,
     Button as RawButton,
-    ButtonOutlined
+    ButtonOutlined,
+    InputWrapper,
+    StyledDropdown
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
 import ContractStore from "./ContractStore";
 import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin, NotificationTypes } from "../../Perlin";
-import { SmartBuffer } from "smart-buffer";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
-import PayloadWriter from "src/payload/PayloadWriter";
 import * as Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
-import { loadContractFromNetwork } from "./ContractUploader";
 import LoadingSpinner from "../common/loadingSpinner";
 
 import { InlineNotification } from "../common/notification/Notification";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
-import BigNumber from "bignumber.js";
+import JSBI from "jsbi";
+import { TAG_TRANSFER } from "wavelet-client";
+import { TX_FEE } from "src/constants";
+import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
 
 interface IParamItem {
     id: string;
     type: ParamType | undefined;
-    value: string;
+    value: any;
 }
 
 const perlin = Perlin.getInstance();
@@ -58,10 +60,37 @@ const useContractFunctions = () => {
     }, [contractStore.contract.textContent]);
 };
 
+const getParamValue = (value: string, type: string) => {
+    switch (type) {
+        case ParamType.Int16:
+        case ParamType.Int32:
+        case ParamType.Uint16:
+        case ParamType.Uint32:
+            return parseInt(value, 10);
+        case ParamType.Byte:
+            return parseInt(value, 16);
+        case ParamType.Bytes:
+            return Buffer.from(value, "hex");
+        case ParamType.Int64:
+        case ParamType.Uint64:
+            return JSBI.BigInt(value);
+        default:
+            return value;
+    }
+};
+
+const parseParamList = (paramList: any) => {
+    return paramList.map((param: any) => {
+        return {
+            type: param.type,
+            value: getParamValue(param.value, param.type)
+        };
+    });
+};
 const useParams = () => {
     const getEmptyParam = () => ({
         id: nanoid(),
-        type: ParamType.Bytes,
+        type: ParamType.Raw,
         value: ""
     });
     const [paramsList, setParamsList] = useState<IParamItem[]>([
@@ -116,17 +145,6 @@ const useParams = () => {
     };
 };
 
-const isHexString = (text: string): boolean => {
-    const hex = parseInt(text, 16);
-    return hex.toString(16) === text;
-};
-
-const isBase64String = (text: string): boolean => {
-    return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i.test(
-        text
-    );
-};
-
 const Button = styled(RawButton)`
     background-color: #fff;
     height: 48px;
@@ -179,15 +197,46 @@ const ParamsBody = styled(CardBody)`
 const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
     let valid = false;
     switch (paramItem.type) {
-        case ParamType.String:
-            if (/^[a-z0-9\.\-\_]+$/i.test(value)) {
-                valid = true;
+        case ParamType.Int16:
+            if (/^\-?[0-9]*$/i.test(value)) {
+                if (value === "-") {
+                    valid = true;
+                }
+                const num = parseInt(value, 10);
+                if (num >= Math.pow(-2, 15) && num <= Math.pow(2, 15)) {
+                    valid = true;
+                }
+            }
+            break;
+        case ParamType.Int32:
+            if (/^\-?[0-9]*$/i.test(value)) {
+                if (value === "-") {
+                    valid = true;
+                }
+                const num = parseInt(value, 10);
+                if (num >= Math.pow(-2, 31) && num <= Math.pow(2, 31)) {
+                    valid = true;
+                }
+            }
+            break;
+        case ParamType.Int64:
+            if (/^\-?[0-9]*$/i.test(value)) {
+                if (value === "-") {
+                    valid = true;
+                }
+                const num = Long.fromString(value, true);
+                if (
+                    num.greaterThanOrEqual(Long.MIN_VALUE) &&
+                    num.lessThanOrEqual(Long.MAX_VALUE)
+                ) {
+                    valid = true;
+                }
             }
             break;
         case ParamType.Uint16:
             if (/^[0-9]+$/i.test(value)) {
                 const num = parseInt(value, 10);
-                if (num > 0 && num < Math.pow(2, 16)) {
+                if (num >= 0 && num <= Math.pow(2, 16)) {
                     valid = true;
                 }
             }
@@ -195,7 +244,7 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
         case ParamType.Uint32:
             if (/^[0-9]+$/i.test(value)) {
                 const num = parseInt(value, 10);
-                if (num > 0 && num < Math.pow(2, 32)) {
+                if (num >= 0 && num <= Math.pow(2, 32)) {
                     valid = true;
                 }
             }
@@ -204,66 +253,40 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
             if (/^[0-9]+$/i.test(value)) {
                 const num = Long.fromString(value, true);
                 if (
-                    num.greaterThan(0) &&
+                    num.greaterThanOrEqual(0) &&
                     num.lessThanOrEqual(Long.MAX_UNSIGNED_VALUE)
                 ) {
                     valid = true;
                 }
             }
             break;
-        case ParamType.Bytes:
-            valid = true;
-            break;
         case ParamType.Byte:
+            if (/^[0-9a-f]{1,2}$/i.test(value)) {
+                valid = true;
+            }
+            break;
+        case ParamType.Bytes:
+            if (/^[0-9a-f]+$/i.test(value)) {
+                valid = true;
+            }
+            break;
+        case ParamType.String:
+        case ParamType.Raw:
             valid = true;
             break;
     }
     return valid;
 };
-
-const writeToBuffer = (paramsList: IParamItem[]): Buffer => {
-    const payload = new SmartBuffer();
-    for (const param of paramsList) {
-        if (param.type && param.value) {
-            switch (param.type) {
-                case ParamType.String:
-                    payload.writeString(param.value);
-                    break;
-                case ParamType.Bytes:
-                    payload.writeBuffer(Buffer.from(param.value, "hex"));
-                    break;
-                case ParamType.Byte:
-                    payload.writeBuffer(Buffer.from(param.value, "hex"));
-                    break;
-                case ParamType.Uint64:
-                    const long = Long.fromString(param.value, true);
-                    payload.writeBuffer(Buffer.from(long.toBytesLE()));
-                    break;
-                case ParamType.Uint32:
-                    payload.writeUInt32LE(parseInt(param.value, 10));
-                    break;
-                case ParamType.Uint16:
-                    payload.writeUInt16LE(parseInt(param.value, 10));
-                    break;
-            }
-        }
+const inputTypes = [
+    {
+        label: "Send",
+        value: "send-perls"
+    },
+    {
+        label: "Deposit Gas",
+        value: "deposit-gas"
     }
-    return payload.toBuffer();
-};
-
-// todo : use smart buffer
-function bytesToInt64(buffer: any, littleEndian = true) {
-    const arr = new ArrayBuffer(8);
-    const view = new DataView(arr);
-    buffer.forEach((value: any, index: any) => view.setUint8(index, value));
-    const left = view.getUint32(0, littleEndian);
-    const right = view.getUint32(4, littleEndian);
-    const combined = littleEndian
-        ? left + 2 ** 32 * right
-        : 2 ** 32 * left + right;
-    return combined;
-}
-
+];
 const ContractExecutor: React.FunctionComponent = observer(() => {
     const funcList = useContractFunctions();
     const {
@@ -277,8 +300,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const [gasLimit, setGasLimit] = useState();
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
-
+    const [inputType, setInputType] = useState(inputTypes[0].value);
     const [loading, setLoading] = useState(false);
+    const [inputPerls, setInputPerls] = useState();
 
     const handleUpdateGasLimit = useCallback((value: string) => {
         setGasLimit(value);
@@ -292,6 +316,17 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         setFunc(name);
         clearParams();
     };
+
+    const handleInputType = useCallback((option: any) => {
+        setInputType(option.value);
+    }, []);
+
+    const updateInputPerls = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setInputPerls(e.target.value);
+        },
+        []
+    );
 
     const handleTypeChange = (id: string) => (type: ParamType) => {
         const paramItem: IParamItem | undefined = paramsList.find(
@@ -329,16 +364,16 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
     };
 
-    const delay = (time: any) =>
-        new Promise((res: any) => setTimeout(res, time));
-
     const onCall = (simulated: boolean = false) => async () => {
-        const gasLimitNumber = new BigNumber(gasLimit);
+        let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
         if (
-            !simulated &&
-            (gasLimitNumber.isNaN() ||
-                gasLimitNumber.lte(0) ||
-                gasLimitNumber.gt(perlin.account.balance))
+            (!simulated &&
+                JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
+            JSBI.greaterThan(
+                gasLimitNumber,
+                JSBI.BigInt(perlin.account.balance)
+            )
         ) {
             errorNotification("Invalid Gas Limit");
             return;
@@ -356,58 +391,69 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
 
         setLoading(true);
+        const localCall = (amount: JSBI, params: any) => {
+            contractStore.logs = [];
+            const { result, logs } = contractStore.waveletContract.test(
+                perlin.keys,
+                currFunc,
+                amount,
+                ...params
+            );
+
+            if (result) {
+                contractStore.logs.push(result);
+            }
+
+            if (logs) {
+                contractStore.logs.push(logs.join("\n"));
+            }
+        };
+
         try {
-            const buf = writeToBuffer(paramsList);
-            const result: any = await contractStore.call(currFunc, buf);
+            let perls = JSBI.BigInt(inputPerls || "0");
+            if (
+                JSBI.lessThan(perls, JSBI.BigInt(0)) ||
+                JSBI.greaterThan(perls, JSBI.BigInt(perlin.account.balance))
+            ) {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: "Please enter a valid amount of PERLs"
+                });
+                return;
+            }
 
-            // const buff = SmartBuffer.fromBuffer(new Buffer(result), "utf8");
+            const clonedParamList = parseParamList(paramsList);
 
-            // setWasmResult(
-            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-            // );
+            let gasDeposit = JSBI.BigInt(0);
 
-            // console.log(
-            //     `Result : ${buff.toString()}  (${bytesToInt64(result)}) `
-            // );
+            if (inputType === inputTypes[1].value) {
+                gasDeposit = perls;
+                perls = JSBI.BigInt(0);
+            }
+
             if (simulated) {
+                localCall(perls, clonedParamList);
                 setLoading(false);
                 return;
             }
 
-            const params = writeToBuffer(paramsList);
-
-            const response = await perlin.invokeContractFunction(
-                contractStore.contract.transactionId,
-                0,
+            const callClonedParamList = parseParamList(paramsList);
+            const response = await contractStore.waveletContract.call(
+                perlin.keys,
                 currFunc,
-                params,
-                gasLimit
+                perls,
+                JSBI.subtract(gasLimitNumber, perls),
+                gasDeposit,
+                ...callClonedParamList
             );
+
             const txId = response.tx_id;
-
-            // reload memory
-            let count = 0;
-
-            while (count < 30) {
-                const tx = await perlin.getTransaction(txId);
-                if (tx.status === "applied") {
-                    await delay(3000);
-                    break;
-                }
-                await delay(1000);
-                count++;
-            }
-
-            const totalMemoryPages = await loadContractFromNetwork(
-                contractStore.contract.transactionId
-            );
-
-            await contractStore.load(totalMemoryPages);
+            await contractStore.listenForApplied(TAG_TRANSFER, txId);
+            await contractStore.waveletContract.fetchAndPopulateMemoryPages();
 
             perlin.notify({
                 title: "Function Invoked",
                 type: NotificationTypes.Success,
-                // message: "You can view your transactions details here"
                 content: (
                     <p>
                         You can view your transaction
@@ -471,6 +517,27 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                 Add more parameters +
                             </AddMoreText>
                         </Box>
+                    </Flex>
+
+                    <Flex alignItems="center">
+                        <Box mr={2}>
+                            <StyledDropdown
+                                className="fixed-width"
+                                options={inputTypes}
+                                value={inputType}
+                                onChange={handleInputType}
+                            />
+                        </Box>
+
+                        <InputWrapper>
+                            <DividerInput
+                                placeholder="Enter Amount"
+                                value={inputPerls}
+                                onChange={updateInputPerls}
+                            />
+                            <Divider>|</Divider>
+                            <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                        </InputWrapper>
                     </Flex>
 
                     <GasLimit

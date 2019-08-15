@@ -1,6 +1,11 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { Button as RawButton, Card, Input } from "../common/core";
+import {
+    Button as RawButton,
+    Card,
+    StyledInput,
+    InputWrapper
+} from "../common/core";
 import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
@@ -11,7 +16,14 @@ import { observer } from "mobx-react-lite";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
-import BigNumber from "bignumber.js";
+import { Contract, TAG_CONTRACT } from "wavelet-client";
+import JSBI from "jsbi";
+import { TX_FEE } from "src/constants";
+import {
+    DividerInput,
+    Divider as DividerPipe,
+    DividerAside
+} from "../common/dividerInput";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -48,28 +60,15 @@ const DividerText = styled.h2`
     color: #fff;
     margin: 0 16px;
 `;
-const InputWrapper = styled.form`
+const FormWrapper = styled.form`
     display: flex;
 `;
-const StyledInput = styled(Input)`
+const LoadContractInput = styled(StyledInput)`
     border-radius: 5px 0px 0px 5px;
     flex-grow: 1;
     height: 48px;
-    font-size: 16px;
-    background-color: #171d39;
-    font-weight: 400;
-    border: 1px solid #2e345100;
-    font-family: HKGrotesk;
-    color: white;
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        cursor: text;
-        border: 1px solid #4a41d1;
-        outline: 0;
-    }
+    margin: 0;
+    width: auto;
 `;
 
 const Button = styled(RawButton)`
@@ -118,10 +117,11 @@ const Loader = styled.div`
     font-weight: 600;
 `;
 
-const errorNotification = (message: string) => {
+const errorNotification = (message: string, duration?: number) => {
     perlin.notify({
         type: NotificationTypes.Danger,
-        message
+        message,
+        dismiss: typeof duration !== "undefined" ? { duration } : undefined
     });
 };
 
@@ -129,7 +129,6 @@ const successNotification = (title: string, txId: string) => {
     perlin.notify({
         title,
         type: NotificationTypes.Success,
-        // message: "You can view your transactions details here"
         content: (
             <p>
                 You can view your smart contract
@@ -142,7 +141,11 @@ const successNotification = (title: string, txId: string) => {
     });
 };
 
-const createSmartContract = async (file: File, gasLimit: number) => {
+const createSmartContract = async (
+    file: File,
+    gasLimit: JSBI,
+    gasDeposit: JSBI
+) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -160,7 +163,11 @@ const createSmartContract = async (file: File, gasLimit: number) => {
     contractStore.contract.transactionId = "";
 
     try {
-        const resp = await perlin.createSmartContract(bytes, gasLimit);
+        const resp = await perlin.createSmartContract(
+            bytes,
+            gasLimit,
+            gasDeposit
+        );
 
         if (resp.error) {
             errorNotification(`${resp.status}: ${resp.error}`);
@@ -216,6 +223,7 @@ export const loadContractFromNetwork = async (
 const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [gasLimit, setGasLimit] = useState();
+    const [gasDeposit, setGasDeposit] = useState();
     const [contractAddress, setContractAddress] = useState("");
     const [inlineMessage, setInlineMessage] = useState();
     const handleAddressChange = useCallback(
@@ -228,6 +236,11 @@ const ContractUploader: React.FunctionComponent = () => {
     const handleUpdateGasLimit = useCallback((value: string) => {
         setGasLimit(value);
     }, []);
+
+    const handleUpdateGasDeposit = useCallback((event: any) => {
+        setGasDeposit(event.target.value);
+    }, []);
+
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
@@ -237,12 +250,15 @@ const ContractUploader: React.FunctionComponent = () => {
             setLoading(true);
             setInlineMessage(undefined);
             try {
-                const totalMemoryPages = await loadContractFromNetwork(
-                    contractAddress
-                );
+                await loadContractFromNetwork(contractAddress);
 
                 if (contractStore.contract.transactionId) {
-                    await contractStore.load(totalMemoryPages);
+                    contractStore.waveletContract = new Contract(
+                        perlin.client,
+                        contractStore.contract.transactionId
+                    );
+                    await contractStore.waveletContract.init();
+
                     successNotification(
                         "",
                         contractStore.contract.transactionId
@@ -256,6 +272,7 @@ const ContractUploader: React.FunctionComponent = () => {
             } finally {
                 setLoading(false);
                 setGasLimit(undefined);
+                setGasDeposit("");
             }
         },
         [contractAddress]
@@ -265,39 +282,53 @@ const ContractUploader: React.FunctionComponent = () => {
         async (acceptedFiles: File[]) => {
             const file = acceptedFiles[0];
             setLoading(true);
-            const gasLimitNumber = new BigNumber(gasLimit);
+            let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
+            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+
+            const gasDepositNumber = JSBI.BigInt(Math.floor(gasDeposit || 0));
             setInlineMessage(undefined);
             try {
                 if (
-                    gasLimitNumber.isNaN() ||
-                    gasLimitNumber.lte(0) ||
-                    gasLimitNumber.gt(perlin.account.balance)
+                    // gasLimitNumber.isNaN() ||
+                    JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0)) ||
+                    JSBI.greaterThan(
+                        gasLimitNumber,
+                        JSBI.BigInt(perlin.account.balance)
+                    )
                 ) {
                     errorNotification("Invalid Gas Limit");
                     return;
                 }
-                await createSmartContract(file, gasLimit);
+                if (
+                    // gasLimitNumber.isNaN() ||
+                    JSBI.lessThan(gasDepositNumber, JSBI.BigInt(0)) ||
+                    JSBI.greaterThan(
+                        gasDepositNumber,
+                        JSBI.BigInt(perlin.account.balance)
+                    )
+                ) {
+                    errorNotification("Invalid Gas Deposit");
+                    return;
+                }
+
+                await createSmartContract(
+                    file,
+                    gasLimitNumber,
+                    gasDepositNumber
+                );
 
                 if (contractStore.contract.transactionId) {
-                    let count = 0;
-                    while (count < 30) {
-                        const tx = await perlin.getTransaction(
-                            contractStore.contract.transactionId
-                        );
-
-                        if (tx.status === "applied") {
-                            await delay(3000);
-                            break;
-                        }
-                        await delay(1000);
-                        count++;
-                    }
-
-                    const totalMemoryPages = await loadContractFromNetwork(
+                    const tx = await contractStore.listenForApplied(
+                        TAG_CONTRACT,
                         contractStore.contract.transactionId
                     );
 
-                    await contractStore.load(totalMemoryPages);
+                    contractStore.waveletContract = new Contract(
+                        perlin.client,
+                        tx.id
+                    );
+                    await contractStore.waveletContract.init();
+
                     successNotification(
                         "",
                         contractStore.contract.transactionId
@@ -307,7 +338,7 @@ const ContractUploader: React.FunctionComponent = () => {
                     });
                 }
             } catch (err) {
-                errorNotification(err.message || err);
+                errorNotification(err.message || err, 8000);
                 setInlineMessage({
                     type: "error",
                     message: "Failed to spawn contract."
@@ -315,9 +346,10 @@ const ContractUploader: React.FunctionComponent = () => {
             } finally {
                 setLoading(false);
                 setGasLimit(undefined);
+                setGasDeposit("");
             }
         },
-        [gasLimit]
+        [gasLimit, gasDeposit]
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -342,11 +374,22 @@ const ContractUploader: React.FunctionComponent = () => {
                 </a>
                 .
             </IntroText>
+            <InputWrapper>
+                <DividerInput
+                    placeholder="Deposit Gas (optional)"
+                    value={gasDeposit}
+                    onChange={handleUpdateGasDeposit}
+                />
+                <DividerPipe>|</DividerPipe>
+                <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+            </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}
                 onChange={handleUpdateGasLimit}
                 value={gasLimit}
+                mb={2}
             />
+
             <Button fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
@@ -357,14 +400,14 @@ const ContractUploader: React.FunctionComponent = () => {
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
-            <InputWrapper onSubmit={handleLoad}>
-                <StyledInput
+            <FormWrapper onSubmit={handleLoad}>
+                <LoadContractInput
                     value={contractAddress}
                     placeholder="Enter the address of a deployed smart contract"
                     onChange={handleAddressChange}
                 />
                 <StyledButton type="submit">Load Contract</StyledButton>
-            </InputWrapper>
+            </FormWrapper>
             {loading ? (
                 <LoadingSpinner />
             ) : (

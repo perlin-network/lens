@@ -6,7 +6,7 @@ import { Perlin } from "./Perlin";
 import registerServiceWorker from "./registerServiceWorker";
 import { ThemeProvider } from "styled-components";
 import { theme } from "./theme";
-import { BrowserRouter as Router } from "react-router-dom";
+import { HashRouter as Router } from "react-router-dom";
 import "./index.scss";
 
 Perlin.getInstance(); // Initialize Perlin Instance

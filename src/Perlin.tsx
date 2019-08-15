@@ -3,15 +3,15 @@ import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
-import { HTTP_PROTOCOL, WS_PROTOCOL } from "./constants";
-import PayloadWriter from "./payload/PayloadWriter";
-import * as Long from "long";
+import { HTTP_PROTOCOL, WS_PROTOCOL, FAUCET_URL } from "./constants";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
 import ReconnectingWebSocket from "reconnecting-websocket";
+import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
+import JSBI from "jsbi";
 // @ts-ignore
-import * as JSONbig from "json-bigint";
+window.useNativeBigIntsIfAvailable = true;
 
 export enum NotificationTypes {
     Success = "success",
@@ -76,6 +76,8 @@ class Perlin {
 
     private static singleton: Perlin;
 
+    public lastFaucetFetch = 0;
+
     @observable public api = {
         host: storage.getCurrentHost(),
         token: ""
@@ -123,6 +125,7 @@ class Perlin {
     public onTransactionsRemoved: (numTx: number, noUpdate?: boolean) => void;
     public onTransactionApplied: (tx: ITransaction) => void;
     public onTransactionsUpdated: () => void;
+    public keys: nacl.SignKeyPair;
     public onConsensusRound: (
         accepted: number,
         rejected: number,
@@ -132,8 +135,8 @@ class Perlin {
         endId?: string
     ) => void;
     public onConsensusPrune: (round: number) => void;
+    public client: any;
 
-    private keys: nacl.SignKeyPair;
     private transactionDebounceIntv: number = 2200;
     private peerPollIntv: number = 10000;
     private interval: any;
@@ -145,13 +148,12 @@ class Perlin {
         if (secret) {
             this.login(secret);
         }
+        this.client = new Wavelet(`${HTTP_PROTOCOL}://${this.api.host}`);
     }
 
     @action.bound
     public async login(hexString: string): Promise<any> {
-        this.keys = nacl.sign.keyPair.fromSecretKey(
-            Buffer.from(hexString, "hex")
-        );
+        this.keys = Wavelet.loadWalletFromPrivateKey(hexString);
         try {
             await this.init();
             storage.setSecretKey(hexString);
@@ -200,127 +202,76 @@ class Perlin {
     }
     public async transfer(
         recipient: string,
-        amount: number,
-        gasLimit: number = 0
+        amount: any,
+        gasLimit: any = JSBI.BigInt(0),
+        gasDeposit: any = JSBI.BigInt(0)
     ): Promise<any> {
         if (recipient.length !== 64) {
             throw new Error("Recipient must be a length-64 hex-encoded.");
         }
-
-        const payload = new PayloadWriter();
-        payload.buffer.writeBuffer(Buffer.from(recipient, "hex"));
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        if (gasLimit > 0) {
-            payload.writeUint64(Long.fromNumber(gasLimit, true));
-            payload.writeString("on_money_received");
-        }
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
+        return await this.client.transfer(
+            this.keys,
+            recipient,
+            amount,
+            gasLimit,
+            gasDeposit
         );
     }
 
     public async placeStake(amount: number): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeByte(1);
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
-        );
+        return await this.client.placeStake(this.keys, JSBI.BigInt(amount));
     }
 
     public async withdrawStake(amount: number): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeByte(0);
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
-        );
+        return await this.client.withdrawStake(this.keys, JSBI.BigInt(amount));
     }
 
     public async withdrawReward(amount: number): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeByte(2);
-        payload.writeUint64(Long.fromNumber(amount, true));
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagStake, payload.buffer.toBuffer())
-        );
+        return await this.client.withdrawReward(this.keys, JSBI.BigInt(amount));
     }
 
+    public async getPerls(address: string) {
+        return await fetch(FAUCET_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                address
+            })
+        }).then(response => {
+            this.lastFaucetFetch = Date.now();
+            return response.json();
+        });
+    }
     public async createSmartContract(
         bytes: ArrayBuffer,
-        gasLimit: number
+        gasLimit: JSBI,
+        gasDeposit: JSBI = JSBI.BigInt(0),
+        params?: ArrayBuffer
     ): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.writeUint64(Long.fromNumber(gasLimit, true));
-        payload.writeUint32(0);
-        payload.buffer.writeBuffer(Buffer.from(new Uint8Array(bytes)));
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagContract, payload.buffer.toBuffer())
+        return this.client.deployContract(
+            this.keys,
+            bytes,
+            gasLimit,
+            gasDeposit,
+            params
         );
     }
 
     public async getContractCode(contractId: string): Promise<ArrayBuffer> {
-        return new Uint8Array(
-            await this.getBuffer(`/contract/${contractId}`, {})
-        );
+        return this.client.getCode(contractId);
     }
 
-    public async getContractPage(
-        contractId: string,
-        pageIndex: number
-    ): Promise<any> {
-        try {
-            return new Uint8Array(
-                await this.getBuffer(
-                    `/contract/${contractId}/page/${pageIndex}`,
-                    {}
-                )
-            );
-        } catch (err) {
-            console.log("getContractPage Error : ", err);
-            return [];
-        }
-    }
-
-    public async invokeContractFunction(
-        contractID: string,
-        amount: number,
-        funcName: string,
-        funcParams: Buffer,
-        gasLimit = 100000000000
-    ): Promise<any> {
-        const payload = new PayloadWriter();
-        payload.buffer.writeBuffer(Buffer.from(contractID, "hex"));
-        payload.writeUint64(Long.fromNumber(amount, true));
-        payload.writeUint64(Long.fromNumber(gasLimit, true));
-        payload.writeString(funcName);
-        payload.writeBuffer(funcParams);
-
-        return await this.post(
-            "/tx/send",
-            this.prepareTransaction(Tag.TagTransfer, payload.buffer.toBuffer())
-        );
+    public async getContractPages(contractId: string, numPages: number) {
+        return await this.client.getMemoryPages(contractId, numPages);
     }
 
     public async getAccount(id: string): Promise<IAccount> {
-        const dataStr = await this.getText(`/accounts/${id}`, {});
-
-        const data = JSONbig.parse(dataStr);
+        const data = await this.client.getAccount(id);
 
         return {
             public_key: data.public_key,
 
             balance: data.balance.toString(),
+            gas_balance: data.gas_balance.toString(),
             stake: data.stake,
             reward: data.reward,
             is_contract: data.is_contract,
@@ -331,7 +282,7 @@ class Perlin {
 
     // @ts-ignore
     public async getTransaction(id: string): Promise<any> {
-        return await this.getJSON(`/tx/${id}`, {});
+        return await this.client.getTransaction(id);
     }
 
     public async getTableTransactions(offset?: number) {
@@ -500,26 +451,8 @@ class Perlin {
     }
 
     private pollTransactionUpdates(event: string = "accepted") {
-        const url = new URL(
-            `${WS_PROTOCOL}://${this.api.host}/poll/tx?creator=${
-                this.publicKeyHex
-            }`
-        );
-
-        const ws = new ReconnectingWebSocket(url.toString());
-
         const pushTransactions = _.debounce(
             transactions => {
-                // TODO: restore approach once there's a solution to accurately calculate next page's offset
-                // this.transactions.recent = [
-                //     ...transactions,
-                //     ...lastTransactions
-                // ].slice(0, this.transactions.pageSize);
-
-                // this.transactions.offset = this.transactions.recent.length;
-                // this.transactions.hasMore = true;
-                // lastTransactions = this.transactions.recent;
-
                 this.getTableTransactions(0);
             },
             this.transactionDebounceIntv,
@@ -527,72 +460,37 @@ class Perlin {
                 maxWait: 2 * this.transactionDebounceIntv
             }
         );
-
-        // let lastTransactions: ITransaction[] = this.transactions.recent;
-        ws.onmessage = async ({ data }) => {
-            if (!data) {
-                return;
-            }
-            const logs = JSON.parse(data);
-            const transactions: ITransaction[] = [];
-
-            logs.forEach((item: any) => {
-                const tx: ITransaction = {
-                    id: item.tx_id,
-                    sender: item.sender_id,
-                    creator: item.creator_id,
-                    depth: item.depth,
-                    tag: item.tag,
-                    status: item.event || "new"
-                };
-
-                switch (item.event) {
-                    case "new":
-                    case "applied":
-                        transactions.unshift(tx);
-                        pushTransactions(transactions);
-                        break;
-                }
-            });
-        };
+        this.client.pollTransactions(
+            {
+                onTransactionApplied: pushTransactions
+            },
+            { tag: TAG_TRANSFER, creator: this.publicKeyHex }
+        );
     }
 
     private pollConsensusUpdates() {
-        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/consensus`);
-
-        const ws = new ReconnectingWebSocket(url.toString());
-
-        ws.onmessage = ({ data }) => {
-            const logs = JSON.parse(data);
-
-            switch (logs.event) {
-                case "prune":
-                    console.log("Prunning #", logs.pruned_round_id);
-
-                    if (this.onConsensusPrune) {
-                        this.onConsensusPrune(logs.pruned_round_id);
-                    }
-                    break;
-                case "round_end":
-                    this.initRound = {
-                        applied: logs.num_applied_tx,
-                        rejected: logs.num_rejected_tx,
-                        depth: logs.round_depth,
-                        start_id: logs.old_root,
-                        end_id: logs.new_root
-                    };
-                    if (this.onConsensusRound) {
-                        this.onConsensusRound(
-                            logs.num_applied_tx,
-                            logs.num_rejected_tx,
-                            logs.round_depth,
-                            logs.new_round,
-                            logs.old_root,
-                            logs.new_root
-                        );
-                    }
-            }
-        };
+        this.client.pollConsensus({
+            onRoundEnded: (logs: any) => {
+                this.initRound = {
+                    applied: logs.num_applied_tx,
+                    rejected: logs.num_rejected_tx,
+                    depth: logs.round_depth,
+                    start_id: logs.old_root,
+                    end_id: logs.new_root
+                };
+                if (this.onConsensusRound) {
+                    this.onConsensusRound(
+                        logs.num_applied_tx,
+                        logs.num_rejected_tx,
+                        logs.round_depth,
+                        logs.new_round,
+                        logs.old_root,
+                        logs.new_root
+                    );
+                }
+            },
+            onRoundPruned: this.onConsensusPrune
+        });
     }
 
     private pollMetricsUpdates() {
@@ -615,37 +513,26 @@ class Perlin {
     }
 
     private pollAccountUpdates(id: string) {
-        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/accounts`);
-        url.searchParams.append("id", id);
-
-        const ws = new ReconnectingWebSocket(url.toString());
-
-        ws.onmessage = ({ data }) => {
-            if (!data) {
-                return;
-            }
-
-            const logs = JSONbig.parse(data);
-
-            logs.forEach((item: any) => {
-                if (item.account_id === id) {
-                    // TODO(kenta): temp fix
-                    switch (item.event) {
+        this.client.pollAccounts(
+            {
+                onAccountUpdated: (data: any) => {
+                    switch (data.event) {
                         case "balance_updated":
-                            this.account.balance = item.balance.toString();
+                            this.account.balance = data.balance.toString();
                             break;
                         case "stake_updated":
-                            this.account.stake = item.stake;
+                            this.account.stake = data.stake;
                             break;
                         case "reward_updated":
-                            this.account.reward = item.reward;
+                            this.account.reward = data.reward;
                             break;
                         case "num_pages_updated":
-                            this.account.num_mem_pages = item.num_pages;
+                            this.account.num_mem_pages = data.num_pages;
                     }
                 }
-            });
-        };
+            },
+            { id }
+        );
     }
 
     // @ts-ignore
