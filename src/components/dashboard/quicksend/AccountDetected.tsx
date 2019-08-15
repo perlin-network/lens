@@ -392,18 +392,16 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 <span className="balance">
                                     Recipient Gas Balance:{" "}
                                     {numberWithCommas(
-                                        new BigNumber(recipient.gas_balance)
-                                            .plus(this.state.inputPerls)
-                                            .toString()
+                                        new BigNumber(
+                                            recipient.gas_balance
+                                        ).toString()
                                     )}
                                 </span>
                             ) : (
                                 <span className="balance">
                                     Recipient Balance:{" "}
                                     {numberWithCommas(
-                                        recipientBalance
-                                            .plus(this.state.inputPerls)
-                                            .toString()
+                                        recipientBalance.toString()
                                     )}
                                 </span>
                             )}

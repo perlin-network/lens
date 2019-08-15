@@ -329,6 +329,9 @@ class Perlin {
                         target = target();
                     }
                     switch (data.event) {
+                        case "gas_balance_updated":
+                            target.gas_balance = data.gas_balance.toString();
+                            break;
                         case "balance_updated":
                             target.balance = data.balance.toString();
                             break;
