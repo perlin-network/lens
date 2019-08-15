@@ -1,6 +1,11 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import { Button as RawButton, Card, Input } from "../common/core";
+import {
+    Button as RawButton,
+    Card,
+    StyledInput,
+    InputWrapper
+} from "../common/core";
 import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
 import { useDropzone } from "react-dropzone";
@@ -13,7 +18,12 @@ import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
-import { GAS_FEE } from "src/constants";
+import { TX_FEE } from "src/constants";
+import {
+    DividerInput,
+    Divider as DividerPipe,
+    DividerAside
+} from "../common/dividerInput";
 
 // @ts-ignore
 const wabt = Wabt();
@@ -50,28 +60,15 @@ const DividerText = styled.h2`
     color: #fff;
     margin: 0 16px;
 `;
-const InputWrapper = styled.form`
+const FormWrapper = styled.form`
     display: flex;
 `;
-const StyledInput = styled(Input)`
+const LoadContractInput = styled(StyledInput)`
     border-radius: 5px 0px 0px 5px;
     flex-grow: 1;
     height: 48px;
-    font-size: 16px;
-    background-color: #171d39;
-    font-weight: 400;
-    border: 1px solid #2e345100;
-    font-family: HKGrotesk;
-    color: white;
-    &:hover {
-        cursor: text;
-        border: 1px solid #4a41d1;
-    }
-    &:focus {
-        cursor: text;
-        border: 1px solid #4a41d1;
-        outline: 0;
-    }
+    margin: 0;
+    width: auto;
 `;
 
 const Button = styled(RawButton)`
@@ -144,7 +141,11 @@ const successNotification = (title: string, txId: string) => {
     });
 };
 
-const createSmartContract = async (file: File, gasLimit: JSBI) => {
+const createSmartContract = async (
+    file: File,
+    gasLimit: JSBI,
+    gasDeposit: JSBI
+) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -162,7 +163,11 @@ const createSmartContract = async (file: File, gasLimit: JSBI) => {
     contractStore.contract.transactionId = "";
 
     try {
-        const resp = await perlin.createSmartContract(bytes, gasLimit);
+        const resp = await perlin.createSmartContract(
+            bytes,
+            gasLimit,
+            gasDeposit
+        );
 
         if (resp.error) {
             errorNotification(`${resp.status}: ${resp.error}`);
@@ -218,6 +223,7 @@ export const loadContractFromNetwork = async (
 const ContractUploader: React.FunctionComponent = () => {
     const [loading, setLoading] = useState(false);
     const [gasLimit, setGasLimit] = useState();
+    const [gasDeposit, setGasDeposit] = useState();
     const [contractAddress, setContractAddress] = useState("");
     const [inlineMessage, setInlineMessage] = useState();
     const handleAddressChange = useCallback(
@@ -230,6 +236,11 @@ const ContractUploader: React.FunctionComponent = () => {
     const handleUpdateGasLimit = useCallback((value: string) => {
         setGasLimit(value);
     }, []);
+
+    const handleUpdateGasDeposit = useCallback((event: any) => {
+        setGasDeposit(event.target.value);
+    }, []);
+
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
@@ -261,6 +272,7 @@ const ContractUploader: React.FunctionComponent = () => {
             } finally {
                 setLoading(false);
                 setGasLimit(undefined);
+                setGasDeposit("");
             }
         },
         [contractAddress]
@@ -271,10 +283,9 @@ const ContractUploader: React.FunctionComponent = () => {
             const file = acceptedFiles[0];
             setLoading(true);
             let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-            gasLimitNumber = JSBI.subtract(
-                gasLimitNumber,
-                JSBI.BigInt(GAS_FEE)
-            );
+            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+
+            const gasDepositNumber = JSBI.BigInt(Math.floor(gasDeposit || 0));
             setInlineMessage(undefined);
             try {
                 if (
@@ -288,7 +299,23 @@ const ContractUploader: React.FunctionComponent = () => {
                     errorNotification("Invalid Gas Limit");
                     return;
                 }
-                await createSmartContract(file, gasLimitNumber);
+                if (
+                    // gasLimitNumber.isNaN() ||
+                    JSBI.lessThan(gasDepositNumber, JSBI.BigInt(0)) ||
+                    JSBI.greaterThan(
+                        gasDepositNumber,
+                        JSBI.BigInt(perlin.account.balance)
+                    )
+                ) {
+                    errorNotification("Invalid Gas Deposit");
+                    return;
+                }
+
+                await createSmartContract(
+                    file,
+                    gasLimitNumber,
+                    gasDepositNumber
+                );
 
                 if (contractStore.contract.transactionId) {
                     const tx = await contractStore.listenForApplied(
@@ -319,9 +346,10 @@ const ContractUploader: React.FunctionComponent = () => {
             } finally {
                 setLoading(false);
                 setGasLimit(undefined);
+                setGasDeposit("");
             }
         },
-        [gasLimit]
+        [gasLimit, gasDeposit]
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -346,11 +374,22 @@ const ContractUploader: React.FunctionComponent = () => {
                 </a>
                 .
             </IntroText>
+            <InputWrapper>
+                <DividerInput
+                    placeholder="Deposit Gas (optional)"
+                    value={gasDeposit}
+                    onChange={handleUpdateGasDeposit}
+                />
+                <DividerPipe>|</DividerPipe>
+                <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+            </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}
                 onChange={handleUpdateGasLimit}
                 value={gasLimit}
+                mb={2}
             />
+
             <Button fontSize="14px" width="100%" {...getRootProps()}>
                 {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
                 <input {...getInputProps()} />
@@ -361,14 +400,14 @@ const ContractUploader: React.FunctionComponent = () => {
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
-            <InputWrapper onSubmit={handleLoad}>
-                <StyledInput
+            <FormWrapper onSubmit={handleLoad}>
+                <LoadContractInput
                     value={contractAddress}
                     placeholder="Enter the address of a deployed smart contract"
                     onChange={handleAddressChange}
                 />
                 <StyledButton type="submit">Load Contract</StyledButton>
-            </InputWrapper>
+            </FormWrapper>
             {loading ? (
                 <LoadingSpinner />
             ) : (

@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { Flex } from "@rebass/grid";
+import Dropdown, { Option } from "react-dropdown";
 
 export const ErrorMessage = styled.div`
     margin: 10px 0;
@@ -63,7 +64,7 @@ export const Button = styled.button`
             : ""}
 
     &:active {
-        background: rgba(34, 34, 142, 0.5);
+        background-color: rgba(34, 34, 142, 0.5);
     }
 
     &:focus {
@@ -90,7 +91,7 @@ export const ButtonOutlined = styled(Button)`
     &:hover,
     &:active {
         color: #151a36;
-        background: #fff;
+        background-color: #fff;
         border-color: #fff;
     }
 `;
@@ -99,6 +100,11 @@ interface IInputProps {
     width?: string;
     fontSize?: string;
 }
+export const InputWrapper = styled.div`
+    display: flex;
+    flex: 1;
+    min-width: 0;
+`;
 export const Input = styled.input`
     outline: none;
     border: none;
@@ -164,6 +170,34 @@ export const WhiteButton = styled.button`
     border-radius: 5px;
 `;
 
+export const StyledInput = styled(Input)`
+    font-family: HKGrotesk;
+    font-size: 16px;
+    font-weight: 400;
+    background-color: #121834;
+    border-radius: 5px;
+    border: 1px solid #2e345100;
+    color: white;
+    width: 100%;
+    padding: 15px;
+    min-width: 30px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 48px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        cursor: text;
+        border: 1px solid #4a41d1;
+    }
+    &:focus {
+        border: 1px solid #4a41d1;
+        outline: 0;
+    }
+    &::placeholder {
+        font-size: 16px;
+    }
+`;
 export const LargeInput = styled.input`
     border: none;
     outline: none;
@@ -235,3 +269,10 @@ export const numberWithCommas = (x: number | string = 0) => {
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return parts.join(".");
 };
+
+export const StyledDropdown = styled(Dropdown)`
+    height: 100%;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: HKGrotesk;
+`;

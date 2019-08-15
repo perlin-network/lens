@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import {
     Card as OriginalCard,
     Button as RawButton,
-    ButtonOutlined
+    ButtonOutlined,
+    InputWrapper,
+    StyledDropdown
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
@@ -22,7 +24,8 @@ import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
-import { GAS_FEE } from "src/constants";
+import { TX_FEE } from "src/constants";
+import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
 
 interface IParamItem {
     id: string;
@@ -57,15 +60,16 @@ const useContractFunctions = () => {
     }, [contractStore.contract.textContent]);
 };
 
-const getValue = (value: string, type?: string) => {
+const getParamValue = (value: string, type: string) => {
     switch (type) {
         case ParamType.Int16:
         case ParamType.Int32:
         case ParamType.Uint16:
         case ParamType.Uint32:
             return parseInt(value, 10);
-        case ParamType.Bytes:
         case ParamType.Byte:
+            return parseInt(value, 16);
+        case ParamType.Bytes:
             return Buffer.from(value, "hex");
         case ParamType.Int64:
         case ParamType.Uint64:
@@ -73,6 +77,15 @@ const getValue = (value: string, type?: string) => {
         default:
             return value;
     }
+};
+
+const parseParamList = (paramList: any) => {
+    return paramList.map((param: any) => {
+        return {
+            type: param.type,
+            value: getParamValue(param.value, param.type)
+        };
+    });
 };
 const useParams = () => {
     const getEmptyParam = () => ({
@@ -103,7 +116,7 @@ const useParams = () => {
                 if (item.id === id) {
                     return {
                         ...item,
-                        value: getValue(value, item.type)
+                        value
                     };
                 }
                 return item;
@@ -247,16 +260,33 @@ const validateParamItem = (paramItem: IParamItem, value: string): boolean => {
                 }
             }
             break;
+        case ParamType.Byte:
+            if (/^[0-9a-f]{1,2}$/i.test(value)) {
+                valid = true;
+            }
+            break;
+        case ParamType.Bytes:
+            if (/^[0-9a-f]+$/i.test(value)) {
+                valid = true;
+            }
+            break;
         case ParamType.String:
         case ParamType.Raw:
-        case ParamType.Bytes:
-        case ParamType.Byte:
             valid = true;
             break;
     }
     return valid;
 };
-
+const inputTypes = [
+    {
+        label: "Send",
+        value: "send-perls"
+    },
+    {
+        label: "Deposit Gas",
+        value: "deposit-gas"
+    }
+];
 const ContractExecutor: React.FunctionComponent = observer(() => {
     const funcList = useContractFunctions();
     const {
@@ -270,8 +300,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const [gasLimit, setGasLimit] = useState();
     const [currFunc, setFunc] = useState("");
     const [wasmResult, setWasmResult] = useState("");
-
+    const [inputType, setInputType] = useState(inputTypes[0].value);
     const [loading, setLoading] = useState(false);
+    const [inputPerls, setInputPerls] = useState();
 
     const handleUpdateGasLimit = useCallback((value: string) => {
         setGasLimit(value);
@@ -285,6 +316,17 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         setFunc(name);
         clearParams();
     };
+
+    const handleInputType = useCallback((option: any) => {
+        setInputType(option.value);
+    }, []);
+
+    const updateInputPerls = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setInputPerls(e.target.value);
+        },
+        []
+    );
 
     const handleTypeChange = (id: string) => (type: ParamType) => {
         const paramItem: IParamItem | undefined = paramsList.find(
@@ -324,7 +366,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const onCall = (simulated: boolean = false) => async () => {
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(GAS_FEE));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
         if (
             (!simulated &&
                 JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
@@ -349,11 +391,12 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
 
         setLoading(true);
-        const localCall = (params: any) => {
+        const localCall = (amount: JSBI, params: any) => {
             contractStore.logs = [];
             const { result, logs } = contractStore.waveletContract.test(
+                perlin.keys,
                 currFunc,
-                BigInt(0),
+                amount,
                 ...params
             );
 
@@ -367,20 +410,40 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         };
 
         try {
-            const clonedParamList = paramsList.map(param => ({ ...param }));
+            let perls = JSBI.BigInt(inputPerls || "0");
+            if (
+                JSBI.lessThan(perls, JSBI.BigInt(0)) ||
+                JSBI.greaterThan(perls, JSBI.BigInt(perlin.account.balance))
+            ) {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: "Please enter a valid amount of PERLs"
+                });
+                return;
+            }
+
+            const clonedParamList = parseParamList(paramsList);
+
+            let gasDeposit = JSBI.BigInt(0);
+
+            if (inputType === inputTypes[1].value) {
+                gasDeposit = perls;
+                perls = JSBI.BigInt(0);
+            }
 
             if (simulated) {
-                localCall(clonedParamList);
+                localCall(perls, clonedParamList);
                 setLoading(false);
                 return;
             }
 
-            const callClonedParamList = paramsList.map(param => ({ ...param }));
+            const callClonedParamList = parseParamList(paramsList);
             const response = await contractStore.waveletContract.call(
                 perlin.keys,
                 currFunc,
-                JSBI.BigInt(0),
-                gasLimitNumber,
+                perls,
+                JSBI.subtract(gasLimitNumber, perls),
+                gasDeposit,
                 ...callClonedParamList
             );
 
@@ -454,6 +517,27 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                 Add more parameters +
                             </AddMoreText>
                         </Box>
+                    </Flex>
+
+                    <Flex alignItems="center">
+                        <Box mr={2}>
+                            <StyledDropdown
+                                className="fixed-width"
+                                options={inputTypes}
+                                value={inputType}
+                                onChange={handleInputType}
+                            />
+                        </Box>
+
+                        <InputWrapper>
+                            <DividerInput
+                                placeholder="Enter Amount"
+                                value={inputPerls}
+                                onChange={updateInputPerls}
+                            />
+                            <Divider>|</Divider>
+                            <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                        </InputWrapper>
                     </Flex>
 
                     <GasLimit

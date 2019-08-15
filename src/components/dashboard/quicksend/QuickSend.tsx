@@ -209,15 +209,17 @@ export default class QuickSend extends React.Component<{}, IState> {
             });
         } else if (this.validInputID()) {
             try {
-                const updateRecipient = (recipient: any) => {
-                    this.setState({ recipient: { ...recipient } });
+                const updateRecipient = (data: any) => {
+                    this.setState({ recipient: { ...data } });
                 };
-                const response = await perlin.getAccount(this.state.inputID);
+                const recipient = await perlin.getAccount(this.state.inputID);
                 this.setState({
                     toggleComponent: "showDetectedAccount",
+                    recipient,
+                    validContract: recipient.is_contract,
                     validAccount: true
                 });
-                updateRecipient(response);
+                updateRecipient(recipient);
 
                 this.pollAccount(this.state.inputID, updateRecipient);
             } catch (err) {

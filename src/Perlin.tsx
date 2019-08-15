@@ -3,9 +3,7 @@ import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
-import { HTTP_PROTOCOL, WS_PROTOCOL } from "./constants";
-import PayloadWriter from "./payload/PayloadWriter";
-import * as Long from "long";
+import { HTTP_PROTOCOL, WS_PROTOCOL, FAUCET_URL } from "./constants";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
@@ -13,7 +11,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
 import JSBI from "jsbi";
 // @ts-ignore
-window.useNativeBigIntsIfAvailable = false;
+window.useNativeBigIntsIfAvailable = true;
 
 export enum NotificationTypes {
     Success = "success",
@@ -77,6 +75,8 @@ class Perlin {
     }
 
     private static singleton: Perlin;
+
+    public lastFaucetFetch = 0;
 
     @observable public api = {
         host: storage.getCurrentHost(),
@@ -203,7 +203,8 @@ class Perlin {
     public async transfer(
         recipient: string,
         amount: any,
-        gasLimit: any = JSBI.BigInt(0)
+        gasLimit: any = JSBI.BigInt(0),
+        gasDeposit: any = JSBI.BigInt(0)
     ): Promise<any> {
         if (recipient.length !== 64) {
             throw new Error("Recipient must be a length-64 hex-encoded.");
@@ -212,7 +213,8 @@ class Perlin {
             this.keys,
             recipient,
             amount,
-            gasLimit
+            gasLimit,
+            gasDeposit
         );
     }
 
@@ -228,12 +230,30 @@ class Perlin {
         return await this.client.withdrawReward(this.keys, JSBI.BigInt(amount));
     }
 
+    public async getPerls(address: string) {
+        return await fetch(FAUCET_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                address
+            })
+        }).then(response => {
+            this.lastFaucetFetch = Date.now();
+            return response.json();
+        });
+    }
     public async createSmartContract(
         bytes: ArrayBuffer,
         gasLimit: JSBI,
+        gasDeposit: JSBI = JSBI.BigInt(0),
         params?: ArrayBuffer
     ): Promise<any> {
-        return this.client.deployContract(this.keys, bytes, gasLimit, params);
+        return this.client.deployContract(
+            this.keys,
+            bytes,
+            gasLimit,
+            gasDeposit,
+            params
+        );
     }
 
     public async getContractCode(contractId: string): Promise<ArrayBuffer> {
@@ -251,6 +271,7 @@ class Perlin {
             public_key: data.public_key,
 
             balance: data.balance.toString(),
+            gas_balance: data.gas_balance.toString(),
             stake: data.stake,
             reward: data.reward,
             is_contract: data.is_contract,

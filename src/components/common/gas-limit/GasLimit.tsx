@@ -30,13 +30,17 @@ interface IGasLimitProps {
     value?: any;
     mr?: any;
     mt?: any;
+    mb?: any;
+    ml?: any;
 }
 const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     balance,
     onChange,
     value,
     mr,
-    mt
+    mt,
+    mb,
+    ml
 }) => {
     balance = balance + "";
     const [gasLimit, setGasLimit] = useState(value);
@@ -71,7 +75,7 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     );
     const formattedValue = (gasLimit && parseInt(gasLimit, 10)) || "";
     return (
-        <Flex mr={mr} mt={mt} flex="1">
+        <Flex mr={mr} mt={mt} mb={mb} ml={ml} flex="1">
             <DividerInput
                 placeholder="Gas Limit"
                 value={formattedValue}

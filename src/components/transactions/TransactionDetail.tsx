@@ -190,17 +190,16 @@ const TransactionDetail: React.FunctionComponent<IDetailProps> = ({
     useEffect(() => {
         if (!loading) {
             setLoading(true);
-            perlin
-                .getTransaction(queryId)
-                .then(payload => {
+            perlin.getTransaction(queryId).then(
+                payload => {
                     setTransactionData(payload);
-                })
-                .catch(err => {
-                    setErrorMessage(`${err}`);
-                })
-                .finally(() => {
                     setLoading(false);
-                });
+                },
+                err => {
+                    setErrorMessage(`${err}`);
+                    setLoading(false);
+                }
+            );
         }
     }, []);
 
