@@ -8,10 +8,11 @@ import ContractExecutor from "./ContractExecutor";
 import ContractStore from "./ContractStore";
 
 import { Controlled as CodeMirror } from "react-codemirror2";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/night.css";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
+import { RouteComponentProps } from "react-router";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -39,13 +40,19 @@ const noop = () => {};
 
 const contractStore = ContractStore.getInstance();
 
-const ContractContainer: React.FunctionComponent = () => {
+const ContractContainer: React.FunctionComponent<RouteComponentProps> = ({
+    match,
+    history
+}) => {
+    const params: any = match.params;
+    const contractId = params.id;
+
     const contractLoaded = contractStore.contract.name;
     return (
         <>
             <Row>
                 <Box width={1}>
-                    <QuickSend />
+                    <QuickSend id={contractId} />
                 </Box>
             </Row>
             <Row>
@@ -55,7 +62,7 @@ const ContractContainer: React.FunctionComponent = () => {
                             <CardTitle>&nbsp;Add a Smart Contract</CardTitle>
                         </CardHeader>
                         <CardBody>
-                            <ContractUploader />
+                            <ContractUploader contractId={contractId} />
                         </CardBody>
                     </Card>
                     {contractLoaded && <ContractExecutor />}

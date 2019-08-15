@@ -18,13 +18,18 @@ import {
     InputWrapper
 } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
-import { Link } from "react-router-dom";
+import {
+    Link,
+    Redirect,
+    withRouter,
+    RouteComponentProps
+} from "react-router-dom";
 import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
 import BigNumber from "bignumber.js";
 import GasLimit from "../../common/gas-limit/GasLimit";
 import JSBI from "jsbi";
 
-interface IProps {
+interface IProps extends RouteComponentProps {
     recipient: any;
     changeComponent: (component: string) => void;
     toggleComponent: string;
@@ -159,7 +164,7 @@ const inputTypes = [
 const perlin = Perlin.getInstance();
 
 @observer
-export default class AccountDetected extends React.Component<IProps, IState> {
+class AccountDetected extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
@@ -176,6 +181,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     public render() {
         const { recipient } = this.props;
         const recipientBalance = new BigNumber(recipient.balance);
+        if (
+            this.props.validContract &&
+            recipient.public_key &&
+            !this.props.location.pathname.match(/^\/contracts.*/)
+        ) {
+            return <Redirect to={`/contracts/${recipient.public_key}`} />;
+        }
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -520,3 +532,5 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         });
     };
 }
+
+export default withRouter(AccountDetected);
