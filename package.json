@@ -32,6 +32,7 @@
         "file-loader": "0.11.2",
         "fork-ts-checker-webpack-plugin": "^0.5.2",
         "fs-extra": "3.0.1",
+        "gh-pages": "^2.1.1",
         "html-webpack-plugin": "2.29.0",
         "jest": "22.4.2",
         "jsbi": "^2.0.5",
@@ -99,9 +100,9 @@
     },
     "scripts": {
         "start": "node scripts/start.js",
-        "start-secure": "REACT_APP_HTTPS=true node scripts/start.js",
         "build": "GENERATE_SOURCEMAP=false node scripts/build.js",
-        "build-secure": "GENERATE_SOURCEMAP=false REACT_APP_HTTPS=true node scripts/build.js",
+        "deploy": "PUBLIC_URL=/lens REACT_APP_DEFAULT_API_HOST=https://testnet.perlin.net npm run build && npm run gh-pages",
+        "gh-pages": "gh-pages -d build -b gh-pages",
         "test": "node scripts/test.js --env=jsdom",
         "lint:prettier": "prettier --write src/**/*.{js,jsx,ts,tsx}"
     },
