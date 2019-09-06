@@ -1,6 +1,6 @@
 export const STORAGE_KEYS = {
     STORED_HOSTS: "storedHosts",
-    CURRENT_HOST: "currentHost",
+    CURRENT_HOST: "host",
     TRANSACTION_GRAPH_NODES_LIMIT: "transactionGraphNodeLimit",
     NETWORK_GRAPH_NODES_LIMIT: "networkGraphNodeLimit",
     SECRET_KEY: "secretKey"

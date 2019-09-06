@@ -161,7 +161,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     const handleChange = useCallback((e: any) => {
         setSecretKey(e.target.value);
     }, []);
-    const [host, setHost] = useState(getCurrentHost());
+    const currentHost = getCurrentHost();
 
     useEffect(() => {
         generateNewKeys();
@@ -215,9 +215,6 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     }, [secretKey]);
 
     const login = async () => {
-        const newHost = /^http/.test(host) ? host : "http://" + host;
-        setCurrentHost(newHost);
-
         if (!secretKey) {
             errorNotification("Please enter a Private key");
             return;
@@ -242,7 +239,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     };
 
     const apiHostChangeHandler = useCallback((event: any) => {
-        setHost(event.target.value);
+        setCurrentHost(event.target.value);
     }, []);
 
     if (perlin.isLoggedIn) {
@@ -303,7 +300,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                         <Box mb={4}>
                             <label>API Address</label>
                             <LargeInput
-                                defaultValue={host}
+                                defaultValue={currentHost}
                                 onChange={apiHostChangeHandler}
                             />
                         </Box>
