@@ -549,13 +549,17 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         justifyContent="space-between"
                     >
                         <ButtonOutlined
-                            disabled={loading}
+                            disabled={loading || contractStore.waveletContract}
                             onClick={onCall(true)}
                         >
                             Simulate Call
                         </ButtonOutlined>
                         <CallFunctionButton
-                            disabled={loading}
+                            disabled={
+                                loading ||
+                                !gasLimit ||
+                                contractStore.waveletContract
+                            }
                             onClick={onCall(false)}
                         >
                             Call Function

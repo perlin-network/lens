@@ -87,6 +87,12 @@ svg {
     stroke-width: 1.5px;
 }
 
+button:disabled,
+button[disabled] {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.3;
+}
 .node circle {
     fill: #ccc;
     stroke: #000;

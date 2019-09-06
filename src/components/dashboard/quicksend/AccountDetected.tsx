@@ -292,6 +292,10 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     )}
                                     <Box>
                                         <SendPerlsButton
+                                            disabled={
+                                                this.props.validContract &&
+                                                !this.state.gasLimit
+                                            }
                                             onClick={this.handleSendButton}
                                         >
                                             {this.state.inputType ===
