@@ -1,7 +1,8 @@
 import * as React from "react";
-import { LargeInput } from "../common/core";
+import { LargeInput, WhiteButton, Textarea } from "../common/core";
 import { Perlin } from "../../Perlin";
 import styled from "styled-components";
+import { Flex } from "@rebass/grid";
 import "./config.scss";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -9,31 +10,15 @@ import { EditIcon, QuestionIcon } from "../common/typography";
 
 const Wrapper = styled.div`
     ${LargeInput} {
-        display: inline-block;
-        max-width: 70%;
+        max-width: 470px;
         padding: 15px;
         cursor: pointer;
     }
-`;
-const SaveButton = styled.button`
-    width: 160px;
-    height: 40px;
-    border: 0;
-    border-radius: 5px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 40px;
-    font-family: HKGrotesk;
-    font-size: 16px;
-    font-weight: 600;
-    color: #151b35;
-    background-color: #fff;
-    cursor: pointer;
-    &:active {
-        background-color: #d4d5da;
+    ${Textarea} {
+        max-width: calc(100% - 60px);
+        cursor: pointer;
     }
 `;
-
 const EditButton = styled.button`
     max-width: 50px;
     height: 48px;
@@ -58,7 +43,9 @@ const EditButton = styled.button`
 interface IConfigProps {
     confirmationMessage: string;
     onChange: (newValue: string) => void;
-    value: string | number;
+    value?: string | number;
+    textarea?: boolean;
+    forceEnabled?: boolean;
 }
 export default class Config extends React.Component<IConfigProps> {
     public state = {
@@ -84,15 +71,17 @@ export default class Config extends React.Component<IConfigProps> {
                             <QuestionIcon />
                         </div>
                         <div className="alert-row3">
-                            <SaveButton
+                            <WhiteButton
                                 style={{ marginRight: "10px" }}
                                 onClick={onClose}
                             >
                                 Cancel
-                            </SaveButton>
-                            <SaveButton onClick={this.handleChangeAlertConfirm}>
+                            </WhiteButton>
+                            <WhiteButton
+                                onClick={this.handleChangeAlertConfirm}
+                            >
                                 Confirm
-                            </SaveButton>
+                            </WhiteButton>
                         </div>
                     </div>
                 );
@@ -115,7 +104,7 @@ export default class Config extends React.Component<IConfigProps> {
                             <QuestionIcon />
                         </div>
                         <div className="alert-row3">
-                            <SaveButton
+                            <WhiteButton
                                 style={{
                                     marginRight: "10px",
                                     verticalAlign: "middle"
@@ -123,12 +112,12 @@ export default class Config extends React.Component<IConfigProps> {
                                 onClick={onClose}
                             >
                                 Cancel
-                            </SaveButton>
-                            <SaveButton
+                            </WhiteButton>
+                            <WhiteButton
                                 onClick={this.handleDiscardAlertConfirm}
                             >
                                 Confirm
-                            </SaveButton>
+                            </WhiteButton>
                         </div>
                     </div>
                 );
@@ -136,21 +125,28 @@ export default class Config extends React.Component<IConfigProps> {
         });
     };
 
+    public componentWillUpdate(nextProps: any) {
+        if (nextProps.value !== this.props.value) {
+            this.setState({
+                disabled: false
+            });
+            this.newValue = nextProps.value;
+        }
+    }
+
     public render() {
         const { disabled } = this.state;
+        const { value = "", textarea, children } = this.props;
 
+        const ConfigInpuf: any = textarea ? Textarea : LargeInput;
         return (
             <Wrapper>
                 <div className="input-grid">
-                    <div
-                        className="input-row1"
-                        style={{ width: "100%" }}
-                        onClick={this.toggleDisabled}
-                    >
-                        <LargeInput
-                            type="text"
+                    <Flex onClick={this.toggleDisabled}>
+                        <ConfigInpuf
                             ref={this.inputRef}
-                            defaultValue={this.props.value + ""}
+                            key={value}
+                            defaultValue={value + ""}
                             onChange={this.handleInputChanged}
                             disabled={this.state.disabled}
                             onKeyPress={this.handleInputKeypress}
@@ -160,21 +156,21 @@ export default class Config extends React.Component<IConfigProps> {
                                 <EditIcon />
                             </EditButton>
                         )}
-                    </div>
-
+                    </Flex>
+                    {children}
                     <div className="input-row2">
                         {!disabled && (
-                            <SaveButton onClick={this.showDiscardAlert}>
+                            <WhiteButton onClick={this.showDiscardAlert}>
                                 Discard Changes
-                            </SaveButton>
+                            </WhiteButton>
                         )}
                         {!disabled && (
-                            <SaveButton
+                            <WhiteButton
                                 onClick={this.onToggleSave}
                                 style={{ marginLeft: "10px" }}
                             >
                                 Save
-                            </SaveButton>
+                            </WhiteButton>
                         )}
                     </div>
                 </div>

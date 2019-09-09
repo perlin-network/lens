@@ -31,22 +31,23 @@ interface IButtonProps {
     hideOverflow?: boolean;
 }
 
-export const Button = styled.button`
-    width: ${(props: IButtonProps) => props.width};
-    height: 40px;
+export const Button = styled.button<any>`
     border: 0;
-    outline: 0;
-    border-radius: 3px;
+    border-radius: 5px;
     text-align: center;
     vertical-align: middle;
     line-height: 40px;
     font-family: HKGrotesk;
-    font-size: ${(props: IButtonProps) => props.fontSize};
-    font-weight: normal;
-    color: #fff;
-    background-color: #23228e;
+    font-size: 16px;
+    font-weight: 600;
+    color: #151b35;
+    margin-right: 10px;
+    background-color: #fff;
     cursor: pointer;
-    transition: all 0.2s ease;
+    padding: 10px 15px;
+    line-height: 1.3;
+
+    width: ${({ width }) => (width ? width : "auto")};
 
     &:disabled,
     &[disabled] {
@@ -55,44 +56,33 @@ export const Button = styled.button`
         opacity: 0.3;
     }
 
-    ${(props: IButtonProps) =>
-        props.hideOverflow
-            ? `
-        text-overflow: ellipsis;
-        overflow: hidden;
-    `
-            : ""}
-
+    &:hover,
     &:active {
-        background-color: rgba(34, 34, 142, 0.5);
+        background-color: none;
     }
-
     &:focus {
         outline: none;
     }
 `;
 Button.defaultProps = {
-    width: "160px",
+    width: "170px",
     fontSize: "16px",
     hideOverflow: false
 };
 
 export const ButtonOutlined = styled(Button)`
     background: none;
-    color: rgba(255, 255, 255, 0.8);
-    border: solid 2px #fff;
-    border-radius: 5px;
-    font-weight: 600;
-    height: auto;
-    width: auto;
-    padding-left: 15px;
-    padding-right: 15px;
+    border: solid 1px #fff;
+    color: #fff;
+    opacity: 0.8;
 
     &:hover,
     &:active {
-        color: #151a36;
-        background-color: #fff;
-        border-color: #fff;
+        background-color: none;
+        opacity: 1;
+    }
+    &:focus {
+        outline: none;
     }
 `;
 
@@ -155,7 +145,40 @@ export const RoundButton = styled.button`
         outline: none;
     }
 `;
-export const WhiteButton = styled.button`
+export const WhiteButton = styled.button<any>`
+    border: 0;
+    border-radius: 5px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 40px;
+    font-family: HKGrotesk;
+    font-size: 16px;
+    font-weight: 600;
+    color: #151b35;
+    background-color: #fff;
+    cursor: pointer;
+    padding: 10px 15px;
+    line-height: 1.3;
+
+    width: ${({ width }: any) => (width ? width : "auto")};
+
+    &:disabled,
+    &[disabled] {
+        pointer-events: none;
+        cursor: default;
+        opacity: 0.3;
+    }
+
+    &:hover,
+    &:active {
+        background-color: none;
+    }
+    &:focus {
+        outline: none;
+    }
+`;
+
+export const LargeWhiteButton = styled.button`
     width: 100%;
     background-color: #fff;
     cursor: pointer;
@@ -168,6 +191,61 @@ export const WhiteButton = styled.button`
     color: #151b35;
     font-size: 16px;
     border-radius: 5px;
+`;
+
+export const FileButton = ButtonOutlined;
+
+export const FileInputWrapper = styled.div`
+    position: relative;
+    overflow: hidden;
+
+    ${FileButton} {
+        pointer-events: none;
+    }
+`;
+
+export const FileInput = styled.input.attrs({
+    type: "file"
+})`
+    font-size: 200px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    cursor: pointer;
+
+    &:hover ~ ${FileButton} {
+        background-color: none;
+        opacity: 1;
+    }
+`;
+
+export const Textarea = styled.textarea`
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 400;
+    min-height: 100px;
+    width: 100%;
+    font-family: HKGrotesk;
+    color: #fff;
+    background-color: #171d39;
+    padding: 10px 15px;
+    line-height: 1.5;
+
+    &:focus,
+    &:active,
+    &:hover {
+        cursor: text;
+        box-shadow: 0 0 0 1px #4a41d1;
+        outline: none;
+    }
+    &::placeholder {
+        color: #717985;
+        opacity: 0.8;
+        font-size: 16px;
+    }
 `;
 
 export const StyledInput = styled(Input)`

@@ -5,7 +5,8 @@ import {
     Button as RawButton,
     ButtonOutlined,
     InputWrapper,
-    StyledDropdown
+    StyledDropdown,
+    WhiteButton
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
@@ -551,17 +552,15 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         justifyContent="space-between"
                     >
                         <ButtonOutlined
+                            width="auto"
                             disabled={loading}
                             onClick={onCall(true)}
                         >
                             Simulate Call
                         </ButtonOutlined>
-                        <CallFunctionButton
-                            disabled={loading}
-                            onClick={onCall(false)}
-                        >
+                        <WhiteButton disabled={loading} onClick={onCall(false)}>
                             Call Function
-                        </CallFunctionButton>
+                        </WhiteButton>
                     </Flex>
 
                     {loading ? (
