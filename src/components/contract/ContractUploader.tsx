@@ -353,7 +353,7 @@ const ContractUploader: React.FunctionComponent = () => {
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        accept: "application/wasm",
+        accept: ["application/wasm", ""], // added "application/wasm is not supported by Safari"
         onDropAccepted,
         multiple: false
     });
