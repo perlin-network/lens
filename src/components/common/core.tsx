@@ -273,9 +273,10 @@ const getPerlDeciaml = (kens: any, perlValue: any) => {
 export const formatBalance = (x: number | string = 0) => {
     x += "";
 
-    if (x === "NaN") {
-        return numberWithCommas(x);
+    if (x === "NaN" || x === "") {
+        return "";
     }
+
     if (x === "0") {
         return x + " PERLs";
     }
@@ -283,10 +284,17 @@ export const formatBalance = (x: number | string = 0) => {
     const value = JSBI.BigInt(x);
 
     if (JSBI.lessThan(value, JSBI.BigInt(Math.pow(10, 4)))) {
+        if (x === "1") {
+            return x + " KEN";
+        }
         return numberWithCommas(x) + " KENs";
     }
     const perlValue = JSBI.BigInt(Math.pow(10, 9));
     const perls = String(JSBI.divide(value, perlValue));
+
+    if (JSBI.equal(value, perlValue)) {
+        return perls + " PERL";
+    }
     const kensNum = JSBI.remainder(value, perlValue);
     const kens = String(kensNum);
 

@@ -46,8 +46,10 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setAmount(parseInt(value, 10));
+            const inputPerls = e.target.value;
+            const kens =
+                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+            setAmount(parseInt(kens, 10));
         },
         []
     );

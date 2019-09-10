@@ -29,6 +29,7 @@ interface IProps {
 
 interface IState {
     inputPerls: string;
+    kens: string;
     doubleChecked: boolean;
     errorMessage: string;
     gasLimit?: string;
@@ -160,6 +161,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         super(props);
         this.state = {
             inputPerls: "",
+            kens: "",
             doubleChecked: false,
             errorMessage: "",
             gasChoiceReset: 0,
@@ -196,7 +198,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 width={1 / 2}
                                 style={{ fontWeight: 500, fontSize: "20px" }}
                             >
-                                Send KENs
+                                Send PERLs
                             </Box>
                         </Flex>
                         <Flex
@@ -270,12 +272,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     <InputWrapper>
                                         <DividerInput
                                             placeholder="Enter Amount"
-                                            value={this.state.inputPerls}
                                             onChange={this.updateInputPerls}
                                         />
                                         <Divider>|</Divider>
                                         <DividerAside>
-                                            Fee: {TX_FEE} KENs
+                                            Fee: {formatBalance(TX_FEE)}
                                         </DividerAside>
                                     </InputWrapper>
                                 </Flex>
@@ -300,7 +301,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             inputTypes[1].value
                                                 ? "Deposit"
                                                 : "Send"}{" "}
-                                            {this.state.inputPerls} KEN(s)
+                                            {formatBalance(this.state.kens)}
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
@@ -332,13 +333,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         <Box width={4 / 7} className="table-outer">
                             <div className="table-inner break-word-normal">
                                 <h4>
-                                    Your {this.state.inputPerls} KEN(s) are on
+                                    Your {formatBalance(this.state.kens)} are on
                                     their way!
                                 </h4>
                                 <p>
-                                    Your KEN token(s) are being processed by our
-                                    lighting fast consensus mechanism and will
-                                    be transferred in a few seconds.
+                                    Your PERL token(s) are being processed by
+                                    our lighting fast consensus mechanism and
+                                    will be transferred in a few seconds.
                                 </p>
                             </div>
                         </Box>
@@ -362,7 +363,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 My Balance:{" "}
                                 {formatBalance(perlin.account.balance)}
                             </span>
-                            <DeltaTag value={-this.state.inputPerls} />
+                            <DeltaTag
+                                value={"-" + formatBalance(this.state.kens)}
+                            />
                         </Box>
                         <Box
                             ml={2}
@@ -395,7 +398,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     Recipient Gas Balance:{" "}
                                     {formatBalance(
                                         new BigNumber(recipient.gas_balance)
-                                            .plus(this.state.inputPerls)
+                                            .plus(this.state.kens)
                                             .toString()
                                     )}
                                 </span>
@@ -404,13 +407,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     Recipient Balance:{" "}
                                     {formatBalance(
                                         recipientBalance
-                                            .plus(this.state.inputPerls)
+                                            .plus(this.state.kens)
                                             .toString()
                                     )}
                                 </span>
                             )}
 
-                            <DeltaTag value={this.state.inputPerls} />
+                            <DeltaTag value={formatBalance(this.state.kens)} />
                         </Box>
                     </TransferRow>
                 </AccountDetectedAnimation>
@@ -427,7 +430,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     };
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
-        this.setState({ inputPerls: e.target.value });
+        const inputPerls = e.target.value;
+        const kens = Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+        this.setState({ inputPerls, kens });
     }
     private handleSendButton = () => {
         if (this.successfulSend()) {
@@ -445,7 +450,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
         gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
 
-        let perls = JSBI.BigInt(this.state.inputPerls);
+        let perls = JSBI.BigInt(this.state.kens);
 
         if (this.props.validContract) {
             if (
@@ -469,7 +474,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         ) {
             perlin.notify({
                 type: NotificationTypes.Danger,
-                message: "Please enter a valid amount of KENs"
+                message: "Please enter a valid amount of PERLs"
             });
             return false;
         }
@@ -490,7 +495,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             )
             .then(response => {
                 perlin.notify({
-                    title: "KEN(s) Sent",
+                    title: "PERL(s) Sent",
                     type: NotificationTypes.Success,
                     content: (
                         <p>

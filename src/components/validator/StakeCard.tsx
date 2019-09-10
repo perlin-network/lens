@@ -66,8 +66,10 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setAmount(parseInt(value, 10));
+            const inputPerls = e.target.value;
+            const kens =
+                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+            setAmount(parseInt(kens, 10));
         },
         []
     );
@@ -112,7 +114,6 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                             <Col width={1}>
                                 <LargeInput
                                     placeholder="Enter Amount"
-                                    defaultValue={amount}
                                     onChange={handleAmountChange}
                                 />
                             </Col>

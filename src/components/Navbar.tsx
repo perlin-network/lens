@@ -170,7 +170,7 @@ const Navbar: React.FunctionComponent<{}> = () => {
     const onFaucetSuccess = useCallback(() => {
         perlin.notify({
             type: NotificationTypes.Success,
-            message: "Wallet received some KENs"
+            message: "Wallet received some PERLs"
         });
     }, []);
 

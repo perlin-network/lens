@@ -4,7 +4,8 @@ import {
     Button as RawButton,
     Card,
     StyledInput,
-    InputWrapper
+    InputWrapper,
+    formatBalance
 } from "../common/core";
 import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
@@ -381,7 +382,7 @@ const ContractUploader: React.FunctionComponent = () => {
                     onChange={handleUpdateGasDeposit}
                 />
                 <DividerPipe>|</DividerPipe>
-                <DividerAside>Fee: {TX_FEE} KENs</DividerAside>
+                <DividerAside>Fee: {formatBalance(TX_FEE)}</DividerAside>
             </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}
