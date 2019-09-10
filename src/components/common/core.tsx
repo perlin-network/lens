@@ -264,32 +264,42 @@ export const uniqueRandomRange = (window.uniqueRandomRange = (
     };
 });
 
+const removeEndZeros = (x: string) => x.replace(/^1|(0*$)/g, "");
+const getPerlDeciaml = (kens: any, perlValue: any) => {
+    const sum = String(JSBI.add(kens, perlValue));
+    return removeEndZeros(sum);
+};
+
 export const formatBalance = (x: number | string = 0) => {
+    x += "";
+
     if (x === "NaN") {
         return numberWithCommas(x);
     }
+    if (x === "0") {
+        return x + " PERLs";
+    }
+
     const value = JSBI.BigInt(x);
+
+    if (JSBI.lessThan(value, JSBI.BigInt(Math.pow(10, 4)))) {
+        return numberWithCommas(x) + " KENs";
+    }
     const perlValue = JSBI.BigInt(Math.pow(10, 9));
     const perls = String(JSBI.divide(value, perlValue));
-    const kens = String(JSBI.remainder(value, perlValue));
+    const kensNum = JSBI.remainder(value, perlValue);
+    const kens = String(kensNum);
 
-    return [perls, kens]
-        .map(numberWithCommas)
-        .map((part, index) => {
-            if (index === 0) {
-                if (part === "0") {
-                    return "";
-                }
-                return part + " PERLs";
-            }
-            if (index === 1) {
-                return part + " KENs";
-            }
-            return part;
-        })
-        .filter(part => part !== "")
-        .join(" | ");
+    return (
+        [
+            numberWithCommas(perls),
+            kens === "0" ? undefined : getPerlDeciaml(kensNum, perlValue)
+        ]
+            .filter(part => part !== undefined)
+            .join(".") + " PERLs"
+    );
 };
+
 export const numberWithCommas = (x: number | string = 0) => {
     if (x === "NaN") {
         return x;
