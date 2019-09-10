@@ -16,7 +16,7 @@ const Col = styled(Box)`
 
 const Wrapper = styled(Card)``;
 const RewardAmount = styled.h2`
-    font-size: 36px;
+    font-size: 30px;
     font-weight: 400;
     color: #fff;
     margin-top: 0px;
@@ -58,7 +58,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
             </CardHeader>
             <CardBody>
                 <Row>
-                    <Col width={1 / 2}>
+                    <Col flex="1" mt={2}>
                         <RewardAmount>{formatBalance(reward)}</RewardAmount>
                     </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>

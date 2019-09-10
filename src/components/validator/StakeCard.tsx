@@ -32,7 +32,7 @@ const Col = styled(Box)`
 `;
 
 const StakeAmount = styled.h2`
-    font-size: 36px;
+    font-size: 30px;
     font-weight: 400;
     color: #fff;
     margin-top: 0px;
@@ -88,10 +88,10 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
             </CardHeader>
             <CardBody>
                 <Row>
-                    <Col width={1 / 2}>
+                    <Col flex="1" mt={2}>
                         <StakeAmount> {formatBalance(stake)} </StakeAmount>
                     </Col>
-                    <Col width={1 / 2} style={{ textAlign: "right" }}>
+                    <Col>
                         <RoundButton
                             onClick={handleWithdrawStakeClick}
                             inactive={action === StakeActions.Withdraw}
