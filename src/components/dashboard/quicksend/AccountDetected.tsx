@@ -290,7 +290,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             value={this.state.gasLimit}
                                         />
                                     )}
-                                    <Box>
+                                    <Box
+                                        title={
+                                            !this.state.gasLimit
+                                                ? "Please enter a valid gas limit"
+                                                : ""
+                                        }
+                                    >
                                         <SendPerlsButton
                                             disabled={
                                                 this.props.validContract &&

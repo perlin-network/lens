@@ -549,21 +549,29 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         justifyContent="space-between"
                     >
                         <ButtonOutlined
-                            disabled={loading || contractStore.waveletContract}
+                            disabled={loading || !contractStore.waveletContract}
                             onClick={onCall(true)}
                         >
                             Simulate Call
                         </ButtonOutlined>
-                        <CallFunctionButton
-                            disabled={
-                                loading ||
-                                !gasLimit ||
-                                contractStore.waveletContract
+                        <div
+                            title={
+                                !gasLimit
+                                    ? "Please enter a valid gas limit"
+                                    : ""
                             }
-                            onClick={onCall(false)}
                         >
-                            Call Function
-                        </CallFunctionButton>
+                            <CallFunctionButton
+                                disabled={
+                                    loading ||
+                                    !gasLimit ||
+                                    !contractStore.waveletContract
+                                }
+                                onClick={onCall(false)}
+                            >
+                                Call Function
+                            </CallFunctionButton>
+                        </div>
                     </Flex>
 
                     {loading ? (
