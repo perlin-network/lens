@@ -381,7 +381,7 @@ const ContractUploader: React.FunctionComponent = () => {
                     onChange={handleUpdateGasDeposit}
                 />
                 <DividerPipe>|</DividerPipe>
-                <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                <DividerAside>Fee: {TX_FEE} KENs</DividerAside>
             </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}

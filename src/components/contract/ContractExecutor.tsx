@@ -417,7 +417,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             ) {
                 perlin.notify({
                     type: NotificationTypes.Danger,
-                    message: "Please enter a valid amount of PERLs"
+                    message: "Please enter a valid amount of KENs"
                 });
                 return;
             }
@@ -536,7 +536,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                 onChange={updateInputPerls}
                             />
                             <Divider>|</Divider>
-                            <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                            <DividerAside>Fee: {TX_FEE} KENs</DividerAside>
                         </InputWrapper>
                     </Flex>
 

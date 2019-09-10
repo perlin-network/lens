@@ -12,11 +12,7 @@ import {
 import { TX_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
-import {
-    numberWithCommas,
-    StyledDropdown,
-    InputWrapper
-} from "../../common/core";
+import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 import { Link } from "react-router-dom";
 import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
@@ -200,7 +196,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 width={1 / 2}
                                 style={{ fontWeight: 500, fontSize: "20px" }}
                             >
-                                Send PERLs
+                                Send KENs
                             </Box>
                         </Flex>
                         <Flex
@@ -215,7 +211,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         <InfoLine>
                                             <td className="label">Balance</td>
                                             <td className="value">
-                                                {recipient.balance}
+                                                {formatBalance(
+                                                    recipient.balance
+                                                )}
                                             </td>
                                         </InfoLine>
                                         {this.props.validContract && (
@@ -224,20 +222,24 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                     Gas Balance
                                                 </td>
                                                 <td className="value">
-                                                    {recipient.gas_balance}
+                                                    {formatBalance(
+                                                        recipient.gas_balance
+                                                    )}
                                                 </td>
                                             </InfoLine>
                                         )}
                                         <InfoLine>
                                             <td className="label">Reward</td>
                                             <td className="value">
-                                                {recipient.reward}
+                                                {formatBalance(
+                                                    recipient.reward
+                                                )}
                                             </td>
                                         </InfoLine>
                                         <InfoLine>
                                             <td className="label">Stake</td>
                                             <td className="value">
-                                                {recipient.stake}
+                                                {formatBalance(recipient.stake)}
                                             </td>
                                         </InfoLine>
                                         {typeof recipient.nonce !==
@@ -273,7 +275,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         />
                                         <Divider>|</Divider>
                                         <DividerAside>
-                                            Fee: {TX_FEE} PERLs
+                                            Fee: {TX_FEE} KENs
                                         </DividerAside>
                                     </InputWrapper>
                                 </Flex>
@@ -298,7 +300,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             inputTypes[1].value
                                                 ? "Deposit"
                                                 : "Send"}{" "}
-                                            {this.state.inputPerls} PERL(s)
+                                            {this.state.inputPerls} KEN(s)
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
@@ -330,13 +332,13 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         <Box width={4 / 7} className="table-outer">
                             <div className="table-inner break-word-normal">
                                 <h4>
-                                    Your {this.state.inputPerls} PERL(s) are on
+                                    Your {this.state.inputPerls} KEN(s) are on
                                     their way!
                                 </h4>
                                 <p>
-                                    Your PERL token(s) are being processed by
-                                    our lighting fast consensus mechanism and
-                                    will be transferred in a few seconds.
+                                    Your KEN token(s) are being processed by our
+                                    lighting fast consensus mechanism and will
+                                    be transferred in a few seconds.
                                 </p>
                             </div>
                         </Box>
@@ -358,7 +360,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             <div className="address">{perlin.publicKeyHex}</div>
                             <span className="balance">
                                 My Balance:{" "}
-                                {numberWithCommas(perlin.account.balance)}
+                                {formatBalance(perlin.account.balance)}
                             </span>
                             <DeltaTag value={-this.state.inputPerls} />
                         </Box>
@@ -391,7 +393,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             {this.state.inputType === inputTypes[1].value ? (
                                 <span className="balance">
                                     Recipient Gas Balance:{" "}
-                                    {numberWithCommas(
+                                    {formatBalance(
                                         new BigNumber(recipient.gas_balance)
                                             .plus(this.state.inputPerls)
                                             .toString()
@@ -400,7 +402,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             ) : (
                                 <span className="balance">
                                     Recipient Balance:{" "}
-                                    {numberWithCommas(
+                                    {formatBalance(
                                         recipientBalance
                                             .plus(this.state.inputPerls)
                                             .toString()
@@ -467,7 +469,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         ) {
             perlin.notify({
                 type: NotificationTypes.Danger,
-                message: "Please enter a valid amount of PERLs"
+                message: "Please enter a valid amount of KENs"
             });
             return false;
         }
@@ -488,7 +490,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
             )
             .then(response => {
                 perlin.notify({
-                    title: "PERL(s) Sent",
+                    title: "KEN(s) Sent",
                     type: NotificationTypes.Success,
                     content: (
                         <p>

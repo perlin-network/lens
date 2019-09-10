@@ -70,15 +70,15 @@ const PaymentForm: React.SFC<IPaymentFormProps> = ({
                 <Input
                     id="amount"
                     type="number"
-                    placeholder="0 PERLs"
+                    placeholder="0 KENs"
                     width="190px"
                     value={amount}
                     onChange={handleAmountChange}
                 />
-                <FeeText>Fee: 0.0002 PERL</FeeText>
+                <FeeText>Fee: 0.0002 KEN</FeeText>
             </FormGroup>
             <Button onClick={handlePay} style={{ marginTop: "18px" }}>
-                Send PERLs
+                Send KENs
             </Button>
         </Wrapper>
     );

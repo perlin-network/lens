@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { Flex } from "@rebass/grid";
 import Dropdown, { Option } from "react-dropdown";
+import JSBI from "jsbi";
 
 export const ErrorMessage = styled.div`
     margin: 10px 0;
@@ -263,7 +264,37 @@ export const uniqueRandomRange = (window.uniqueRandomRange = (
     };
 });
 
+export const formatBalance = (x: number | string = 0) => {
+    if (x === "NaN") {
+        return numberWithCommas(x);
+    }
+    const value = JSBI.BigInt(x);
+    const perlValue = JSBI.BigInt(Math.pow(10, 9));
+    const perls = String(JSBI.divide(value, perlValue));
+    const kens = String(JSBI.remainder(value, perlValue));
+
+    return [perls, kens]
+        .map(numberWithCommas)
+        .map((part, index) => {
+            if (index === 0) {
+                if (part === "0") {
+                    return "";
+                }
+                return part + " PERLs";
+            }
+            if (index === 1) {
+                return part + " KENs";
+            }
+            return part;
+        })
+        .filter(part => part !== "")
+        .join(" | ");
+};
 export const numberWithCommas = (x: number | string = 0) => {
+    if (x === "NaN") {
+        return x;
+    }
+
     x = x + "";
     const parts = x.split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");

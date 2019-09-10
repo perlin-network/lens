@@ -6,7 +6,7 @@ import {
     RoundButton,
     ErrorMessage,
     LargeInput,
-    numberWithCommas
+    formatBalance
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -89,8 +89,7 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
             <CardBody>
                 <Row>
                     <Col width={1 / 2}>
-                        <StakeAmount> {numberWithCommas(stake)} </StakeAmount>
-                        PERLs
+                        <StakeAmount> {formatBalance(stake)} </StakeAmount>
                     </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
                         <RoundButton

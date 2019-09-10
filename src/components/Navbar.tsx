@@ -7,7 +7,7 @@ import { Perlin, NotificationTypes } from "../Perlin";
 import { observer } from "mobx-react-lite";
 import { CopyIcon } from "./common/typography";
 import { QRCodeWidget } from "./common/qr";
-import { numberWithCommas } from "./common/core";
+import { formatBalance } from "./common/core";
 import WF from "wavelet-faucet";
 
 const Header = styled(Flex)`
@@ -170,7 +170,7 @@ const Navbar: React.FunctionComponent<{}> = () => {
     const onFaucetSuccess = useCallback(() => {
         perlin.notify({
             type: NotificationTypes.Success,
-            message: "Wallet received some PERLs"
+            message: "Wallet received some KENs"
         });
     }, []);
 
@@ -206,11 +206,10 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             <WalletIcon className="icon" />
                             Your Balance
                         </span>
-                        <Value title={balance}>
+                        <Value title={formatBalance(balance)}>
                             <span className="truncate">
-                                {numberWithCommas(balance)}
-                            </span>{" "}
-                            PERLs
+                                {formatBalance(balance)}
+                            </span>
                         </Value>
                     </Item>
                     <Item flex="0 0 auto">
@@ -218,11 +217,10 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             <StakeIcon className="icon" />
                             Your Stake
                         </span>
-                        <Value title={stake + ""}>
+                        <Value title={formatBalance(stake)}>
                             <span className="truncate">
-                                {numberWithCommas(stake)}
-                            </span>{" "}
-                            PERLs
+                                {formatBalance(stake)}
+                            </span>
                         </Value>
                     </Item>
                     <Item flex="0 0 auto">
@@ -230,11 +228,10 @@ const Navbar: React.FunctionComponent<{}> = () => {
                             <EarningsIcon className="icon" />
                             Available Rewards
                         </span>
-                        <Value title={reward + ""}>
+                        <Value title={formatBalance(reward)}>
                             <span className="truncate">
-                                {numberWithCommas(reward)}
-                            </span>{" "}
-                            PERLs
+                                {formatBalance(reward)}
+                            </span>
                         </Value>
                     </Item>
                     <FaucetItem flex="0 0 auto">

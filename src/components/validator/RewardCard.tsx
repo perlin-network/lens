@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { ErrorMessage, Input, RoundButton, LargeInput } from "../common/core";
 import { Box, Flex } from "@rebass/grid";
-import { WhiteButton, numberWithCommas } from "../common/core";
+import { WhiteButton, formatBalance } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -59,8 +59,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
             <CardBody>
                 <Row>
                     <Col width={1 / 2}>
-                        <RewardAmount>{numberWithCommas(reward)}</RewardAmount>
-                        PERLs
+                        <RewardAmount>{formatBalance(reward)}</RewardAmount>
                     </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
                         <RoundButton
