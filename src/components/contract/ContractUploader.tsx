@@ -239,7 +239,9 @@ const ContractUploader: React.FunctionComponent = () => {
     }, []);
 
     const handleUpdateGasDeposit = useCallback((event: any) => {
-        setGasDeposit(event.target.value);
+        const value = event.target.value;
+        const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
+        setGasDeposit(kens);
     }, []);
 
     const delay = (time: any) =>
@@ -378,7 +380,7 @@ const ContractUploader: React.FunctionComponent = () => {
             <InputWrapper>
                 <DividerInput
                     placeholder="Deposit Gas (optional)"
-                    value={gasDeposit}
+                    defaultValue={gasDeposit}
                     onChange={handleUpdateGasDeposit}
                 />
                 <DividerPipe>|</DividerPipe>
