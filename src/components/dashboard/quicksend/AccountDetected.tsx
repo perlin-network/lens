@@ -174,6 +174,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     public render() {
         const { recipient } = this.props;
         const recipientBalance = new BigNumber(recipient.balance);
+        const gasLimit = this.state.gasLimit || "";
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -295,7 +296,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     )}
                                     <Box
                                         title={
-                                            !this.state.gasLimit
+                                            !parseInt(gasLimit, 10)
                                                 ? "Please enter a valid gas limit"
                                                 : ""
                                         }
@@ -303,7 +304,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         <SendPerlsButton
                                             disabled={
                                                 this.props.validContract &&
-                                                !this.state.gasLimit
+                                                !parseInt(gasLimit, 10)
                                             }
                                             onClick={this.handleSendButton}
                                         >

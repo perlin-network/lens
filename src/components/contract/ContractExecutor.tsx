@@ -568,7 +568,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                             <CallFunctionButton
                                 disabled={
                                     loading ||
-                                    !gasLimit ||
+                                    !parseInt(gasLimit, 10) ||
                                     !contractStore.waveletContract
                                 }
                                 onClick={onCall(false)}

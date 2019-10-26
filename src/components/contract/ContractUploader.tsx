@@ -393,9 +393,15 @@ const ContractUploader: React.FunctionComponent = () => {
                 mb={2}
             />
 
-            <div title={!gasLimit ? "Please enter a valid gas limit" : ""}>
+            <div
+                title={
+                    !parseInt(gasLimit, 10)
+                        ? "Please enter a valid gas limit"
+                        : ""
+                }
+            >
                 <Button
-                    disabled={!gasLimit}
+                    disabled={!parseInt(gasLimit, 10)}
                     fontSize="14px"
                     width="100%"
                     {...getRootProps()}
