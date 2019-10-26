@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { ErrorMessage, Input, RoundButton, LargeInput } from "../common/core";
 import { Box, Flex } from "@rebass/grid";
-import { WhiteButton, numberWithCommas } from "../common/core";
+import { WhiteButton, formatBalance } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -16,7 +16,7 @@ const Col = styled(Box)`
 
 const Wrapper = styled(Card)``;
 const RewardAmount = styled.h2`
-    font-size: 36px;
+    font-size: 30px;
     font-weight: 400;
     color: #fff;
     margin-top: 0px;
@@ -46,8 +46,10 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setAmount(parseInt(value, 10));
+            const inputPerls = e.target.value;
+            const kens =
+                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+            setAmount(parseInt(kens, 10));
         },
         []
     );
@@ -58,9 +60,8 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
             </CardHeader>
             <CardBody>
                 <Row>
-                    <Col width={1 / 2}>
-                        <RewardAmount>{numberWithCommas(reward)}</RewardAmount>
-                        PERLs
+                    <Col flex="1" mt={2}>
+                        <RewardAmount>{formatBalance(reward)}</RewardAmount>
                     </Col>
                     <Col width={1 / 2} style={{ textAlign: "right" }}>
                         <RoundButton
