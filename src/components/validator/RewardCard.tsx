@@ -78,15 +78,17 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
                             <Col width={1}>
                                 <LargeInput
                                     placeholder="Enter Amount"
-                                    defaultValue={reward + ""}
                                     onChange={handleAmountChange}
+                                    defaultValue={(
+                                        reward / Math.pow(10, 9)
+                                    ).toFixed(9)}
                                 />
                             </Col>
                         </Row>
                         <Row>
                             <Col width={1}>
                                 <WhiteButton onClick={handleOnClick}>
-                                    Withdraw
+                                    Withdraw {formatBalance(amount)}
                                 </WhiteButton>
                             </Col>
                         </Row>
