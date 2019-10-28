@@ -6,7 +6,8 @@ import {
     ButtonOutlined,
     InputWrapper,
     StyledDropdown,
-    WhiteButton
+    WhiteButton,
+    formatBalance
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
@@ -324,7 +325,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const updateInputPerls = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            setInputPerls(e.target.value);
+            const value = e.target.value;
+            const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
+            setInputPerls(kens);
         },
         []
     );
@@ -533,11 +536,12 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         <InputWrapper>
                             <DividerInput
                                 placeholder="Enter Amount"
-                                value={inputPerls}
                                 onChange={updateInputPerls}
                             />
                             <Divider>|</Divider>
-                            <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                            <DividerAside>
+                                Fee: {formatBalance(TX_FEE)}
+                            </DividerAside>
                         </InputWrapper>
                     </Flex>
 
