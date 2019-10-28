@@ -47,10 +47,12 @@ const getSecretKey = (): string | undefined => {
 };
 
 const setCurrentHost = (host: string) => {
-    store.set(STORAGE_KEYS.CURRENT_HOST, host);
+    const newHost = /^http/.test(host) ? host : "http://" + host;
+
+    store.set(STORAGE_KEYS.CURRENT_HOST, newHost);
     const storedHosts = getStoredHosts();
-    if (storedHosts.indexOf(host) === -1) {
-        setStoredHosts(storedHosts.concat(host));
+    if (storedHosts.indexOf(newHost) === -1) {
+        setStoredHosts(storedHosts.concat(newHost));
     }
 };
 
@@ -60,11 +62,15 @@ const removeSecretKey = () => {
 
 const getCurrentHost = (): string => {
     const currentHost = store.get(STORAGE_KEYS.CURRENT_HOST);
+
     if (!currentHost) {
         setCurrentHost(DEFAULT_API_HOST);
         return DEFAULT_API_HOST;
     }
-    return currentHost;
+    const newHost = /^http/.test(currentHost)
+        ? currentHost
+        : "http://" + currentHost;
+    return newHost;
 };
 
 const watchCurrentHost = (cb: (newHost: string) => void) => {
