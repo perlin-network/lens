@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { Flex } from "@rebass/grid";
 import Dropdown, { Option } from "react-dropdown";
+import JSBI from "jsbi";
 
 export const ErrorMessage = styled.div`
     margin: 10px 0;
@@ -263,7 +264,55 @@ export const uniqueRandomRange = (window.uniqueRandomRange = (
     };
 });
 
+const removeEndZeros = (x: string) => x.replace(/^1|(0*$)/g, "");
+const getPerlDeciaml = (kens: any, perlValue: any) => {
+    const sum = String(JSBI.add(kens, perlValue));
+    return removeEndZeros(sum);
+};
+
+export const formatBalance = (x: number | string = 0) => {
+    x += "";
+
+    if (x === "NaN" || x === "") {
+        return "";
+    }
+
+    if (x === "0") {
+        return x + " PERLs";
+    }
+
+    const value = JSBI.BigInt(x);
+
+    if (JSBI.lessThan(value, JSBI.BigInt(Math.pow(10, 4)))) {
+        if (x === "1") {
+            return x + " KEN";
+        }
+        return numberWithCommas(x) + " KENs";
+    }
+    const perlValue = JSBI.BigInt(Math.pow(10, 9));
+    const perls = String(JSBI.divide(value, perlValue));
+
+    if (JSBI.equal(value, perlValue)) {
+        return perls + " PERL";
+    }
+    const kensNum = JSBI.remainder(value, perlValue);
+    const kens = String(kensNum);
+
+    return (
+        [
+            numberWithCommas(perls),
+            kens === "0" ? undefined : getPerlDeciaml(kensNum, perlValue)
+        ]
+            .filter(part => part !== undefined)
+            .join(".") + " PERLs"
+    );
+};
+
 export const numberWithCommas = (x: number | string = 0) => {
+    if (x === "NaN") {
+        return x;
+    }
+
     x = x + "";
     const parts = x.split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");

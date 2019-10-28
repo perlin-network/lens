@@ -4,7 +4,8 @@ import {
     Button as RawButton,
     Card,
     StyledInput,
-    InputWrapper
+    InputWrapper,
+    formatBalance
 } from "../common/core";
 import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
@@ -249,7 +250,9 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     }, []);
 
     const handleUpdateGasDeposit = useCallback((event: any) => {
-        setGasDeposit(event.target.value);
+        const value = event.target.value;
+        const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
+        setGasDeposit(kens);
     }, []);
 
     const delay = (time: any) =>
@@ -366,7 +369,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        accept: "application/wasm",
+        accept: ["application/wasm", ""], // added "application/wasm is not supported by Safari"
         onDropAccepted,
         multiple: false
     });
@@ -390,11 +393,11 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
             <InputWrapper>
                 <DividerInput
                     placeholder="Deposit Gas (optional)"
-                    value={gasDeposit}
+                    defaultValue={gasDeposit}
                     onChange={handleUpdateGasDeposit}
                 />
                 <DividerPipe>|</DividerPipe>
-                <DividerAside>Fee: {TX_FEE} PERLs</DividerAside>
+                <DividerAside>Fee: {formatBalance(TX_FEE)}</DividerAside>
             </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}
