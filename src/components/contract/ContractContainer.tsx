@@ -12,7 +12,7 @@ import { observer } from "mobx-react-lite";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/night.css";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
-import { RouteComponentProps } from "react-router";
+import { RouteComponentProps, withRouter } from "react-router";
 
 const Row = styled(Flex)`
     margin-bottom: ${props => props.theme.margin.row};
@@ -92,4 +92,4 @@ const ContractContainer: React.FunctionComponent<RouteComponentProps> = ({
     );
 };
 
-export default observer(ContractContainer);
+export default withRouter(observer(ContractContainer));
