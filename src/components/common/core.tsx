@@ -49,13 +49,6 @@ export const Button = styled.button`
     cursor: pointer;
     transition: all 0.2s ease;
 
-    &:disabled,
-    &[disabled] {
-        pointer-events: none;
-        cursor: default;
-        opacity: 0.3;
-    }
-
     ${(props: IButtonProps) =>
         props.hideOverflow
             ? `

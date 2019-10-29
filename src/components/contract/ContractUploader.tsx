@@ -393,10 +393,25 @@ const ContractUploader: React.FunctionComponent = () => {
                 mb={2}
             />
 
-            <Button fontSize="14px" width="100%" {...getRootProps()}>
-                {isDragActive ? "Drop Contract Here" : "Upload Smart Contract"}
-                <input {...getInputProps()} />
-            </Button>
+            <div
+                title={
+                    !parseInt(gasLimit, 10)
+                        ? "Please enter a valid gas limit"
+                        : ""
+                }
+            >
+                <Button
+                    disabled={!parseInt(gasLimit, 10)}
+                    fontSize="14px"
+                    width="100%"
+                    {...getRootProps()}
+                >
+                    {isDragActive
+                        ? "Drop Contract Here"
+                        : "Upload Smart Contract"}
+                    <input {...getInputProps()} />
+                </Button>
+            </div>
 
             <DividerWrapper>
                 <Divider />

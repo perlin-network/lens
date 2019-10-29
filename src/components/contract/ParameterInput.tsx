@@ -41,9 +41,7 @@ const typeOptions = [
     ParamType.String
 ];
 
-const Wrapper = styled(Flex)`
-    margin-bottom: 30px;
-`;
+const Wrapper = styled(Flex)``;
 
 const DeleteIcon = styled.img.attrs({ src: CloseIconSVG })`
     height: 15px;
