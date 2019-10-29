@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { ErrorMessage, Input, RoundButton, LargeInput } from "../common/core";
 import { Box, Flex } from "@rebass/grid";
-import { WhiteButton, formatBalance } from "../common/core";
+import { LargeWhiteButton, formatBalance } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -78,16 +78,18 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
                             <Col width={1}>
                                 <LargeInput
                                     placeholder="Enter Amount"
-                                    defaultValue={reward + ""}
                                     onChange={handleAmountChange}
+                                    defaultValue={(
+                                        reward / Math.pow(10, 9)
+                                    ).toFixed(9)}
                                 />
                             </Col>
                         </Row>
                         <Row>
                             <Col width={1}>
-                                <WhiteButton onClick={handleOnClick}>
-                                    Withdraw
-                                </WhiteButton>
+                                <LargeWhiteButton onClick={handleOnClick}>
+                                    Withdraw {formatBalance(amount)}
+                                </LargeWhiteButton>
                             </Col>
                         </Row>
                     </div>

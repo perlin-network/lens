@@ -1,0 +1,70 @@
+import React, { useState, useCallback } from "react";
+import { Perlin, NotificationTypes } from "../../Perlin";
+
+const perlin = Perlin.getInstance();
+
+const usePrivateKey = (errorNotification: any, defaultKey: string = "") => {
+    const [privateKey, setPrivateKey] = useState<string>(defaultKey);
+    const handleFileChange = useCallback((e: any) => {
+        try {
+            if (e.target.files[0]) {
+                const file = e.target.files[0];
+                if (file.type !== "text/plain") {
+                    errorNotification(
+                        `File Type ${file.type} is not supported.`
+                    );
+                } else {
+                    const fileReader = new FileReader();
+                    fileReader.onloadend = (readerEvent: any) => {
+                        if (typeof fileReader.result === "string") {
+                            setPrivateKey(fileReader.result);
+                        } else {
+                            errorNotification(
+                                "Can't parse string from the file."
+                            );
+                        }
+                    };
+                    fileReader.readAsText(file);
+                }
+            }
+        } catch (err) {
+            errorNotification(err);
+        }
+    }, []);
+
+    const generateNewKeys = () => {
+        setPrivateKey(perlin.generateNewKeys().secretKey);
+    };
+
+    const handleChange = useCallback((e: any) => {
+        setPrivateKey(e.target.value);
+    }, []);
+
+    const downloadKey = useCallback(() => {
+        const element = document.createElement("a");
+        element.setAttribute(
+            "href",
+            "data:text/plain;charset=utf-8," +
+                encodeURIComponent(privateKey || "")
+        );
+        element.setAttribute("download", "private-key.txt");
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }, [privateKey]);
+
+    return {
+        setPrivateKey,
+        generateNewKeys,
+        privateKey,
+        downloadKey,
+        handleFileChange,
+        handleChange
+    };
+};
+
+export default usePrivateKey;

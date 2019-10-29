@@ -6,6 +6,7 @@ import {
     ButtonOutlined,
     InputWrapper,
     StyledDropdown,
+    WhiteButton,
     formatBalance
 } from "../common/core";
 import styled from "styled-components";
@@ -94,9 +95,7 @@ const useParams = () => {
         type: ParamType.Raw,
         value: ""
     });
-    const [paramsList, setParamsList] = useState<IParamItem[]>([
-        getEmptyParam()
-    ]);
+    const [paramsList, setParamsList] = useState<IParamItem[]>([]);
     const setParamType = (id: string) => (type: ParamType) => {
         contractStore.logs = [];
         setParamsList(prevList =>
@@ -133,7 +132,7 @@ const useParams = () => {
         setParamsList(prevList => prevList.concat(getEmptyParam()));
     };
     const clearParams = () => {
-        setParamsList([getEmptyParam()]);
+        setParamsList([]);
     };
 
     return {
@@ -179,7 +178,7 @@ const Wrapper = styled(OriginalCard).attrs({ showBoxShadow: false })`
 `;
 const AddMoreText = styled.div`
     cursor: pointer;
-    margin: 0px 0px 10px 0px;
+    margin: 10px 0px;
     font-family: HKGrotesk;
     font-size: 16px;
     font-weight: 400;
@@ -555,17 +554,30 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         justifyContent="space-between"
                     >
                         <ButtonOutlined
-                            disabled={loading}
+                            width="auto"
+                            disabled={loading || !contractStore.waveletContract}
                             onClick={onCall(true)}
                         >
                             Simulate Call
                         </ButtonOutlined>
-                        <CallFunctionButton
-                            disabled={loading}
-                            onClick={onCall(false)}
+                        <div
+                            title={
+                                !gasLimit
+                                    ? "Please enter a valid gas limit"
+                                    : ""
+                            }
                         >
-                            Call Function
-                        </CallFunctionButton>
+                            <WhiteButton
+                                disabled={
+                                    loading ||
+                                    !parseInt(gasLimit, 10) ||
+                                    !contractStore.waveletContract
+                                }
+                                onClick={onCall(false)}
+                            >
+                                Call Function
+                            </WhiteButton>
+                        </div>
                     </Flex>
 
                     {loading ? (

@@ -1,8 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import {
-    WhiteButton,
+    LargeWhiteButton,
     RoundButton,
     ErrorMessage,
     LargeInput,
@@ -47,7 +47,9 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
     onWithdraw
 }) => {
     const [amount, setAmount] = useState();
-
+    useEffect(() => {
+        setAmount("");
+    }, [action]);
     const handleWithdrawStakeClick = useCallback(() => {
         if (action !== StakeActions.Withdraw) {
             setAction(StakeActions.Withdraw);
@@ -120,9 +122,9 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                         </Row>
                         <Row>
                             <Col width={1}>
-                                <WhiteButton onClick={handleSubmit}>
-                                    {action}
-                                </WhiteButton>
+                                <LargeWhiteButton onClick={handleSubmit}>
+                                    {action} {formatBalance(amount)}
+                                </LargeWhiteButton>
                             </Col>
                         </Row>
                     </div>

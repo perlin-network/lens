@@ -179,13 +179,15 @@ class AccountDetected extends React.Component<IProps, IState> {
     public render() {
         const { recipient } = this.props;
         const recipientBalance = new BigNumber(recipient.balance);
+        const url = `/contracts/${recipient.public_key}`;
         if (
             this.props.validContract &&
             recipient.public_key &&
-            !this.props.location.pathname.match(/^\/contracts.*/)
+            this.props.location.pathname !== url
         ) {
-            return <Redirect to={`/contracts/${recipient.public_key}`} />;
+            return <Redirect to={url} />;
         }
+        const gasLimit = this.state.gasLimit || "";
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -305,8 +307,18 @@ class AccountDetected extends React.Component<IProps, IState> {
                                             value={this.state.gasLimit}
                                         />
                                     )}
-                                    <Box>
+                                    <Box
+                                        title={
+                                            !parseInt(gasLimit, 10)
+                                                ? "Please enter a valid gas limit"
+                                                : ""
+                                        }
+                                    >
                                         <SendPerlsButton
+                                            disabled={
+                                                this.props.validContract &&
+                                                !parseInt(gasLimit, 10)
+                                            }
                                             onClick={this.handleSendButton}
                                         >
                                             {this.state.inputType ===
@@ -320,13 +332,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                 {this.props.validContract && (
                                     <DetailsLinkWrapper>
                                         Valid Contract ID has been detected.
-                                        <Link
-                                            to={`/transactions/${this.props.recipient.public_key}`}
-                                        >
-                                            <b>
-                                                <u>Go to the detail</u>.
-                                            </b>
-                                        </Link>
                                     </DetailsLinkWrapper>
                                 )}
                             </Box>
