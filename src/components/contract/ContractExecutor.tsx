@@ -6,6 +6,7 @@ import {
     ButtonOutlined,
     InputWrapper,
     StyledDropdown,
+    WhiteButton,
     formatBalance
 } from "../common/core";
 import styled from "styled-components";
@@ -553,6 +554,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         justifyContent="space-between"
                     >
                         <ButtonOutlined
+                            width="auto"
                             disabled={loading || !contractStore.waveletContract}
                             onClick={onCall(true)}
                         >
@@ -565,7 +567,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                     : ""
                             }
                         >
-                            <CallFunctionButton
+                            <WhiteButton
                                 disabled={
                                     loading ||
                                     !parseInt(gasLimit, 10) ||
@@ -574,7 +576,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                 onClick={onCall(false)}
                             >
                                 Call Function
-                            </CallFunctionButton>
+                            </WhiteButton>
                         </div>
                     </Flex>
 

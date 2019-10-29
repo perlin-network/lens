@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import {
-    WhiteButton,
+    LargeWhiteButton,
     RoundButton,
     ErrorMessage,
     LargeInput,
@@ -122,9 +122,9 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                         </Row>
                         <Row>
                             <Col width={1}>
-                                <WhiteButton onClick={handleSubmit}>
+                                <LargeWhiteButton onClick={handleSubmit}>
                                     {action} {formatBalance(amount)}
-                                </WhiteButton>
+                                </LargeWhiteButton>
                             </Col>
                         </Row>
                     </div>
