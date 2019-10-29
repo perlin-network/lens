@@ -12,19 +12,20 @@ import {
 import { TX_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
-import {
-    numberWithCommas,
-    StyledDropdown,
-    InputWrapper
-} from "../../common/core";
+import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
-import { Link } from "react-router-dom";
+import {
+    Link,
+    Redirect,
+    withRouter,
+    RouteComponentProps
+} from "react-router-dom";
 import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
 import BigNumber from "bignumber.js";
 import GasLimit from "../../common/gas-limit/GasLimit";
 import JSBI from "jsbi";
 
-interface IProps {
+interface IProps extends RouteComponentProps {
     recipient: any;
     changeComponent: (component: string) => void;
     toggleComponent: string;
@@ -33,6 +34,7 @@ interface IProps {
 
 interface IState {
     inputPerls: string;
+    kens: string;
     doubleChecked: boolean;
     errorMessage: string;
     gasLimit?: string;
@@ -159,11 +161,12 @@ const inputTypes = [
 const perlin = Perlin.getInstance();
 
 @observer
-export default class AccountDetected extends React.Component<IProps, IState> {
+class AccountDetected extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
             inputPerls: "",
+            kens: "",
             doubleChecked: false,
             errorMessage: "",
             gasChoiceReset: 0,
@@ -176,6 +179,15 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     public render() {
         const { recipient } = this.props;
         const recipientBalance = new BigNumber(recipient.balance);
+        const url = `/contracts/${recipient.public_key}`;
+        if (
+            this.props.validContract &&
+            recipient.public_key &&
+            this.props.location.pathname !== url
+        ) {
+            return <Redirect to={url} />;
+        }
+        const gasLimit = this.state.gasLimit || "";
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -215,7 +227,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                         <InfoLine>
                                             <td className="label">Balance</td>
                                             <td className="value">
-                                                {recipient.balance}
+                                                {formatBalance(
+                                                    recipient.balance
+                                                )}
                                             </td>
                                         </InfoLine>
                                         {this.props.validContract && (
@@ -224,20 +238,24 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                                     Gas Balance
                                                 </td>
                                                 <td className="value">
-                                                    {recipient.gas_balance}
+                                                    {formatBalance(
+                                                        recipient.gas_balance
+                                                    )}
                                                 </td>
                                             </InfoLine>
                                         )}
                                         <InfoLine>
                                             <td className="label">Reward</td>
                                             <td className="value">
-                                                {recipient.reward}
+                                                {formatBalance(
+                                                    recipient.reward
+                                                )}
                                             </td>
                                         </InfoLine>
                                         <InfoLine>
                                             <td className="label">Stake</td>
                                             <td className="value">
-                                                {recipient.stake}
+                                                {formatBalance(recipient.stake)}
                                             </td>
                                         </InfoLine>
                                         {typeof recipient.nonce !==
@@ -268,12 +286,11 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                     <InputWrapper>
                                         <DividerInput
                                             placeholder="Enter Amount"
-                                            value={this.state.inputPerls}
                                             onChange={this.updateInputPerls}
                                         />
                                         <Divider>|</Divider>
                                         <DividerAside>
-                                            Fee: {TX_FEE} PERLs
+                                            Fee: {formatBalance(TX_FEE)}
                                         </DividerAside>
                                     </InputWrapper>
                                 </Flex>
@@ -290,28 +307,31 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                             value={this.state.gasLimit}
                                         />
                                     )}
-                                    <Box>
+                                    <Box
+                                        title={
+                                            !parseInt(gasLimit, 10)
+                                                ? "Please enter a valid gas limit"
+                                                : ""
+                                        }
+                                    >
                                         <SendPerlsButton
+                                            disabled={
+                                                this.props.validContract &&
+                                                !parseInt(gasLimit, 10)
+                                            }
                                             onClick={this.handleSendButton}
                                         >
                                             {this.state.inputType ===
                                             inputTypes[1].value
                                                 ? "Deposit"
                                                 : "Send"}{" "}
-                                            {this.state.inputPerls} PERL(s)
+                                            {formatBalance(this.state.kens)}
                                         </SendPerlsButton>
                                     </Box>
                                 </Flex>
                                 {this.props.validContract && (
                                     <DetailsLinkWrapper>
                                         Valid Contract ID has been detected.
-                                        <Link
-                                            to={`/transactions/${this.props.recipient.public_key}`}
-                                        >
-                                            <b>
-                                                <u>Go to the detail</u>.
-                                            </b>
-                                        </Link>
                                     </DetailsLinkWrapper>
                                 )}
                             </Box>
@@ -330,7 +350,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                         <Box width={4 / 7} className="table-outer">
                             <div className="table-inner break-word-normal">
                                 <h4>
-                                    Your {this.state.inputPerls} PERL(s) are on
+                                    Your {formatBalance(this.state.kens)} are on
                                     their way!
                                 </h4>
                                 <p>
@@ -358,9 +378,12 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             <div className="address">{perlin.publicKeyHex}</div>
                             <span className="balance">
                                 My Balance:{" "}
-                                {numberWithCommas(perlin.account.balance)}
+                                {formatBalance(perlin.account.balance)}
                             </span>
-                            <DeltaTag value={-this.state.inputPerls - TX_FEE} />
+                            {/* <DeltaTag value={-this.state.inputPerls - TX_FEE} /> */}
+                            <DeltaTag
+                                value={"-" + formatBalance(this.state.kens)}
+                            />
                         </Box>
                         <Box
                             ml={2}
@@ -391,22 +414,30 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                             {this.state.inputType === inputTypes[1].value ? (
                                 <span className="balance">
                                     Recipient Gas Balance:{" "}
-                                    {numberWithCommas(
+                                    {/* {numberWithCommas(
                                         new BigNumber(
                                             recipient.gas_balance
-                                        ).toString()
+                                        ).toString() */}
+                                    {formatBalance(
+                                        new BigNumber(recipient.gas_balance)
+                                            .plus(this.state.kens)
+                                            .toString()
                                     )}
                                 </span>
                             ) : (
                                 <span className="balance">
                                     Recipient Balance:{" "}
-                                    {numberWithCommas(
-                                        recipientBalance.toString()
+                                    {/* {numberWithCommas(
+                                        recipientBalance.toString() */}
+                                    {formatBalance(
+                                        recipientBalance
+                                            .plus(this.state.kens)
+                                            .toString()
                                     )}
                                 </span>
                             )}
 
-                            <DeltaTag value={this.state.inputPerls} />
+                            <DeltaTag value={formatBalance(this.state.kens)} />
                         </Box>
                     </TransferRow>
                 </AccountDetectedAnimation>
@@ -423,7 +454,9 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     };
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
-        this.setState({ inputPerls: e.target.value });
+        const inputPerls = e.target.value;
+        const kens = Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+        this.setState({ inputPerls, kens });
     }
     private handleSendButton = () => {
         if (this.successfulSend()) {
@@ -441,7 +474,7 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
         gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
 
-        let perls = JSBI.BigInt(this.state.inputPerls);
+        let perls = JSBI.BigInt(this.state.kens);
 
         if (this.props.validContract) {
             if (
@@ -518,3 +551,5 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         });
     };
 }
+
+export default withRouter(AccountDetected);

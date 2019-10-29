@@ -3,7 +3,7 @@ import * as storage from "./storage";
 import * as nacl from "tweetnacl";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
-import { HTTP_PROTOCOL, WS_PROTOCOL, FAUCET_URL } from "./constants";
+import { FAUCET_URL } from "./constants";
 import { SmartBuffer } from "smart-buffer";
 import PayloadReader from "./payload/PayloadReader";
 import { IAccount } from "./types/Account";
@@ -80,6 +80,7 @@ class Perlin {
 
     @observable public api = {
         host: storage.getCurrentHost(),
+        ws: storage.getCurrentHost().replace(/^http/, "ws"),
         token: ""
     };
 
@@ -148,7 +149,7 @@ class Perlin {
         if (secret) {
             this.login(secret);
         }
-        this.client = new Wavelet(`${HTTP_PROTOCOL}://${this.api.host}`);
+        this.client = new Wavelet(this.api.host);
     }
 
     @action.bound
@@ -374,7 +375,7 @@ class Perlin {
         params?: any,
         headers?: any
     ): Promise<Response> {
-        const url = new URL(`${HTTP_PROTOCOL}://${this.api.host}${endpoint}`);
+        const url = new URL(`${this.api.host}${endpoint}`);
         Object.keys(params).forEach(key =>
             url.searchParams.append(key, params[key])
         );
@@ -428,16 +429,13 @@ class Perlin {
         body?: any,
         headers?: any
     ): Promise<any> {
-        const response = await fetch(
-            `${HTTP_PROTOCOL}://${this.api.host}${endpoint}`,
-            {
-                method: "post",
-                headers: {
-                    ...headers
-                },
-                body: JSON.stringify(body)
-            }
-        );
+        const response = await fetch(`${this.api.host}${endpoint}`, {
+            method: "post",
+            headers: {
+                ...headers
+            },
+            body: JSON.stringify(body)
+        });
 
         return await response.json();
     }
@@ -529,7 +527,7 @@ class Perlin {
     }
 
     private pollMetricsUpdates() {
-        const url = new URL(`${WS_PROTOCOL}://${this.api.host}/poll/metrics`);
+        const url = new URL(`${this.api.ws}/poll/metrics`);
 
         const ws = new ReconnectingWebSocket(url.toString());
 

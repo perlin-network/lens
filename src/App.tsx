@@ -50,7 +50,7 @@ const Content = styled(Box).attrs({
 const routes = [
     { path: "/", component: Dashboard, restriction: true },
     { path: "/validator", component: Validator, restriction: true },
-    { path: "/contracts", component: Contract, restriction: true },
+    { path: "/contracts/:id?", component: Contract, restriction: true },
     { path: "/settings", component: Settings, restriction: true },
     {
         path: "/transactions/:id",

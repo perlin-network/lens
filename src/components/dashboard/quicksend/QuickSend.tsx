@@ -81,24 +81,36 @@ interface IState {
     payload?: any;
 }
 
+interface IQuickSendProps {
+    id?: string;
+}
 const perlin = Perlin.getInstance();
 
-export default class QuickSend extends React.Component<{}, IState> {
+export default class QuickSend extends React.Component<
+    IQuickSendProps,
+    IState
+> {
     private poll: WebSocket;
-
     constructor(props: any) {
         super(props);
+        const inputID = props.id || "";
+
         this.state = {
             // todo : better to use enum
             toggleComponent: "",
             recipientID: "",
-            inputID: "",
+            inputID,
             sendInputFocused: false,
             recipient: {},
             validAccount: false,
             validContract: false,
             validTx: false
         };
+
+        if (inputID.length === 64) {
+            this.checkInput();
+        }
+
         this.updateinputID = this.updateinputID.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.handleRestart = this.handleRestart.bind(this);
@@ -106,9 +118,20 @@ export default class QuickSend extends React.Component<{}, IState> {
     public componentWillUnmount() {
         this.closePollAccount();
     }
-    public componentDidUpdate() {
-        if (this.state.toggleComponent === "") {
-            this.closePollAccount();
+    // public componentDidUpdate() {
+    //     if (this.state.toggleComponent === "") {
+    //         this.closePollAccount();
+    public componentDidUpdate(prevProps: IQuickSendProps) {
+        const inputID = this.props.id || "";
+        if (prevProps.id !== inputID && inputID.length === 64) {
+            this.setState(
+                {
+                    inputID
+                },
+                () => {
+                    this.checkInput();
+                }
+            );
         }
     }
     public render() {

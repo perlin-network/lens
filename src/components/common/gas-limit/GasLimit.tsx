@@ -55,9 +55,10 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     const updateGasLimit = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const limit = e.target.value;
-            setGasLimit(limit);
+            const kens = Math.floor(parseFloat(limit) * Math.pow(10, 9)) + "";
+            setGasLimit(kens);
             setChoiceReset(choiceReset + 1);
-            onChange(limit);
+            onChange(kens);
         },
         []
     );
@@ -73,7 +74,8 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
         },
         [balance]
     );
-    const formattedValue = (gasLimit && parseInt(gasLimit, 10)) || "";
+    const formattedValue =
+        (gasLimit && parseInt(gasLimit, 10) / Math.pow(10, 9)) || "";
     return (
         <Flex mr={mr} mt={mt} mb={mb} ml={ml} flex="1">
             <DividerInput

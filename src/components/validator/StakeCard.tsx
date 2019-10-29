@@ -1,12 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import {
-    WhiteButton,
+    LargeWhiteButton,
     RoundButton,
     ErrorMessage,
     LargeInput,
-    numberWithCommas
+    formatBalance
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -32,7 +32,7 @@ const Col = styled(Box)`
 `;
 
 const StakeAmount = styled.h2`
-    font-size: 36px;
+    font-size: 30px;
     font-weight: 400;
     color: #fff;
     margin-top: 0px;
@@ -47,7 +47,9 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
     onWithdraw
 }) => {
     const [amount, setAmount] = useState();
-
+    useEffect(() => {
+        setAmount("");
+    }, [action]);
     const handleWithdrawStakeClick = useCallback(() => {
         if (action !== StakeActions.Withdraw) {
             setAction(StakeActions.Withdraw);
@@ -66,8 +68,10 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setAmount(parseInt(value, 10));
+            const inputPerls = e.target.value;
+            const kens =
+                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+            setAmount(parseInt(kens, 10));
         },
         []
     );
@@ -88,11 +92,10 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
             </CardHeader>
             <CardBody>
                 <Row>
-                    <Col width={1 / 2}>
-                        <StakeAmount> {numberWithCommas(stake)} </StakeAmount>
-                        PERLs
+                    <Col flex="1" mt={2}>
+                        <StakeAmount> {formatBalance(stake)} </StakeAmount>
                     </Col>
-                    <Col width={1 / 2} style={{ textAlign: "right" }}>
+                    <Col>
                         <RoundButton
                             onClick={handleWithdrawStakeClick}
                             inactive={action === StakeActions.Withdraw}
@@ -113,16 +116,15 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                             <Col width={1}>
                                 <LargeInput
                                     placeholder="Enter Amount"
-                                    defaultValue={amount}
                                     onChange={handleAmountChange}
                                 />
                             </Col>
                         </Row>
                         <Row>
                             <Col width={1}>
-                                <WhiteButton onClick={handleSubmit}>
-                                    {action}
-                                </WhiteButton>
+                                <LargeWhiteButton onClick={handleSubmit}>
+                                    {action} {formatBalance(amount)}
+                                </LargeWhiteButton>
                             </Col>
                         </Row>
                     </div>
