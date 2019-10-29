@@ -98,7 +98,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                 message: "You have Logged In"
             });
         } catch (err) {
-            errorNotification("Cannot find the host.");
+            console.log(err);
         }
     };
 
