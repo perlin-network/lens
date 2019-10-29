@@ -380,6 +380,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                 My Balance:{" "}
                                 {formatBalance(perlin.account.balance)}
                             </span>
+                            {/* <DeltaTag value={-this.state.inputPerls - TX_FEE} /> */}
                             <DeltaTag
                                 value={"-" + formatBalance(this.state.kens)}
                             />
@@ -413,6 +414,10 @@ class AccountDetected extends React.Component<IProps, IState> {
                             {this.state.inputType === inputTypes[1].value ? (
                                 <span className="balance">
                                     Recipient Gas Balance:{" "}
+                                    {/* {numberWithCommas(
+                                        new BigNumber(
+                                            recipient.gas_balance
+                                        ).toString() */}
                                     {formatBalance(
                                         new BigNumber(recipient.gas_balance)
                                             .plus(this.state.kens)
@@ -422,6 +427,8 @@ class AccountDetected extends React.Component<IProps, IState> {
                             ) : (
                                 <span className="balance">
                                     Recipient Balance:{" "}
+                                    {/* {numberWithCommas(
+                                        recipientBalance.toString() */}
                                     {formatBalance(
                                         recipientBalance
                                             .plus(this.state.kens)

@@ -90,6 +90,7 @@ export default class QuickSend extends React.Component<
     IQuickSendProps,
     IState
 > {
+    private poll: WebSocket;
     constructor(props: any) {
         super(props);
         const inputID = props.id || "";
@@ -114,6 +115,12 @@ export default class QuickSend extends React.Component<
         this.onKeyDown = this.onKeyDown.bind(this);
         this.handleRestart = this.handleRestart.bind(this);
     }
+    public componentWillUnmount() {
+        this.closePollAccount();
+    }
+    // public componentDidUpdate() {
+    //     if (this.state.toggleComponent === "") {
+    //         this.closePollAccount();
     public componentDidUpdate(prevProps: IQuickSendProps) {
         const inputID = this.props.id || "";
         if (prevProps.id !== inputID && inputID.length === 64) {
@@ -201,6 +208,23 @@ export default class QuickSend extends React.Component<
             }
         });
     }
+    private async pollAccount(id: string, cb: (recipient: any) => void) {
+        this.closePollAccount();
+        const poll = await perlin.pollAccountUpdates(
+            id,
+            () => this.state.recipient,
+            recipient => {
+                cb(recipient);
+            }
+        );
+
+        this.poll = poll;
+    }
+    private closePollAccount() {
+        if (this.poll) {
+            this.poll.close();
+        }
+    }
     private async checkInput() {
         if (await this.validtxId()) {
             this.setState({
@@ -208,14 +232,19 @@ export default class QuickSend extends React.Component<
             });
         } else if (this.validInputID()) {
             try {
+                const updateRecipient = (data: any) => {
+                    this.setState({ recipient: { ...data } });
+                };
                 const recipient = await perlin.getAccount(this.state.inputID);
-
                 this.setState({
                     toggleComponent: "showDetectedAccount",
                     recipient,
                     validContract: recipient.is_contract,
                     validAccount: true
                 });
+                updateRecipient(recipient);
+
+                this.pollAccount(this.state.inputID, updateRecipient);
             } catch (err) {
                 console.log(err);
             }
