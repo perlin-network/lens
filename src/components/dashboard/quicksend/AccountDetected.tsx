@@ -14,13 +14,18 @@ import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
-import { Link } from "react-router-dom";
+import {
+    Link,
+    Redirect,
+    withRouter,
+    RouteComponentProps
+} from "react-router-dom";
 import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
 import BigNumber from "bignumber.js";
 import GasLimit from "../../common/gas-limit/GasLimit";
 import JSBI from "jsbi";
 
-interface IProps {
+interface IProps extends RouteComponentProps {
     recipient: any;
     changeComponent: (component: string) => void;
     toggleComponent: string;
@@ -156,7 +161,7 @@ const inputTypes = [
 const perlin = Perlin.getInstance();
 
 @observer
-export default class AccountDetected extends React.Component<IProps, IState> {
+class AccountDetected extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
@@ -174,6 +179,14 @@ export default class AccountDetected extends React.Component<IProps, IState> {
     public render() {
         const { recipient } = this.props;
         const recipientBalance = new BigNumber(recipient.balance);
+        const url = `/contracts/${recipient.public_key}`;
+        if (
+            this.props.validContract &&
+            recipient.public_key &&
+            this.props.location.pathname !== url
+        ) {
+            return <Redirect to={url} />;
+        }
         const gasLimit = this.state.gasLimit || "";
         return (
             <Wrapper>
@@ -319,13 +332,6 @@ export default class AccountDetected extends React.Component<IProps, IState> {
                                 {this.props.validContract && (
                                     <DetailsLinkWrapper>
                                         Valid Contract ID has been detected.
-                                        <Link
-                                            to={`/transactions/${this.props.recipient.public_key}`}
-                                        >
-                                            <b>
-                                                <u>Go to the detail</u>.
-                                            </b>
-                                        </Link>
                                     </DetailsLinkWrapper>
                                 )}
                             </Box>
@@ -538,3 +544,5 @@ export default class AccountDetected extends React.Component<IProps, IState> {
         });
     };
 }
+
+export default withRouter(AccountDetected);

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useEffect } from "react";
 import { useCallback, useState } from "react";
 import {
     Button as RawButton,
@@ -132,7 +132,7 @@ const successNotification = (title: string, txId: string) => {
         type: NotificationTypes.Success,
         content: (
             <p>
-                You can view your smart contract
+                You can view your smart contract details
                 <Link to={"/transactions/" + txId} title={txId} target="_blank">
                     here
                 </Link>
@@ -220,12 +220,16 @@ export const loadContractFromNetwork = async (
         return 0;
     }
 };
-
-const ContractUploader: React.FunctionComponent = () => {
+interface IContractUploaderProps {
+    contractId: string;
+}
+const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
+    contractId = ""
+}) => {
     const [loading, setLoading] = useState(false);
     const [gasLimit, setGasLimit] = useState();
     const [gasDeposit, setGasDeposit] = useState();
-    const [contractAddress, setContractAddress] = useState("");
+    const [contractAddress, setContractAddress] = useState(contractId);
     const [inlineMessage, setInlineMessage] = useState();
     const handleAddressChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,6 +237,13 @@ const ContractUploader: React.FunctionComponent = () => {
         },
         []
     );
+
+    useEffect(() => {
+        if (contractId) {
+            setContractAddress(contractId);
+            handleLoad(contractId);
+        }
+    }, [contractId]);
 
     const handleUpdateGasLimit = useCallback((value: string) => {
         setGasLimit(value);
@@ -247,39 +258,40 @@ const ContractUploader: React.FunctionComponent = () => {
     const delay = (time: any) =>
         new Promise((res: any) => setTimeout(res, time));
 
-    const handleLoad = useCallback(
-        async (event: any) => {
+    const loadContractSubmit = useCallback(
+        (event: any) => {
             event.preventDefault();
-            setLoading(true);
-            setInlineMessage(undefined);
-            try {
-                await loadContractFromNetwork(contractAddress);
-
-                if (contractStore.contract.transactionId) {
-                    contractStore.waveletContract = new Contract(
-                        perlin.client,
-                        contractStore.contract.transactionId
-                    );
-                    await contractStore.waveletContract.init();
-
-                    successNotification(
-                        "",
-                        contractStore.contract.transactionId
-                    );
-                    setInlineMessage({
-                        type: "success"
-                    });
-                }
-            } catch (err) {
-                errorNotification(err.message || err);
-            } finally {
-                setLoading(false);
-                setGasLimit(undefined);
-                setGasDeposit("");
-            }
+            handleLoad(contractAddress);
         },
         [contractAddress]
     );
+
+    const handleLoad = useCallback(async (conctractId: any) => {
+        setLoading(true);
+        setInlineMessage(undefined);
+        try {
+            await loadContractFromNetwork(conctractId);
+
+            if (contractStore.contract.transactionId) {
+                contractStore.waveletContract = new Contract(
+                    perlin.client,
+                    contractStore.contract.transactionId
+                );
+                await contractStore.waveletContract.init();
+
+                successNotification("", contractStore.contract.transactionId);
+                setInlineMessage({
+                    type: "success"
+                });
+            }
+        } catch (err) {
+            errorNotification(err.message || err);
+        } finally {
+            setLoading(false);
+            setGasLimit(undefined);
+            setGasDeposit("");
+        }
+    }, []);
 
     const onDropAccepted = useCallback(
         async (acceptedFiles: File[]) => {
@@ -290,6 +302,7 @@ const ContractUploader: React.FunctionComponent = () => {
 
             const gasDepositNumber = JSBI.BigInt(Math.floor(gasDeposit || 0));
             setInlineMessage(undefined);
+            setContractAddress("");
             try {
                 if (
                     // gasLimitNumber.isNaN() ||
@@ -418,7 +431,7 @@ const ContractUploader: React.FunctionComponent = () => {
                 <DividerText>OR</DividerText>
                 <Divider />
             </DividerWrapper>
-            <FormWrapper onSubmit={handleLoad}>
+            <FormWrapper onSubmit={loadContractSubmit}>
                 <LoadContractInput
                     value={contractAddress}
                     placeholder="Enter the address of a deployed smart contract"

@@ -105,6 +105,13 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
         props.history.push("/login");
     };
 
+    const isLinkActive = (link: string) => {
+        if (link === "/") {
+            return link === pathname;
+        }
+        return pathname.startsWith(link);
+    };
+
     return (
         <>
             <LogoWrapper src={perlinLogo} />
@@ -114,7 +121,7 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
                         <NavItem
                             key={item.title}
                             onClick={navigateTo(item.link, item.external)}
-                            active={pathname === item.link}
+                            active={isLinkActive(item.link)}
                             href={item.external ? item.link : ""}
                             target={item.external ? "_blank" : ""}
                         >
