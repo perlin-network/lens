@@ -57,6 +57,14 @@ export const Button = styled.button<any>`
         opacity: 0.3;
     }
 
+    ${(props: IButtonProps) =>
+        props.hideOverflow
+            ? `
+        text-overflow: ellipsis;
+        overflow: hidden;
+    `
+            : ""}
+
     &:hover,
     &:active {
         background-color: none;
