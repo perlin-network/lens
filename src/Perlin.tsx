@@ -151,7 +151,6 @@ class Perlin {
         if (secret) {
             this.login(secret);
         }
-        this.client = new Wavelet(this.api.host);
     }
 
     @action.bound
@@ -359,7 +358,8 @@ class Perlin {
     }
     private async init() {
         try {
-            // await this.startSession();
+            this.client = new Wavelet(this.api.host);
+
             await this.initLedger();
             await this.initPeers();
 
