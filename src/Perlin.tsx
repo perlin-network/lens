@@ -1,6 +1,7 @@
 import { action, computed, observable } from "mobx";
 import * as storage from "./storage";
 import * as nacl from "tweetnacl";
+import { blake2b, blake2bHex } from "blakejs";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
 import { FAUCET_URL } from "./constants";
@@ -10,6 +11,7 @@ import { IAccount } from "./types/Account";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
 import JSBI from "jsbi";
+import { consoleTestResultHandler } from "tslint/lib/test";
 // @ts-ignore
 window.useNativeBigIntsIfAvailable = true;
 
@@ -171,11 +173,36 @@ class Perlin {
         window.location.reload();
     }
 
-    public generateNewKeys(): any {
-        const generatedKeys = nacl.sign.keyPair();
+    public generateNewKeys(c1 = 8): any {
+        let generatedKeys;
+        let checksum;
+
+        const prefixLen = (buf: Uint8Array) => {
+            for (let i = 0; i < buf.length; i++) {
+                const b = buf[i];
+                if (b !== 0) {
+                    const bin = b.toString(2);
+                    // @ts-ignore
+                    return i * 8 + bin.match(/^0*/).length;
+                }
+            }
+
+            return buf.length * 8 - 1;
+        };
+
+        do {
+            generatedKeys = nacl.sign.keyPair();
+
+            const id = blake2b(generatedKeys.publicKey, undefined, 32);
+            checksum = blake2b(id, undefined, 32);
+        } while (prefixLen(checksum) < c1);
+
+        const publicKey = Buffer.from(generatedKeys.publicKey).toString("hex");
+        const secretKey = Buffer.from(generatedKeys.secretKey).toString("hex");
+
         return {
-            publicKey: Buffer.from(generatedKeys.publicKey).toString("hex"),
-            secretKey: Buffer.from(generatedKeys.secretKey).toString("hex")
+            publicKey,
+            secretKey
         };
     }
 
