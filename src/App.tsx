@@ -73,7 +73,7 @@ class App extends React.Component<RouteComponentProps, {}> {
                         <SideNav />
                     </SideWrapper>
                     <Content isLoggedIn={isLoggedIn}>
-                        <Navbar />
+                        <Navbar isLoggedIn={isLoggedIn} />
                         <Switch>
                             {routes.map(
                                 route =>

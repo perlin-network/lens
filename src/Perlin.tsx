@@ -20,6 +20,8 @@ export enum NotificationTypes {
     Danger = "danger",
     Warning = "warning"
 }
+const controller = new AbortController();
+const signal = controller.signal;
 
 class Perlin {
     @computed get recentTransactions() {
@@ -149,18 +151,17 @@ class Perlin {
         if (secret) {
             this.login(secret);
         }
-        this.client = new Wavelet(this.api.host);
     }
 
     @action.bound
     public async login(hexString: string): Promise<any> {
-        this.keys = Wavelet.loadWalletFromPrivateKey(hexString);
         try {
+            this.keys = Wavelet.loadWalletFromPrivateKey(hexString);
             await this.init();
             storage.setSecretKey(hexString);
-            return Promise.resolve();
         } catch (err) {
-            return Promise.reject(err);
+            this.keys = {} as nacl.SignKeyPair;
+            throw err;
         }
     }
 
@@ -168,6 +169,7 @@ class Perlin {
     public logout() {
         storage.removeSecretKey();
         clearInterval(this.interval);
+        controller.abort();
         window.location.reload();
     }
 
@@ -234,6 +236,7 @@ class Perlin {
     public async getPerls(address: string) {
         return await fetch(FAUCET_URL, {
             method: "POST",
+            signal,
             body: JSON.stringify({
                 address
             })
@@ -355,7 +358,8 @@ class Perlin {
     }
     private async init() {
         try {
-            // await this.startSession();
+            this.client = new Wavelet(this.api.host);
+
             await this.initLedger();
             await this.initPeers();
 
@@ -367,6 +371,7 @@ class Perlin {
                 type: NotificationTypes.Danger,
                 message: err.message
             });
+            throw err;
         }
     }
 
@@ -382,6 +387,7 @@ class Perlin {
 
         return await fetch(url.toString(), {
             method: "get",
+            signal,
             headers: {
                 ...headers
             }
@@ -431,6 +437,7 @@ class Perlin {
     ): Promise<any> {
         const response = await fetch(`${this.api.host}${endpoint}`, {
             method: "post",
+            signal,
             headers: {
                 ...headers
             },
