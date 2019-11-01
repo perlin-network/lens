@@ -124,7 +124,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                 message: "You have Logged In"
             });
         } catch (err) {
-            errorNotification("Cannot find the host.");
+            console.log(err);
         }
     };
 
@@ -151,52 +151,63 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                         <CardTitle>Login</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Box mb={4}>
-                            <label>Private Key</label>
-                            <div
-                                className="input-row1"
-                                style={{ width: "100%" }}
-                            >
-                                <Textarea
-                                    onChange={handleChange}
-                                    value={privateKey}
-                                    rows={4}
-                                    style={{
-                                        width: "100%",
-                                        height: "100px",
-                                        fontSize: "14px"
-                                    }}
-                                />
-                            </div>
-                            <Row>
-                                <ButtonOutlined onClick={onGenerateNewKeys}>
-                                    Generate New Key
-                                </ButtonOutlined>
-                                <FileInputWrapper>
-                                    <FileInput onChange={handleFileChange} />
-                                    <FileButton>Import from a file</FileButton>
-                                </FileInputWrapper>
-                                <ButtonOutlined
-                                    onClick={downloadKey}
-                                    disabled={!privateKey}
+                        <form onSubmit={login}>
+                            <Box mb={4}>
+                                <label>Private Key</label>
+                                <div
+                                    className="input-row1"
+                                    style={{ width: "100%" }}
                                 >
-                                    Download Key
-                                </ButtonOutlined>
-                            </Row>
-                            {loading && <LoadingSpinner />}
-                        </Box>
+                                    <Textarea
+                                        onChange={handleChange}
+                                        value={privateKey}
+                                        rows={4}
+                                        style={{
+                                            width: "100%",
+                                            height: "100px",
+                                            fontSize: "14px"
+                                        }}
+                                    />
+                                </div>
+                                <Row>
+                                    <ButtonOutlined
+                                        tabIndex={-1}
+                                        type="button"
+                                        onClick={onGenerateNewKeys}
+                                    >
+                                        Generate New Key
+                                    </ButtonOutlined>
+                                    <FileInputWrapper>
+                                        <FileInput
+                                            tabIndex={-1}
+                                            onChange={handleFileChange}
+                                        />
+                                        <FileButton tabIndex={-1}>
+                                            Import from a file
+                                        </FileButton>
+                                    </FileInputWrapper>
+                                    <ButtonOutlined
+                                        tabIndex={-1}
+                                        type="button"
+                                        onClick={downloadKey}
+                                        disabled={!privateKey}
+                                    >
+                                        Download Key
+                                    </ButtonOutlined>
+                                </Row>
+                                {loading && <LoadingSpinner />}
+                            </Box>
 
-                        <Box mb={4}>
-                            <label>API Address</label>
-                            <LargeInput
-                                defaultValue={currentHost}
-                                onChange={apiHostChangeHandler}
-                            />
-                        </Box>
+                            <Box mb={4}>
+                                <label>API Address</label>
+                                <LargeInput
+                                    defaultValue={currentHost}
+                                    onChange={apiHostChangeHandler}
+                                />
+                            </Box>
 
-                        <WhiteButton width="140px" onClick={login}>
-                            Login
-                        </WhiteButton>
+                            <WhiteButton width="140px">Login</WhiteButton>
+                        </form>
                     </CardBody>
                 </Card>
             </Box>

@@ -140,9 +140,11 @@ const WalletItem = styled(Item)`
 `;
 const perlin = Perlin.getInstance();
 
-const Navbar: React.FunctionComponent<{}> = () => {
+interface INavbarProps {
+    isLoggedIn: boolean;
+}
+const Navbar: React.FunctionComponent<INavbarProps> = ({ isLoggedIn }) => {
     const balance = perlin.account.balance;
-    const isLoggedIn = perlin.isLoggedIn;
 
     const stake = perlin.account.stake;
     const pubKey = isLoggedIn ? perlin.publicKeyHex : undefined;

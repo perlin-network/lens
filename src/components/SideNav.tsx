@@ -101,10 +101,6 @@ const SideNav: React.FunctionComponent<RouteComponentProps> = props => {
         perlin.logout();
     };
 
-    const login = () => () => {
-        props.history.push("/login");
-    };
-
     const isLinkActive = (link: string) => {
         if (link === "/") {
             return link === pathname;
