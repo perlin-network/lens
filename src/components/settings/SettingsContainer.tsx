@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Box, Flex } from "@rebass/grid";
 import styled from "styled-components";
-import {} from "../common/core";
+import LoadingSpinner, { Spinner } from "../common/loadingSpinner";
 import { Config } from "../config/Config";
 import {
     getCurrentHost,
@@ -31,6 +31,26 @@ const Title = styled.p`
     font-weight: 400;
 `;
 
+const Wrapper = styled.div`
+    ${CardBody} {
+        position: relative;
+    }
+
+    ${Spinner} {
+        position: absolute;
+        margin: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+`;
+
 const errorNotification = (message: string) => {
     perlin.notify({
         type: NotificationTypes.Danger,
@@ -41,6 +61,7 @@ const errorNotification = (message: string) => {
 const SettingsContainer = () => {
     const currentHost = getCurrentHost();
     const storedKey = getSecretKey();
+    const [loading, setLoading] = useState(false);
     const {
         generateNewKeys,
         privateKey,
@@ -55,8 +76,14 @@ const SettingsContainer = () => {
         },
         [privateKey]
     );
+    const onGenerateNewKeys = useCallback(async () => {
+        setLoading(true);
+        await generateNewKeys();
+        setLoading(false);
+    }, []);
+
     return (
-        <>
+        <Wrapper>
             <Title>Settings</Title>
 
             <Box width={2 / 3} mb={4}>
@@ -72,7 +99,7 @@ const SettingsContainer = () => {
                             confirmationMessage="Are you sure you want to change your Private Key?"
                         >
                             <Flex mt={3}>
-                                <ButtonOutlined onClick={generateNewKeys}>
+                                <ButtonOutlined onClick={onGenerateNewKeys}>
                                     Generate New Key
                                 </ButtonOutlined>
                                 <FileInputWrapper>
@@ -86,6 +113,7 @@ const SettingsContainer = () => {
                                     Download Key
                                 </ButtonOutlined>
                             </Flex>
+                            {loading && <LoadingSpinner />}
                         </Config>
                     </CardBody>
                 </Card>
@@ -105,7 +133,7 @@ const SettingsContainer = () => {
                     </CardBody>
                 </Card>
             </Box>
-        </>
+        </Wrapper>
     );
 };
 

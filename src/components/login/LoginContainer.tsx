@@ -6,7 +6,7 @@ import { observer } from "mobx-react-lite";
 import { Perlin, NotificationTypes } from "../../Perlin";
 import { withRouter, RouteComponentProps, Redirect } from "react-router";
 import "../config/config.scss";
-import { Config } from "../config/Config";
+import LoadingSpinner, { Spinner } from "../common/loadingSpinner";
 import usePrivateKey from "./usePrivateKey";
 import {
     LargeInput,
@@ -44,6 +44,25 @@ const Wrapper = styled(Flex)`
         padding: 15px;
         margin: 10px 0;
     }
+
+    ${CardBody} ${Box} {
+        position: relative;
+    }
+
+    ${Spinner} {
+        position: absolute;
+        margin: 0;
+        top: -10px;
+        left: -10px;
+        width: calc(100% + 20px);
+        height: calc(100% + 20px);
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 6px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 `;
 
 const Row = styled(Flex)`
@@ -71,11 +90,18 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
     } = usePrivateKey(errorNotification);
 
     const [alert, setAlert] = useState<string>();
+    const [loading, setLoading] = useState(false);
 
     const currentHost = getCurrentHost();
 
     useEffect(() => {
-        generateNewKeys();
+        onGenerateNewKeys();
+    }, []);
+
+    const onGenerateNewKeys = useCallback(async () => {
+        setLoading(true);
+        await generateNewKeys();
+        setLoading(false);
     }, []);
 
     const login = async () => {
@@ -143,7 +169,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                 />
                             </div>
                             <Row>
-                                <ButtonOutlined onClick={generateNewKeys}>
+                                <ButtonOutlined onClick={onGenerateNewKeys}>
                                     Generate New Key
                                 </ButtonOutlined>
                                 <FileInputWrapper>
@@ -157,6 +183,7 @@ const LoginContainer: React.FunctionComponent<RouteComponentProps> = ({
                                     Download Key
                                 </ButtonOutlined>
                             </Row>
+                            {loading && <LoadingSpinner />}
                         </Box>
 
                         <Box mb={4}>
