@@ -17,13 +17,14 @@ const generateNewKeys = (c1 = 8) => {
     let generatedKeys;
     let checksum;
 
-    const prefixLen = buf => {
+    const prefixLen = (buf: Uint8Array) => {
         for (let i = 0; i < buf.length; i++) {
             const b = buf[i];
             if (b !== 0) {
-                const bin = b.toString(2);
-                // @ts-ignore
-                return i * 8 + bin.match(/^0*/).length;
+                // b.toString(2) removes leading 0s; so we just see how many were removed
+                const leadingZeros = 8 - b.toString(2).length;
+
+                return i * 8 + leadingZeros;
             }
         }
 
