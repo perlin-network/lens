@@ -13,7 +13,7 @@ onmessage = evt => {
     }
 };
 
-const generateNewKeys = (c1 = 8) => {
+const generateNewKeys = (c1 = 1) => {
     let generatedKeys;
     let checksum;
 

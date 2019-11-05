@@ -50,7 +50,7 @@ const usePrivateKey = (errorNotification: any, defaultKey: string = "") => {
     }, []);
 
     const generateNewKeys = async () => {
-        const generatedKeys: any = await workerGenerateKey(8);
+        const generatedKeys: any = await workerGenerateKey(1);
         const secretKey = Buffer.from(generatedKeys.secretKey).toString("hex");
         setPrivateKey(secretKey);
     };
