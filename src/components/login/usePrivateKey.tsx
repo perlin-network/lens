@@ -1,7 +1,24 @@
 import React, { useState, useCallback } from "react";
 import { Perlin, NotificationTypes } from "../../Perlin";
+import Worker from "worker-loader!./generate-keys-worker";
 
-const perlin = Perlin.getInstance();
+const worker = new Worker();
+
+const workerGenerateKey = (c1: number) => {
+    return new Promise(resolve => {
+        worker.onmessage = evt => {
+            const { type, data } = evt.data;
+
+            if (type === "newKeys") {
+                resolve(data as any);
+            }
+        };
+        worker.postMessage({
+            type: "generateKeys",
+            c1
+        });
+    });
+};
 
 const usePrivateKey = (errorNotification: any, defaultKey: string = "") => {
     const [privateKey, setPrivateKey] = useState<string>(defaultKey);
@@ -32,8 +49,10 @@ const usePrivateKey = (errorNotification: any, defaultKey: string = "") => {
         }
     }, []);
 
-    const generateNewKeys = () => {
-        setPrivateKey(perlin.generateNewKeys().secretKey);
+    const generateNewKeys = async () => {
+        const generatedKeys: any = await workerGenerateKey(1);
+        const secretKey = Buffer.from(generatedKeys.secretKey).toString("hex");
+        setPrivateKey(secretKey);
     };
 
     const handleChange = useCallback((e: any) => {

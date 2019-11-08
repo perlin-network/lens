@@ -1,6 +1,7 @@
 import { action, computed, observable } from "mobx";
 import * as storage from "./storage";
 import * as nacl from "tweetnacl";
+import { blake2b, blake2bHex } from "blakejs";
 import * as _ from "lodash";
 import { ITransaction, Tag } from "./types/Transaction";
 import { FAUCET_URL } from "./constants";
@@ -10,6 +11,7 @@ import { IAccount } from "./types/Account";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { Wavelet, Contract, TAG_TRANSFER } from "wavelet-client";
 import JSBI from "jsbi";
+import { consoleTestResultHandler } from "tslint/lib/test";
 // @ts-ignore
 window.useNativeBigIntsIfAvailable = true;
 
@@ -171,14 +173,6 @@ class Perlin {
         clearInterval(this.interval);
         controller.abort();
         window.location.reload();
-    }
-
-    public generateNewKeys(): any {
-        const generatedKeys = nacl.sign.keyPair();
-        return {
-            publicKey: Buffer.from(generatedKeys.publicKey).toString("hex"),
-            secretKey: Buffer.from(generatedKeys.secretKey).toString("hex")
-        };
     }
 
     public prepareTransaction(tag: Tag, payload: Buffer): any {
