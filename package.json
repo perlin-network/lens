@@ -95,7 +95,7 @@
         "wavelet-client": "^1.1.0",
         "wavelet-faucet": "^0.2.1",
         "webpack": "3.8.1",
-        "webpack-dev-server": "3.0.0",
+        "webpack-dev-server": "3.1.11",
         "webpack-manifest-plugin": "1.3.2",
         "whatwg-fetch": "2.0.3",
         "worker-loader": "^2.0.0"
