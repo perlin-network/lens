@@ -570,3 +570,4 @@ class Perlin {
 }
 
 export { Perlin };
+console.log("aa");

@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from "react";
 import { Perlin, NotificationTypes } from "../../Perlin";
-import Worker from "worker-loader!./generate-keys-worker";
+// @ts-ignore
+import Worker from "./generate-keys.worker";
 
 const worker = new Worker();
 
 const workerGenerateKey = (c1: number) => {
     return new Promise(resolve => {
-        worker.onmessage = evt => {
+        worker.onmessage = (evt: any) => {
             const { type, data } = evt.data;
 
             if (type === "newKeys") {

@@ -86,7 +86,9 @@ class NGraph extends React.PureComponent<
 
         this.networkGraphRef.current.appendChild(this.renderer.view);
 
+        // @ts-ignore
         d3.select(this.renderer.view).call(
+            // @ts-ignore
             d3.zoom().on("zoom", () => {
                 this.stage.scale.set(d3.event.transform.k);
                 this.stage.position.set(

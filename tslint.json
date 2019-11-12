@@ -13,13 +13,15 @@
         "object-literal-sort-keys": false,
         "ordered-imports": false,
         "no-bitwise": false,
-        "no-debugger": false
+        "no-debugger": false,
+        "no-restricted-globals": false
     },
     "jsRules": {
         "no-console": false,
         "object-literal-sort-keys": false,
         "ordered-imports": false,
         "no-bitwise": false,
-        "no-debugger": false
+        "no-debugger": false,
+        "no-restricted-globals": false
     }
 }

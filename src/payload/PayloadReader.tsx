@@ -1,5 +1,5 @@
 import { SmartBuffer } from "smart-buffer";
-import * as Long from "long";
+import Long from "long";
 
 class PayloadReader {
     public buffer: SmartBuffer;

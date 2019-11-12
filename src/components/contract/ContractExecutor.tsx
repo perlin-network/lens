@@ -16,7 +16,7 @@ import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin, NotificationTypes } from "../../Perlin";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
-import * as Long from "long";
+import Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
 import LoadingSpinner from "../common/loadingSpinner";
@@ -611,3 +611,4 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 });
 
 export default ContractExecutor;
+console.log("aas");
