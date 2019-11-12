@@ -84,7 +84,9 @@ export class Perlin {
 
     @observable public api = {
         host: storage.getCurrentHost(),
-        ws: storage.getCurrentHost().replace(/^http/, "ws"),
+        get ws() {
+            return this.host.replace(/^http/, "ws");
+        },
         token: ""
     };
 
