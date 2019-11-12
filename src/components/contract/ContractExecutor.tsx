@@ -611,4 +611,3 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 });
 
 export default ContractExecutor;
-console.log("aas");

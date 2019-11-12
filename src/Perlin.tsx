@@ -25,7 +25,7 @@ export enum NotificationTypes {
 const controller = new AbortController();
 const signal = controller.signal;
 
-class Perlin {
+export class Perlin {
     @computed get recentTransactions() {
         return this.transactions.recent.slice();
     }
@@ -568,6 +568,3 @@ class Perlin {
         );
     }
 }
-
-export { Perlin };
-console.log("aa");

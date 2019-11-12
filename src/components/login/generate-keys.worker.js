@@ -1,8 +1,6 @@
 import * as nacl from "tweetnacl";
 import { blake2b } from "blakejs";
 
-const ctx = self;
-
 onmessage = (evt) => {
     const { type, ...data } = evt.data;
     switch (type) {
@@ -37,7 +35,7 @@ const generateNewKeys = (c1 = 1) => {
         checksum = blake2b(id, undefined, 32);
     } while (prefixLen(checksum) < c1);
 
-    ctx.postMessage({
+    postMessage({
         type: "newKeys",
         data: generatedKeys
     });
