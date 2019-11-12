@@ -429,7 +429,11 @@ class AccountDetected extends React.Component<IProps, IState> {
                                     Recipient Balance:{" "}
                                     {/* {numberWithCommas(
                                         recipientBalance.toString() */}
-                                    {formatBalance(recipientBalance.toString())}
+                                    {formatBalance(
+                                        recipientBalance
+                                            .plus(this.state.kens)
+                                            .toString()
+                                    )}
                                 </span>
                             )}
 
