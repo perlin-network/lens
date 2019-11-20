@@ -34,7 +34,8 @@ const randomRange = (min, max) => {
 
 const uniqueRandomRange = (min, max) => {
     if (min > max) {
-        throw new Error(`Invalid random ranges ${min} - ${max}`);
+        // throw new Error(`Invalid random ranges ${min} - ${max}`);
+        max = min;
     }
     const extracted = {};
     let extractedCount = 0;
@@ -97,7 +98,7 @@ const addRound = (
     const depthSize = Math.ceil(numTx / maxDepth);
 
     // random indices will be assigned rejected status
-    const nodeMap = getRejectedIndices(accepted, rejected, depthSize);
+    const nodeMap = {}; // getRejectedIndices(accepted, rejected, depthSize);
 
     const round = {}; // will be a nodes per level structure, needed for node link resolve
     const nodes = [];
@@ -313,7 +314,8 @@ const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
             id: node.id,
             type: node.type,
             position: node.position,
-            round: node.round
+            round: node.round,
+            txId: node.txId
         });
         if (node.txId) {
             nodeInfo.txId = node.txId;
@@ -346,7 +348,7 @@ const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
                     addLineIndices(node, parent);
                 }
             });
-            return;
+            // return;
         }
 
         // all nodes next to start node should connect to it

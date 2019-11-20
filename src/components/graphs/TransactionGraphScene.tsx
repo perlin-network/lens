@@ -214,8 +214,8 @@ export class TransactionGraphScene {
              *   camera and target need to be moved together
              */
             new TWEEN.Tween(position)
-                .to({ x, y, z: z + 35 }, cameraSpeed)
-                .delay(cameraSpeed * 0.2) // delaying the camera allows for a breif overview of the upcoming structure
+                .to({ x, y, z: z + 15 }, cameraSpeed)
+                // .delay(cameraSpeed * 1) // delaying the camera allows for a breif overview of the upcoming structure
                 // .easing(TWEEN.Easing.Sinusoidal.In)
                 .on("update", (newPosition: any) => {
                     this.camera.position.set(
@@ -414,7 +414,7 @@ export class TransactionGraphScene {
             if (!hoveredNode) {
                 return;
             }
-
+            debugger;
             if (this.focusedNode === hoveredNode && hoveredNode.txId) {
                 this.clickHandler(hoveredNode.txId);
             } else {
@@ -513,7 +513,7 @@ export class TransactionGraphScene {
         this.raycaster = new THREE.Raycaster();
         this.raycaster.near = 0;
         this.camera = new THREE.PerspectiveCamera(20, 1, 1, 1000);
-        this.camera.position.set(0, 0, 35);
+        this.camera.position.set(0, 0, 15);
         this.camera.lookAt(this.scene.position);
     }
 
@@ -524,7 +524,7 @@ export class TransactionGraphScene {
         controls.panSpeed = 1;
         controls.noZoom = false;
         controls.noPan = false;
-        controls.staticMoving = true;
+        controls.staticMoving = false;
         controls.dynamicDampingFactor = 0.3;
         controls.keys = [65, 17, 16];
         this.controls = controls;

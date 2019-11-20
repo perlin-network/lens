@@ -23,7 +23,7 @@ export class GraphStore {
 
     private static singleton: GraphStore;
 
-    public cameraSpeed = 1000;
+    public cameraSpeed = 300;
 
     // renderQueue is ued to queue up render requeues
     private renderQueue: any[] = [];
@@ -87,7 +87,7 @@ export class GraphStore {
     public addRound = (
         accepted: number,
         rejected: number,
-        maxDepth: number,
+        maxDepth: number = 1,
         roundNum: number,
         startId?: string,
         endId?: string,

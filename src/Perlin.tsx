@@ -144,9 +144,10 @@ export class Perlin {
     public onConsensusPrune: (round: number) => void;
     public client: any;
 
-    private transactionDebounceIntv: number = 2200;
+    private transactionDebounceIntv: number = 100;
     private peerPollIntv: number = 10000;
     private interval: any;
+    private numRound = 0;
 
     private constructor() {
         const secret = storage.getSecretKey();
@@ -504,6 +505,7 @@ export class Perlin {
         );
     }
 
+
     private pollConsensusUpdates() {
         this.client.pollConsensus({
             onRoundEnded: (logs: any) => {
@@ -514,14 +516,15 @@ export class Perlin {
                     start_id: logs.old_root,
                     end_id: logs.new_root
                 };
+
                 if (this.onConsensusRound) {
                     this.onConsensusRound(
                         logs.num_applied_tx,
                         logs.num_rejected_tx,
-                        logs.round_depth,
-                        logs.new_round,
-                        logs.old_root,
-                        logs.new_root
+                        logs.new_block_height - logs.old_block_height,
+                        this.numRound++,
+                        logs.old_block_id,
+                        logs.new_block_id
                     );
                 }
             },
@@ -553,7 +556,7 @@ export class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<ITransaction[] | undefined> {
-        return await this.getJSON(`/tx?creator=${this.publicKeyHex}`, {
+        return await this.getJSON(`/tx`, {
             offset,
             limit,
             sender: this.publicKeyHex
