@@ -414,7 +414,6 @@ export class TransactionGraphScene {
             if (!hoveredNode) {
                 return;
             }
-            debugger;
             if (this.focusedNode === hoveredNode && hoveredNode.txId) {
                 this.clickHandler(hoveredNode.txId);
             } else {
