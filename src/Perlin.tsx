@@ -94,7 +94,7 @@ export class Perlin {
         public_key: "",
         address: "",
         peers: [] as string[],
-        round: {} as any,
+        block: {} as any,
         num_accounts: 0
     };
 
@@ -147,7 +147,7 @@ export class Perlin {
     private transactionDebounceIntv: number = 100;
     private peerPollIntv: number = 10000;
     private interval: any;
-    private numRound = 0;
+    private numRound = 1;
 
     private constructor() {
         const secret = storage.getSecretKey();
@@ -449,7 +449,13 @@ export class Perlin {
         this.peers = this.ledger.peers || [];
         this.numAccounts = this.ledger.num_accounts;
 
-        this.initRound = this.ledger.round;
+        this.initRound = {
+            applied: 1,
+            rejected: 0,
+            depth: 1,
+            start_id: undefined,
+            end_id: this.ledger.block.id
+        };
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex, this.account);
@@ -522,13 +528,15 @@ export class Perlin {
                         logs.num_applied_tx,
                         logs.num_rejected_tx,
                         logs.new_block_height - logs.old_block_height,
-                        this.numRound++,
+                        this.numRound+1,
                         logs.old_block_id,
                         logs.new_block_id
                     );
                 }
-            },
-            onRoundPruned: this.onConsensusPrune
+                if (logs.num_pruned_tx && this.onConsensusPrune) {
+                    this.onConsensusPrune(logs.num_pruned_tx);
+                }
+            }
         });
     }
 

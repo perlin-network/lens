@@ -160,24 +160,29 @@ export class TransactionGraphScene {
         // @ts-ignore
         dashes.material.needsUpdate = true;
     }
-    public removeNodes(roundNum: number) {
-        if (!this.rounds[roundNum]) {
+    public removeNodes(tx: number) {
+        const keys = Object.keys(this.rounds);
+        if (keys.length < 20) {
             return;
         }
+        keys.map(key => parseInt(key))
+            .sort((a, b) => a - b)
+            .slice(0, tx)
+            .forEach(roundNum => {
+                this.scene.remove(this.rounds[roundNum].dots);
+                this.scene.remove(this.rounds[roundNum].lines);
+                this.scene.remove(this.rounds[roundNum].dashes);
 
-        this.scene.remove(this.rounds[roundNum].dots);
-        this.scene.remove(this.rounds[roundNum].lines);
-        this.scene.remove(this.rounds[roundNum].dashes);
+                this.rounds[roundNum].dots.material.dispose();
+                this.rounds[roundNum].lines.material.dispose();
+                this.rounds[roundNum].dashes.material.dispose();
 
-        this.rounds[roundNum].dots.material.dispose();
-        this.rounds[roundNum].lines.material.dispose();
-        this.rounds[roundNum].dashes.material.dispose();
+                this.rounds[roundNum].dots.geometry.dispose();
+                this.rounds[roundNum].lines.geometry.dispose();
+                this.rounds[roundNum].dashes.geometry.dispose();
 
-        this.rounds[roundNum].dots.geometry.dispose();
-        this.rounds[roundNum].lines.geometry.dispose();
-        this.rounds[roundNum].dashes.geometry.dispose();
-
-        delete this.rounds[roundNum];
+                delete this.rounds[roundNum];
+            });
     }
 
     public destroy() {
@@ -414,11 +419,7 @@ export class TransactionGraphScene {
             if (!hoveredNode) {
                 return;
             }
-            if (this.focusedNode === hoveredNode && hoveredNode.txId) {
-                this.clickHandler(hoveredNode.txId);
-            } else {
-                this.fastPointCamera(hoveredNode);
-            }
+            this.fastPointCamera(hoveredNode);
             disableHover();
         };
 
@@ -471,8 +472,8 @@ export class TransactionGraphScene {
                         const tooltip: any = {
                             x,
                             y: y - 10,
-                            title: "Transaction",
-                            status: node.type,
+                            title: "Block",
+                            status: node.txId,
                             visible: true
                         };
 

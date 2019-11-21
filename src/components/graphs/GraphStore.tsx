@@ -67,7 +67,7 @@ export class GraphStore {
         // @ts-ignore
         perlin.onConsensusRound = window.addRound = this.addRound;
         // @ts-ignore
-        perlin.onConsensusPrune = window.pruneRound = this.pruneRound;
+        perlin.onConsensusPrune = window.pruneTx = this.pruneTx;
     }
 
     public subscribe(type: string, fn: any) {
@@ -117,6 +117,11 @@ export class GraphStore {
         this.prunnedRounds[roundNum] = true;
         this.worker.postMessage({ type: "pruneRound", roundNum });
     };
+
+    public pruneTx = (tx: number) => {
+        this.notifySubscribers("pruneTx", tx);
+    };
+
 
     private renderFromQueue = () => {
         const queueData = this.renderQueue.shift();
