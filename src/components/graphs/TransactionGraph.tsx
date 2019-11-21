@@ -85,10 +85,6 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
                 const round = perlin.initRound;
                 graphStore.addRound(
                     round.applied,
-                    round.rejected || 0,
-                    round.depth,
-                    0,
-                    round.start_id,
                     round.end_id,
                     true // for rerender of initial round
                 );

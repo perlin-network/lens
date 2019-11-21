@@ -135,10 +135,6 @@ export class Perlin {
     public keys: nacl.SignKeyPair;
     public onConsensusRound: (
         accepted: number,
-        rejected: number,
-        maxDepth: number,
-        round: number,
-        startId?: string,
         endId?: string
     ) => void;
     public onConsensusPrune: (round: number) => void;
@@ -451,9 +447,6 @@ export class Perlin {
 
         this.initRound = {
             applied: 1,
-            rejected: 0,
-            depth: 1,
-            start_id: undefined,
             end_id: this.ledger.block.id
         };
 
@@ -518,19 +511,12 @@ export class Perlin {
                 const round = this.numRound ++;
                 this.initRound = {
                     applied: logs.num_applied_tx,
-                    rejected: logs.num_rejected_tx,
-                    depth: round,
-                    start_id: logs.old_block_id,
                     end_id: logs.new_block_id
                 };
 
                 if (this.onConsensusRound) {
                     this.onConsensusRound(
                         logs.num_applied_tx,
-                        logs.num_rejected_tx,
-                        logs.new_block_height - logs.old_block_height,
-                        round,
-                        logs.old_block_id,
                         logs.new_block_id
                     );
                 }

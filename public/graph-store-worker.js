@@ -4,10 +4,6 @@ onmessage = evt => {
         case "addRound":
             addRound(
                 data.accepted,
-                data.rejected,
-                data.maxDepth,
-                data.roundNum,
-                data.startId,
                 data.endId,
                 data.cameraSpeed,
                 data.forced
@@ -81,15 +77,21 @@ let startNode;
 
 const addRound = (
     accepted,
-    rejected,
-    maxDepth,
-    roundNum,
-    startId,
     endId,
     cameraSpeed,
     forced = false
 ) => {
-    let numTx = accepted + rejected;
+    let numTx = accepted;
+
+    const keys = Object.keys(rounds);
+    const maxDepth = 1;
+
+    if (keys.length) {
+        roundNum = Math.max(...keys.map(key => parseInt(key))) + 1;
+    } else {
+        roundNum = 0;
+    }
+    
 
     if ((!forced && rounds[roundNum]) || !numTx) {
         return;

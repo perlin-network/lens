@@ -86,10 +86,6 @@ export class GraphStore {
     }
     public addRound = (
         accepted: number,
-        rejected: number,
-        maxDepth: number = 1,
-        roundNum: number,
-        startId?: string,
         endId?: string,
         forced?: boolean
     ) => {
@@ -97,10 +93,6 @@ export class GraphStore {
         this.worker.postMessage({
             type: "addRound",
             accepted,
-            rejected,
-            maxDepth,
-            roundNum,
-            startId,
             endId,
             cameraSpeed: this.cameraSpeed,
             forced
