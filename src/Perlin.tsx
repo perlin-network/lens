@@ -515,12 +515,13 @@ export class Perlin {
     private pollConsensusUpdates() {
         this.client.pollConsensus({
             onRoundEnded: (logs: any) => {
+                const round = this.numRound ++;
                 this.initRound = {
                     applied: logs.num_applied_tx,
                     rejected: logs.num_rejected_tx,
-                    depth: logs.round_depth,
-                    start_id: logs.old_root,
-                    end_id: logs.new_root
+                    depth: round,
+                    start_id: logs.old_block_id,
+                    end_id: logs.new_block_id
                 };
 
                 if (this.onConsensusRound) {
@@ -528,7 +529,7 @@ export class Perlin {
                         logs.num_applied_tx,
                         logs.num_rejected_tx,
                         logs.new_block_height - logs.old_block_height,
-                        this.numRound+1,
+                        round,
                         logs.old_block_id,
                         logs.new_block_id
                     );

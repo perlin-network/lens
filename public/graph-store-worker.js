@@ -9,7 +9,8 @@ onmessage = evt => {
                 data.roundNum,
                 data.startId,
                 data.endId,
-                data.cameraSpeed
+                data.cameraSpeed,
+                data.forced
             );
             break;
         case "pruneRound":
@@ -134,7 +135,7 @@ const addRound = (
         if (type === "start") {
             depth = -1;
             globalDepth = -1;
-            txId = startId;
+            txId = undefined;
         }
 
         // depthWidth reprezents the dimention of matrix structure for each level
@@ -162,7 +163,7 @@ const addRound = (
     let index = 0;
 
     // will create a clone of the last rounds' critical node and call it start node
-    if (startNode) {
+    if (startNode && !forced) {
         startNode = {
             ...startNode,
             parents: [],
@@ -315,7 +316,7 @@ const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
             type: node.type,
             position: node.position,
             round: node.round,
-            txId: node.txId
+            txId: node.type === "critical" ? node.txId : undefined
         });
         if (node.txId) {
             nodeInfo.txId = node.txId;
