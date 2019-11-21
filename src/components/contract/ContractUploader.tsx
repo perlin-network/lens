@@ -169,7 +169,6 @@ const createSmartContract = async (
             gasLimit,
             gasDeposit
         );
-
         if (resp.error) {
             errorNotification(`${resp.status}: ${resp.error}`);
         } else {
@@ -179,7 +178,7 @@ const createSmartContract = async (
             wasmModule.applyNames();
 
             contractStore.contract.name = file.name;
-            contractStore.contract.transactionId = resp.tx_id;
+            contractStore.contract.transactionId = resp.id;
             contractStore.contract.textContent = wasmModule.toText({
                 foldExprs: true,
                 inlineExport: false
