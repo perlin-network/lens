@@ -300,7 +300,7 @@ export class Perlin {
 
             const appliedTransactions = transactions.filter(
                 tx => tx.status === "applied"
-            );
+            ).sort((a, b) => b.nonce - a.nonce);
 
             this.transactions = {
                 ...this.transactions,

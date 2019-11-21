@@ -8,13 +8,10 @@ export enum Tag {
 
 export interface ITransaction {
     id: string;
-
-    creator: string;
     sender: string;
-    depth: number;
-
+    signature: string;
     tag: Tag;
-
+    nonce: number;
     status: string;
     payload?: string;
 }
