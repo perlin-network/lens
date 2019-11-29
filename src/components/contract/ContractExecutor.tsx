@@ -449,7 +449,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 ...callClonedParamList
             );
 
-            const txId = response.tx_id;
+            const txId = response.id;
             await contractStore.listenForApplied(TAG_TRANSFER, txId);
             await contractStore.waveletContract.fetchAndPopulateMemoryPages();
 

@@ -86,7 +86,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                 errorNotification(results.error);
             } else {
                 setAction(StakeActions.None);
-                successNotification("Stake Placed", results.tx_id);
+                successNotification("Stake Placed", results.id);
             }
         }
     }, []);
@@ -100,7 +100,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                     errorNotification(results.error);
                 } else {
                     setAction(StakeActions.None);
-                    successNotification("Stake Withdrawn", results.tx_id);
+                    successNotification("Stake Withdrawn", results.id);
                 }
             }
         },
@@ -123,7 +123,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                 errorNotification(results.error);
                 return false;
             } else {
-                successNotification("Reward Withdrawn", results.tx_id);
+                successNotification("Reward Withdrawn", results.id);
                 return true;
             }
         },

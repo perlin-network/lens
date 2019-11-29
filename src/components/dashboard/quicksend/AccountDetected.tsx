@@ -525,8 +525,8 @@ class AccountDetected extends React.Component<IProps, IState> {
                         <p>
                             You can view your transaction
                             <Link
-                                to={"/transactions/" + response.tx_id}
-                                title={response.tx_id}
+                                to={"/transactions/" + response.id}
+                                title={response.id}
                                 target="_blank"
                             >
                                 here
