@@ -63,7 +63,7 @@ export default class ContractStore {
                 {
                     onTransactionApplied: (data: any) => {
                         const tx: ITransaction = {
-                            id: data.id,
+                            id: data.tx_id,
                             sender: data.sender_id,
                             signature: data.signature,
                             nonce: data.nonce,
