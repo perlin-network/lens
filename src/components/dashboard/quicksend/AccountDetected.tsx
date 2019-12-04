@@ -460,8 +460,9 @@ class AccountDetected extends React.Component<IProps, IState> {
         const kens = Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
         this.setState({ inputPerls, kens });
     }
-    private handleSendButton = () => {
-        if (this.successfulSend()) {
+    private handleSendButton = async () => {
+        
+        if (await this.successfulSend()) {
             this.props.changeComponent("showSendConfirmation");
         }
     };
@@ -470,7 +471,7 @@ class AccountDetected extends React.Component<IProps, IState> {
         this.setState({ doubleChecked });
     }
 
-    private successfulSend = () => {
+    private successfulSend = async () => {
         const gasLimit = +(this.state.gasLimit + "");
 
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
@@ -512,34 +513,39 @@ class AccountDetected extends React.Component<IProps, IState> {
             perls = JSBI.BigInt(0);
         }
 
-        perlin
-            .transfer(
+        try {
+            const response =  await perlin.transfer(
                 this.props.recipient.public_key,
                 perls,
                 gasLimitNumber,
                 gasDeposit
-            )
-            .then(response => {
-                perlin.notify({
-                    title: "PERL(s) Sent",
-                    type: NotificationTypes.Success,
-                    content: (
-                        <p>
-                            You can view your transaction
-                            <Link
-                                to={"/transactions/" + response.id}
-                                title={response.id}
-                                target="_blank"
-                            >
-                                here
-                            </Link>
-                        </p>
-                    ),
-                    dismiss: { duration: 10000 }
-                });
-
-                this.updateGasLimit("");
+            );
+    
+            perlin.notify({
+                title: "PERL(s) Sent",
+                type: NotificationTypes.Success,
+                content: (
+                    <p>
+                        You can view your transaction
+                        <Link
+                            to={"/transactions/" + response.id}
+                            title={response.id}
+                            target="_blank"
+                        >
+                            here
+                        </Link>
+                    </p>
+                ),
+                dismiss: { duration: 10000 }
             });
+        } catch (err) {
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                message: err.message
+            });
+            return false;
+        }
+        this.updateGasLimit("");
 
         // further validation required for successful send
         return true;

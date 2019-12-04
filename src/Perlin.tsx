@@ -318,8 +318,8 @@ export class Perlin {
         try {
             const fee = this.client.calculateFee(tag, ...args);
             return Math.ceil(fee);
-        } catch (e) {
-            console.log(e);
+        } catch (err) {
+            console.warn(err.message);
         }
         return NaN;
     }
