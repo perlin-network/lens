@@ -142,11 +142,7 @@ const successNotification = (title: string, txId: string) => {
     });
 };
 
-const createSmartContract = async (
-    file: File,
-    gasLimit: JSBI,
-    gasDeposit: JSBI
-) => {
+const readFile = async (file: File) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -160,6 +156,15 @@ const createSmartContract = async (
         };
         reader.readAsArrayBuffer(file);
     });
+    return bytes;
+}
+const createSmartContract = async (
+    bytes: ArrayBuffer,
+    fileName: string, 
+    gasLimit: JSBI,
+    gasDeposit: JSBI
+) => {
+    
 
     contractStore.contract.transactionId = "";
 
@@ -177,7 +182,7 @@ const createSmartContract = async (
             });
             wasmModule.applyNames();
 
-            contractStore.contract.name = file.name;
+            contractStore.contract.name = fileName;
             contractStore.contract.transactionId = resp.id;
             contractStore.contract.textContent = wasmModule.toText({
                 foldExprs: true,
@@ -226,6 +231,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     contractId = ""
 }) => {
     const [loading, setLoading] = useState(false);
+    const [bytes, setBytes] = useState();
     const [gasLimit, setGasLimit] = useState();
     const [gasDeposit, setGasDeposit] = useState();
     const [contractAddress, setContractAddress] = useState(contractId);
@@ -326,8 +332,12 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                     return;
                 }
 
+                const bytes = await readFile(file);
+                setBytes(bytes);
+
                 await createSmartContract(
-                    file,
+                    bytes,
+                    file.name,
                     gasLimitNumber,
                     gasDepositNumber
                 );
@@ -376,6 +386,8 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     if (contractStore.contract.errorMessage) {
         errorNotification(contractStore.contract.errorMessage);
     }
+
+    const fee = perlin.calculateFee(TAG_CONTRACT, bytes, gasLimit, gasDeposit);
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <IntroText>
@@ -396,7 +408,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                     onChange={handleUpdateGasDeposit}
                 />
                 <DividerPipe>|</DividerPipe>
-                <DividerAside>Fee: {formatBalance(TX_FEE)}</DividerAside>
+                <DividerAside>Fee: {formatBalance(fee)}</DividerAside>
             </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}

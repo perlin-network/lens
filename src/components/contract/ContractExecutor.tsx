@@ -323,7 +323,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const updateInputPerls = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
+            const value = e.target.value || "0";
             const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
             setInputPerls(kens);
         },
@@ -450,6 +450,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
             );
 
             const txId = response.id;
+            
             await contractStore.listenForApplied(TAG_TRANSFER, txId);
             await contractStore.waveletContract.fetchAndPopulateMemoryPages();
 
@@ -479,7 +480,10 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     };
 
     const logMessages = contractStore.logs;
+    const amount = inputType  === "send-perls" ? inputPerls : 0;
+    const gasDeposit = inputType  !== "send-perls" ? inputPerls : 0;
 
+    const fee = perlin.calculateFee(TAG_TRANSFER, contractStore.contract.transactionId, amount || 0, gasLimit || 0, gasDeposit || 0, paramsList);
     return (
         <>
             <Card style={{ marginBottom: "20px" }}>
@@ -538,7 +542,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                             />
                             <Divider>|</Divider>
                             <DividerAside>
-                                Fee: {formatBalance(TX_FEE)}
+                                Fee: {formatBalance(fee)}
                             </DividerAside>
                         </InputWrapper>
                     </Flex>

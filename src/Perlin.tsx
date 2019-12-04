@@ -314,6 +314,16 @@ export class Perlin {
         }
     }
 
+    public calculateFee(tag: number, ...args: any[]) {
+        try {
+            const fee = this.client.calculateFee(tag, ...args);
+            return Math.ceil(fee);
+        } catch (e) {
+            console.log(e);
+        }
+        return NaN;
+    }
+
     public async pollAccountUpdates(
         id: string,
         target: any,

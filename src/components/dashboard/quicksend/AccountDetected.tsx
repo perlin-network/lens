@@ -24,6 +24,7 @@ import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
 import BigNumber from "bignumber.js";
 import GasLimit from "../../common/gas-limit/GasLimit";
 import JSBI from "jsbi";
+import { TAG_TRANSFER,  } from "wavelet-client";
 
 interface IProps extends RouteComponentProps {
     recipient: any;
@@ -188,6 +189,9 @@ class AccountDetected extends React.Component<IProps, IState> {
             return <Redirect to={url} />;
         }
         const gasLimit = this.state.gasLimit || "";
+        const amount = this.state.inputType  === "send-perls" ? this.state.inputPerls : 0;
+        const gasDeposit = this.state.inputType  !== "send-perls" ? this.state.inputPerls : 0;
+        const fee = perlin.calculateFee(TAG_TRANSFER, recipient.public_key, amount, this.state.gasLimit, gasDeposit);
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -290,7 +294,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         />
                                         <Divider>|</Divider>
                                         <DividerAside>
-                                            Fee: {formatBalance(TX_FEE)}
+                                            Fee: {formatBalance(fee)}
                                         </DividerAside>
                                     </InputWrapper>
                                 </Flex>
@@ -420,7 +424,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         ).toString() */}
                                     {formatBalance(
                                         new BigNumber(recipient.gas_balance)
-                                            .plus(this.state.kens)
                                             .toString()
                                     )}
                                 </span>
@@ -431,7 +434,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         recipientBalance.toString() */}
                                     {formatBalance(
                                         recipientBalance
-                                            .plus(this.state.kens)
                                             .toString()
                                     )}
                                 </span>
