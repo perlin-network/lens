@@ -75,7 +75,7 @@
         "tweetnacl": "^1.0.0",
         "typescript": "3.7.2",
         "wabt": "^1.0.10",
-        "wavelet-client": "2.0.0-rc.2",
+        "wavelet-client": "2.0.0-rc.3",
         "wavelet-faucet": "^0.2.1",
         "worker-loader": "^2.0.0"
     },

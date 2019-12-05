@@ -11900,10 +11900,10 @@ watchpack@^1.6.0:
     graceful-fs "^4.1.2"
     neo-async "^2.5.0"
 
-wavelet-client@2.0.0-rc.2:
-  version "2.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-2.0.0-rc.2.tgz#875ee95063174100a1b438712c9bd58ad0b979e5"
-  integrity sha512-f5XhMNvVQ2VlrlyCedm/jhx25UBNi1wETrRe+04V0ONri6s6VB6mSKVH/hqWz5dMgnKCiiHHfuKihw7nQ4mSYA==
+wavelet-client@2.0.0-rc.3:
+  version "2.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-2.0.0-rc.3.tgz#be4d716ffb0166a62d145157f5ae162689ac22cc"
+  integrity sha512-dNMHcYXt0ekxVzQMtt55LHs3airrytIJLohJqmDT8Ua7xTuPmGGoXUxKGjEntMVWlLjFa2+Z3eh5AiOD1CrUVg==
   dependencies:
     "@babel/core" "^7.6.4"
     "@babel/preset-env" "^7.6.3"
