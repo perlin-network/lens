@@ -278,6 +278,34 @@ export class Perlin {
         };
     }
 
+    public listenForApplied(tag: number, txId: string) {
+        return new Promise<ITransaction>(async (resolve, reject) => {
+            const poll = await this.client.pollTransactions(
+                {
+                    onTransactionApplied: (data: any) => {
+                        const tx: ITransaction = {
+                            id: data.tx_id,
+                            sender: data.sender_id,
+                            signature: data.signature,
+                            nonce: data.nonce,
+                            tag: data.tag,
+                            status: data.event || "new"
+                        };
+                        resolve(tx);
+                        poll.close();
+                    },
+                    onTransactionRejected: (data: any) => {
+                        const message =
+                            data.error || `Transaction was rejected`;
+                        reject(new Error(message));
+                        poll.close();
+                    }
+                },
+                { tag, id: txId }
+            );
+        });
+    }
+
     // @ts-ignore
     public async getTransaction(id: string): Promise<any> {
         return await this.client.getTransaction(id);

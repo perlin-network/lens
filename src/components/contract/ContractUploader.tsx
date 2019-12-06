@@ -344,7 +344,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                 );
 
                 if (contractStore.contract.transactionId) {
-                    const tx = await contractStore.listenForApplied(
+                    const tx = await perlin.listenForApplied(
                         TAG_CONTRACT,
                         contractStore.contract.transactionId
                     );

@@ -450,7 +450,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
             const txId = response.id;
             
-            await contractStore.listenForApplied(TAG_TRANSFER, txId);
+            await perlin.listenForApplied(TAG_TRANSFER, txId);
             await contractStore.waveletContract.fetchAndPopulateMemoryPages();
 
             perlin.notify({

@@ -519,6 +519,8 @@ class AccountDetected extends React.Component<IProps, IState> {
                 gasLimitNumber,
                 gasDeposit
             );
+
+            await perlin.listenForApplied(TAG_TRANSFER, response.id);
     
             perlin.notify({
                 title: "PERL(s) Sent",
