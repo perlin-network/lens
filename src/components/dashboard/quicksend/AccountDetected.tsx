@@ -9,7 +9,6 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { TX_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
@@ -323,7 +322,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                                 this.props.validContract &&
                                                 !parseInt(gasLimit, 10)
                                             }
-                                            onClick={this.handleSendButton}
+                                            onClick={this.handleSendButton(fee)}
                                         >
                                             {this.state.inputType ===
                                             inputTypes[1].value
@@ -384,7 +383,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                 My Balance:{" "}
                                 {formatBalance(perlin.account.balance)}
                             </span>
-                            {/* <DeltaTag value={-this.state.inputPerls - TX_FEE} /> */}
                             <DeltaTag
                                 value={"-" + formatBalance(this.state.kens)}
                             />
@@ -460,9 +458,9 @@ class AccountDetected extends React.Component<IProps, IState> {
         const kens = Math.ceil(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
         this.setState({ inputPerls, kens });
     }
-    private handleSendButton = async () => {
+    private handleSendButton = (fee: number) => async () => {
         
-        if (await this.successfulSend()) {
+        if (await this.successfulSend(fee)) {
             this.props.changeComponent("showSendConfirmation");
         }
     };
@@ -471,11 +469,12 @@ class AccountDetected extends React.Component<IProps, IState> {
         this.setState({ doubleChecked });
     }
 
-    private successfulSend = async () => {
+    private successfulSend = async (fee: number) => {
         const gasLimit = +(this.state.gasLimit + "");
 
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+        
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(fee));
 
         let perls = JSBI.BigInt(this.state.kens);
 

@@ -19,7 +19,6 @@ import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
-import { TX_FEE } from "src/constants";
 import {
     DividerInput,
     Divider as DividerPipe,
@@ -303,7 +302,10 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
             const file = acceptedFiles[0];
             setLoading(true);
             let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+            const bytes = await readFile(file);
+            setBytes(bytes);
+            const fee = perlin.calculateFee(TAG_CONTRACT, bytes, gasLimit, gasDeposit);
+            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(fee));
 
             const gasDepositNumber = JSBI.BigInt(Math.floor(gasDeposit || 0));
             setInlineMessage(undefined);
@@ -332,8 +334,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                     return;
                 }
 
-                const bytes = await readFile(file);
-                setBytes(bytes);
+                
 
                 await createSmartContract(
                     bytes,

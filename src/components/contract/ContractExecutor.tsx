@@ -26,7 +26,6 @@ import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
-import { TX_FEE } from "src/constants";
 import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
 
 interface IParamItem {
@@ -366,9 +365,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
     };
 
-    const onCall = (simulated: boolean = false) => async () => {
+    const onCall = (simulated: boolean = false, fee: number) => async () => {
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(fee));
         if (
             (!simulated &&
                 JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
@@ -560,7 +559,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         <ButtonOutlined
                             width="auto"
                             disabled={loading || !contractStore.waveletContract}
-                            onClick={onCall(true)}
+                            onClick={onCall(true, fee)}
                         >
                             Simulate Call
                         </ButtonOutlined>
@@ -577,7 +576,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                     !parseInt(gasLimit, 10) ||
                                     !contractStore.waveletContract
                                 }
-                                onClick={onCall(false)}
+                                onClick={onCall(false, fee)}
                             >
                                 Call Function
                             </WhiteButton>
