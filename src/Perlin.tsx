@@ -83,7 +83,7 @@ export class Perlin {
     public lastFaucetFetch = 0;
 
     @observable public api = {
-        host: storage.getCurrentHost(),
+        host: "",
         get ws() {
             return this.host.replace(/^http/, "ws");
         },
@@ -149,6 +149,7 @@ export class Perlin {
         const secret = storage.getSecretKey();
         storage.watchCurrentHost(this.handleHostChange);
 
+        this.api.host = storage.getCurrentHost();
         if (secret) {
             this.login(secret);
         }
