@@ -75,7 +75,7 @@
         "tweetnacl": "^1.0.0",
         "typescript": "3.7.2",
         "wabt": "^1.0.10",
-        "wavelet-client": "2.0.0-rc.4",
+        "wavelet-client": "2.0.0-rc.5",
         "wavelet-faucet": "^0.2.1",
         "worker-loader": "^2.0.0"
     },
@@ -83,7 +83,7 @@
         "start": "react-app-rewired start",
         "build": "GENERATE_SOURCEMAP=false react-app-rewired build",
         "deploy:subfolder": "PUBLIC_URL=/lens npm run deploy",
-        "deploy": "REACT_APP_DEFAULT_API_HOST=https://testnet.perlin.net REACT_APP_CNAME=lens.perlin.net npm run build && npm run gh-pages",
+        "deploy": "REACT_APP_DEFAULT_API_HOST=https://devnet.perlin.net REACT_APP_CNAME=lens.perlin.net npm run build && npm run gh-pages",
         "gh-pages": "gh-pages -d build -b gh-pages",
         "test": "react-app-rewired test",
         "eject": "react-scripts eject",

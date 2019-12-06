@@ -11900,10 +11900,10 @@ watchpack@^1.6.0:
     graceful-fs "^4.1.2"
     neo-async "^2.5.0"
 
-wavelet-client@2.0.0-rc.4:
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-2.0.0-rc.4.tgz#4ccc30adb906bb0dd0cf1a056f0ecb50d1a92c58"
-  integrity sha512-f4rsahdjsZrf4+aJceokXwae+Hq61trniE4DzeZEr0+PmX6t1CtMkgNwV58x/+o670VnKj1PE/do3eqDcAUbCw==
+wavelet-client@2.0.0-rc.5:
+  version "2.0.0-rc.5"
+  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-2.0.0-rc.5.tgz#9a8367adca689fd1ed9142d4320dc35bdae0acb8"
+  integrity sha512-3w2UBn1APf/KHUhWD52w0h1KySGo6vdVCejz/7unL8Y+fJskgbtjtgf8wikLNRkW4zsCnHJcm2ESXNixnRIa0A==
   dependencies:
     atob "^2.1.2"
     axios "^0.19.0"
@@ -11911,6 +11911,7 @@ wavelet-client@2.0.0-rc.4:
     blakejs "^1.1.0"
     core-js "^3.3.3"
     jsbi "^3.1.1"
+    json-bigint "^0.3.0"
     text-encoding "^0.7.0"
     tweetnacl "^1.0.1"
     url "^0.11.0"
