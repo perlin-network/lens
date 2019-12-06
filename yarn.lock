@@ -29,7 +29,7 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@7.7.4", "@babel/core@^7.1.0", "@babel/core@^7.4.5", "@babel/core@^7.6.4":
+"@babel/core@7.7.4", "@babel/core@^7.1.0", "@babel/core@^7.4.5":
   version "7.7.4"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.7.4.tgz#37e864532200cb6b50ee9a4045f5f817840166ab"
   integrity sha512-+bYbx56j4nYBmpsWtnPUsKW3NdnYxbqyfrP2w9wILBuHzdfIKz9prieZK0DFPyIzkjYVUe4QkusGL07r5pXznQ==
@@ -757,7 +757,7 @@
     "@babel/helper-create-regexp-features-plugin" "^7.7.4"
     "@babel/helper-plugin-utils" "^7.0.0"
 
-"@babel/preset-env@7.7.4", "@babel/preset-env@^7.4.5", "@babel/preset-env@^7.6.3":
+"@babel/preset-env@7.7.4", "@babel/preset-env@^7.4.5":
   version "7.7.4"
   resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.7.4.tgz#ccaf309ae8d1ee2409c85a4e2b5e280ceee830f8"
   integrity sha512-Dg+ciGJjwvC1NIe/DGblMbcGq1HOtKbw8RLl4nIjlfcILKEOkWT/vRqPpumswABEBVudii6dnVwrBtzD7ibm4g==
@@ -841,7 +841,7 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.2"
 
-"@babel/runtime@7.7.4", "@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.4":
+"@babel/runtime@7.7.4", "@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.4":
   version "7.7.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.7.4.tgz#b23a856751e4bf099262f867767889c0e3fe175b"
   integrity sha512-r24eVUUr0QqNZa+qrImUk8fn5SPhHq+IfYvIoIMg0do3GdK9sMdiLKP3GYVVaxpPKORgm8KRKaNTEhAjgIpLMw==
@@ -882,9 +882,9 @@
     to-fast-properties "^2.0.0"
 
 "@blueprintjs/core@^3.20.0", "@blueprintjs/core@^3.4.0":
-  version "3.22.0"
-  resolved "https://registry.yarnpkg.com/@blueprintjs/core/-/core-3.22.0.tgz#6c7e7562a7e5fb7d2924ee3cd0832734eeb24470"
-  integrity sha512-CzKRY/ZmwmRPoybHFS4HI2GWuphMzIMuBQttaQi3OYQx28vyczKlmhlZPXhbX5pEn4RFajRJvMx086iuJXlnOw==
+  version "3.22.1"
+  resolved "https://registry.yarnpkg.com/@blueprintjs/core/-/core-3.22.1.tgz#2fd1e985c46440f16dbe7136f563c4e833e2f34d"
+  integrity sha512-egM1jyE+O4X/HvgCDZ96DDvwIlC/z9J1vBVYgnZmeGHPhjCOnmc8bRqlifmPMTBwO6xl/1H67gCp/GEhyvu0EA==
   dependencies:
     "@blueprintjs/icons" "^3.12.0"
     "@types/dom4" "^2.0.1"
@@ -2469,7 +2469,7 @@ babel-jest@^24.9.0:
     chalk "^2.4.2"
     slash "^2.0.0"
 
-babel-loader@8.0.6, babel-loader@^8.0.6:
+babel-loader@8.0.6:
   version "8.0.6"
   resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-8.0.6.tgz#e33bdb6f362b03f4bb141a0c21ab87c501b70dfb"
   integrity sha512-4BmWKtBOBm13uoUwd08UwjZlaw3O9GWf456R9j+5YykFZ6LUIjIKLc0zEZf+hauxPOJs96C8k6FvYD09vWzhYw==
@@ -2840,9 +2840,9 @@ browserslist@4.7.0:
     node-releases "^1.1.29"
 
 browserslist@^4.0.0, browserslist@^4.1.1, browserslist@^4.6.0, browserslist@^4.6.4, browserslist@^4.8.0:
-  version "4.8.1"
-  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.8.1.tgz#df0f50cc4b3255322fae60ae82a946baae69f8c6"
-  integrity sha512-X/lIDboA5bvFg9SOhHN7OBgHHlaZQWcwTXBLBGgrB8+6Iy1dL0wmUfHRe7OdETRTuD2d6f5JPa7iTEcbVyVf6Q==
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.8.2.tgz#b45720ad5fbc8713b7253c20766f701c9a694289"
+  integrity sha512-+M4oeaTplPm/f1pXDw84YohEv7B1i/2Aisei8s4s6k3QsoSHa7i5sz8u/cGQkkatCPxMASKxPualR4wwYgVboA==
   dependencies:
     caniuse-lite "^1.0.30001015"
     electron-to-chromium "^1.3.322"
@@ -9435,9 +9435,9 @@ pseudomap@^1.0.2:
   integrity sha1-8FKijacOYYkX7wqKw0wa5aaChrM=
 
 psl@^1.1.24, psl@^1.1.28:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/psl/-/psl-1.5.0.tgz#47fd1292def7fdb1e138cd78afa8814cebcf7b13"
-  integrity sha512-4vqUjKi2huMu1OJiLhi3jN6jeeKvMZdI1tYgi/njW5zV52jNLgSAZSdN16m9bJFe61/cT8ulmw4qFitV9QRsEA==
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/psl/-/psl-1.6.0.tgz#60557582ee23b6c43719d9890fb4170ecd91e110"
+  integrity sha512-SYKKmVel98NCOYXpkwUqZqh0ahZeeKfmisiLIcEZdsb+WbLv02g/dI5BUmZnIyOe7RzZtLax81nnb2HbvC2tzA==
 
 public-encrypt@^4.0.0:
   version "4.0.3"
@@ -11900,17 +11900,13 @@ watchpack@^1.6.0:
     graceful-fs "^4.1.2"
     neo-async "^2.5.0"
 
-wavelet-client@2.0.0-rc.3:
-  version "2.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-2.0.0-rc.3.tgz#be4d716ffb0166a62d145157f5ae162689ac22cc"
-  integrity sha512-dNMHcYXt0ekxVzQMtt55LHs3airrytIJLohJqmDT8Ua7xTuPmGGoXUxKGjEntMVWlLjFa2+Z3eh5AiOD1CrUVg==
+wavelet-client@2.0.0-rc.4:
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/wavelet-client/-/wavelet-client-2.0.0-rc.4.tgz#4ccc30adb906bb0dd0cf1a056f0ecb50d1a92c58"
+  integrity sha512-f4rsahdjsZrf4+aJceokXwae+Hq61trniE4DzeZEr0+PmX6t1CtMkgNwV58x/+o670VnKj1PE/do3eqDcAUbCw==
   dependencies:
-    "@babel/core" "^7.6.4"
-    "@babel/preset-env" "^7.6.3"
-    "@babel/runtime" "^7.5.5"
     atob "^2.1.2"
     axios "^0.19.0"
-    babel-loader "^8.0.6"
     bigint-buffer "^1.1.5"
     blakejs "^1.1.0"
     core-js "^3.3.3"
