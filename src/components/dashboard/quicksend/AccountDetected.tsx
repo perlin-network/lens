@@ -189,8 +189,8 @@ class AccountDetected extends React.Component<IProps, IState> {
             return <Redirect to={url} />;
         }
         const gasLimit = this.state.gasLimit || "";
-        const amount = this.state.inputType  === "send-perls" ? this.state.inputPerls : 0;
-        const gasDeposit = this.state.inputType  !== "send-perls" ? this.state.inputPerls : 0;
+        let amount = this.state.inputType  === "send-perls" ? this.state.kens : 0;
+        const gasDeposit = this.state.inputType  !== "send-perls" ? this.state.kens : 0;
         const fee = perlin.calculateFee(TAG_TRANSFER, recipient.public_key, amount, this.state.gasLimit, gasDeposit);
         return (
             <Wrapper>
@@ -457,7 +457,7 @@ class AccountDetected extends React.Component<IProps, IState> {
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         const inputPerls = e.target.value;
-        const kens = Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+        const kens = Math.ceil(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
         this.setState({ inputPerls, kens });
     }
     private handleSendButton = async () => {
