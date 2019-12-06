@@ -520,7 +520,12 @@ class AccountDetected extends React.Component<IProps, IState> {
                 gasDeposit
             );
 
-            await perlin.listenForApplied(TAG_TRANSFER, response.id);
+            perlin.listenForApplied(TAG_TRANSFER, response.id).catch((err) => {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: err.message
+                });
+            });
     
             perlin.notify({
                 title: "PERL(s) Sent",
