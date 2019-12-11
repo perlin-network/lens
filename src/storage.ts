@@ -4,7 +4,7 @@ import {
     DEFAULT_API_HOST,
     STORAGE_KEYS
 } from "./constants";
-import * as eventsPlugin from "store/plugins/events";
+import eventsPlugin from "store/plugins/events";
 import * as store from "store";
 
 store.addPlugin(eventsPlugin);

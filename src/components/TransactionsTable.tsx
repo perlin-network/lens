@@ -104,12 +104,6 @@ const StyledTag = styled.span`
 
 const columns = [
     {
-        Header: "Depth",
-        accessor: "depth",
-        maxWidth: 100,
-        minWidth: 70
-    },
-    {
         Header: "Transaction ID",
         accessor: "id",
         Cell: (row: any) => (
@@ -129,8 +123,8 @@ const columns = [
         minWidth: 30
     },
     {
-        Header: "Creator",
-        accessor: "creator",
+        Header: "Sender",
+        accessor: "sender",
         Cell: (row: any) => <span title={row.value}>{row.value}</span>
     },
     {

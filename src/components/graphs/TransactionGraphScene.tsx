@@ -160,24 +160,29 @@ export class TransactionGraphScene {
         // @ts-ignore
         dashes.material.needsUpdate = true;
     }
-    public removeNodes(roundNum: number) {
-        if (!this.rounds[roundNum]) {
+    public removeNodes(tx: number) {
+        const keys = Object.keys(this.rounds);
+        if (keys.length < 20) {
             return;
         }
+        keys.map(key => parseInt(key))
+            .sort((a, b) => a - b)
+            .slice(0, tx)
+            .forEach(roundNum => {
+                this.scene.remove(this.rounds[roundNum].dots);
+                this.scene.remove(this.rounds[roundNum].lines);
+                this.scene.remove(this.rounds[roundNum].dashes);
 
-        this.scene.remove(this.rounds[roundNum].dots);
-        this.scene.remove(this.rounds[roundNum].lines);
-        this.scene.remove(this.rounds[roundNum].dashes);
+                this.rounds[roundNum].dots.material.dispose();
+                this.rounds[roundNum].lines.material.dispose();
+                this.rounds[roundNum].dashes.material.dispose();
 
-        this.rounds[roundNum].dots.material.dispose();
-        this.rounds[roundNum].lines.material.dispose();
-        this.rounds[roundNum].dashes.material.dispose();
+                this.rounds[roundNum].dots.geometry.dispose();
+                this.rounds[roundNum].lines.geometry.dispose();
+                this.rounds[roundNum].dashes.geometry.dispose();
 
-        this.rounds[roundNum].dots.geometry.dispose();
-        this.rounds[roundNum].lines.geometry.dispose();
-        this.rounds[roundNum].dashes.geometry.dispose();
-
-        delete this.rounds[roundNum];
+                delete this.rounds[roundNum];
+            });
     }
 
     public destroy() {
@@ -214,8 +219,8 @@ export class TransactionGraphScene {
              *   camera and target need to be moved together
              */
             new TWEEN.Tween(position)
-                .to({ x, y, z: z + 35 }, cameraSpeed)
-                .delay(cameraSpeed * 0.2) // delaying the camera allows for a breif overview of the upcoming structure
+                .to({ x, y, z: z + 15 }, cameraSpeed)
+                // .delay(cameraSpeed * 1) // delaying the camera allows for a breif overview of the upcoming structure
                 // .easing(TWEEN.Easing.Sinusoidal.In)
                 .on("update", (newPosition: any) => {
                     this.camera.position.set(
@@ -414,12 +419,7 @@ export class TransactionGraphScene {
             if (!hoveredNode) {
                 return;
             }
-
-            if (this.focusedNode === hoveredNode && hoveredNode.txId) {
-                this.clickHandler(hoveredNode.txId);
-            } else {
-                this.fastPointCamera(hoveredNode);
-            }
+            this.fastPointCamera(hoveredNode);
             disableHover();
         };
 
@@ -472,8 +472,8 @@ export class TransactionGraphScene {
                         const tooltip: any = {
                             x,
                             y: y - 10,
-                            title: "Transaction",
-                            status: node.type,
+                            title: "Block",
+                            status: node.txId,
                             visible: true
                         };
 
@@ -513,7 +513,7 @@ export class TransactionGraphScene {
         this.raycaster = new THREE.Raycaster();
         this.raycaster.near = 0;
         this.camera = new THREE.PerspectiveCamera(20, 1, 1, 1000);
-        this.camera.position.set(0, 0, 35);
+        this.camera.position.set(0, 0, 15);
         this.camera.lookAt(this.scene.position);
     }
 
@@ -524,7 +524,7 @@ export class TransactionGraphScene {
         controls.panSpeed = 1;
         controls.noZoom = false;
         controls.noPan = false;
-        controls.staticMoving = true;
+        controls.staticMoving = false;
         controls.dynamicDampingFactor = 0.3;
         controls.keys = [65, 17, 16];
         this.controls = controls;

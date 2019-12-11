@@ -16,7 +16,7 @@ import ParameterInput, { ParamType } from "./ParameterInput";
 import { Perlin, NotificationTypes } from "../../Perlin";
 import { useComputed, observer } from "mobx-react-lite";
 import nanoid from "nanoid";
-import * as Long from "long";
+import Long from "long";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import { Flex, Box } from "@rebass/grid";
 import LoadingSpinner from "../common/loadingSpinner";
@@ -26,7 +26,6 @@ import GasLimit from "../common/gas-limit/GasLimit";
 import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
-import { TX_FEE } from "src/constants";
 import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
 
 interface IParamItem {
@@ -323,7 +322,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const updateInputPerls = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
+            const value = e.target.value || "0";
             const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
             setInputPerls(kens);
         },
@@ -366,9 +365,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
         }
     };
 
-    const onCall = (simulated: boolean = false) => async () => {
+    const onCall = (simulated: boolean = false, fee: number) => async () => {
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(fee));
         if (
             (!simulated &&
                 JSBI.lessThanOrEqual(gasLimitNumber, JSBI.BigInt(0))) ||
@@ -449,8 +448,9 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                 ...callClonedParamList
             );
 
-            const txId = response.tx_id;
-            await contractStore.listenForApplied(TAG_TRANSFER, txId);
+            const txId = response.id;
+            
+            await perlin.listenForApplied(TAG_TRANSFER, txId);
             await contractStore.waveletContract.fetchAndPopulateMemoryPages();
 
             perlin.notify({
@@ -479,7 +479,10 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     };
 
     const logMessages = contractStore.logs;
+    const amount = inputType  === "send-perls" ? inputPerls : 0;
+    const gasDeposit = inputType  !== "send-perls" ? inputPerls : 0;
 
+    const fee = perlin.calculateFee(TAG_TRANSFER, contractStore.contract.transactionId, amount || 0, gasLimit || 0, gasDeposit || 0, paramsList);
     return (
         <>
             <Card style={{ marginBottom: "20px" }}>
@@ -538,7 +541,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                             />
                             <Divider>|</Divider>
                             <DividerAside>
-                                Fee: {formatBalance(TX_FEE)}
+                                Fee: {formatBalance(fee)}
                             </DividerAside>
                         </InputWrapper>
                     </Flex>
@@ -556,7 +559,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         <ButtonOutlined
                             width="auto"
                             disabled={loading || !contractStore.waveletContract}
-                            onClick={onCall(true)}
+                            onClick={onCall(true, fee)}
                         >
                             Simulate Call
                         </ButtonOutlined>
@@ -573,7 +576,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                                     !parseInt(gasLimit, 10) ||
                                     !contractStore.waveletContract
                                 }
-                                onClick={onCall(false)}
+                                onClick={onCall(false, fee)}
                             >
                                 Call Function
                             </WhiteButton>

@@ -1,4 +1,4 @@
-export const enum Tag {
+export enum Tag {
     TagNop,
     TagTransfer,
     TagContract,
@@ -6,17 +6,12 @@ export const enum Tag {
     TagBatch
 }
 
-interface ITransaction {
+export interface ITransaction {
     id: string;
-
-    creator: string;
     sender: string;
-    depth: number;
-
+    signature: string;
     tag: Tag;
-
+    nonce: number;
     status: string;
     payload?: string;
 }
-
-export { ITransaction };

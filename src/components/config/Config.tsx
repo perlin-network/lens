@@ -196,7 +196,7 @@ export default class Config extends React.Component<IConfigProps> {
         this.setState(() => ({
             disabled: true
         }));
-        location.reload();
+        window.location.reload();
     };
 
     private get wereChangesMade(): boolean {
@@ -244,7 +244,7 @@ export default class Config extends React.Component<IConfigProps> {
         this.setState(() => ({
             disabled: true
         }));
-        location.reload();
+        window.location.reload();
     };
 }
 

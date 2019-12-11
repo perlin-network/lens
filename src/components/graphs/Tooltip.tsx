@@ -103,7 +103,7 @@ const Tooltip: React.FunctionComponent<ITooltipProps> = props => {
             <div className={"popup " + (visible ? "active" : "")}>
                 {title && <h5 className="title">{title}</h5>}
                 <p className="text">{text}</p>
-                <p className="status">{getStatusType(status).text}</p>
+                <p className="status">{status}</p>
             </div>
         </Wrapper>
     );

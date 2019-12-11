@@ -4,12 +4,9 @@ onmessage = evt => {
         case "addRound":
             addRound(
                 data.accepted,
-                data.rejected,
-                data.maxDepth,
-                data.roundNum,
-                data.startId,
                 data.endId,
-                data.cameraSpeed
+                data.cameraSpeed,
+                data.forced
             );
             break;
         case "pruneRound":
@@ -34,7 +31,8 @@ const randomRange = (min, max) => {
 
 const uniqueRandomRange = (min, max) => {
     if (min > max) {
-        throw new Error(`Invalid random ranges ${min} - ${max}`);
+        // throw new Error(`Invalid random ranges ${min} - ${max}`);
+        max = min;
     }
     const extracted = {};
     let extractedCount = 0;
@@ -79,15 +77,21 @@ let startNode;
 
 const addRound = (
     accepted,
-    rejected,
-    maxDepth,
-    roundNum,
-    startId,
     endId,
     cameraSpeed,
     forced = false
 ) => {
-    let numTx = accepted + rejected;
+    let numTx = accepted;
+
+    const keys = Object.keys(rounds);
+    const maxDepth = 1;
+
+    if (keys.length) {
+        roundNum = Math.max(...keys.map(key => parseInt(key))) + 1;
+    } else {
+        roundNum = 0;
+    }
+    
 
     if ((!forced && rounds[roundNum]) || !numTx) {
         return;
@@ -97,7 +101,7 @@ const addRound = (
     const depthSize = Math.ceil(numTx / maxDepth);
 
     // random indices will be assigned rejected status
-    const nodeMap = getRejectedIndices(accepted, rejected, depthSize);
+    const nodeMap = {}; // getRejectedIndices(accepted, rejected, depthSize);
 
     const round = {}; // will be a nodes per level structure, needed for node link resolve
     const nodes = [];
@@ -133,7 +137,7 @@ const addRound = (
         if (type === "start") {
             depth = -1;
             globalDepth = -1;
-            txId = startId;
+            txId = undefined;
         }
 
         // depthWidth reprezents the dimention of matrix structure for each level
@@ -161,7 +165,7 @@ const addRound = (
     let index = 0;
 
     // will create a clone of the last rounds' critical node and call it start node
-    if (startNode) {
+    if (startNode && !forced) {
         startNode = {
             ...startNode,
             parents: [],
@@ -313,7 +317,8 @@ const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
             id: node.id,
             type: node.type,
             position: node.position,
-            round: node.round
+            round: node.round,
+            txId: node.type === "critical" ? node.txId : undefined
         });
         if (node.txId) {
             nodeInfo.txId = node.txId;
@@ -346,7 +351,7 @@ const getRenderInfo = (nodes, round, depthSize, maxDepth, cameraSpeed) => {
                     addLineIndices(node, parent);
                 }
             });
-            return;
+            // return;
         }
 
         // all nodes next to start node should connect to it

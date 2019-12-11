@@ -15,7 +15,7 @@ const Wrapper = styled.div<{
     isHovered: boolean;
 }>`
     position: relative;
-    cursor: ${({ isHovered }) => (isHovered ? "pointer" : "default")};
+    
     .canvas-container {
         width: 100%;
         height: 301px;
@@ -72,10 +72,10 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             }
         );
 
-        const pruneRoundDisposer = graphStore.subscribe(
-            "pruneRound",
-            (roundNum: number) => {
-                scene.removeNodes(roundNum);
+        const pruneTxDisposer = graphStore.subscribe(
+            "pruneTx",
+            (tx: number) => {
+                scene.removeNodes(tx);
             }
         );
 
@@ -85,12 +85,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
                 const round = perlin.initRound;
                 graphStore.addRound(
                     round.applied,
-                    round.rejected || 0,
-                    round.depth,
-                    0,
-                    round.start_id,
-                    round.end_id,
-                    true // for rerender of initial round
+                    round.end_id
                 );
             }
         );
@@ -99,7 +94,7 @@ const TransactionGraph: React.FunctionComponent<RouteComponentProps> = ({
             scene.destroy();
             graphStore.destroy();
             addRoundDisposer();
-            pruneRoundDisposer();
+            pruneTxDisposer();
         };
     }, []);
 

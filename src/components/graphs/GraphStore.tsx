@@ -23,7 +23,7 @@ export class GraphStore {
 
     private static singleton: GraphStore;
 
-    public cameraSpeed = 1000;
+    public cameraSpeed = 300;
 
     // renderQueue is ued to queue up render requeues
     private renderQueue: any[] = [];
@@ -67,7 +67,7 @@ export class GraphStore {
         // @ts-ignore
         perlin.onConsensusRound = window.addRound = this.addRound;
         // @ts-ignore
-        perlin.onConsensusPrune = window.pruneRound = this.pruneRound;
+        perlin.onConsensusPrune = window.pruneTx = this.pruneTx;
     }
 
     public subscribe(type: string, fn: any) {
@@ -86,10 +86,6 @@ export class GraphStore {
     }
     public addRound = (
         accepted: number,
-        rejected: number,
-        maxDepth: number,
-        roundNum: number,
-        startId?: string,
         endId?: string,
         forced?: boolean
     ) => {
@@ -97,10 +93,6 @@ export class GraphStore {
         this.worker.postMessage({
             type: "addRound",
             accepted,
-            rejected,
-            maxDepth,
-            roundNum,
-            startId,
             endId,
             cameraSpeed: this.cameraSpeed,
             forced
@@ -117,6 +109,11 @@ export class GraphStore {
         this.prunnedRounds[roundNum] = true;
         this.worker.postMessage({ type: "pruneRound", roundNum });
     };
+
+    public pruneTx = (tx: number) => {
+        this.notifySubscribers("pruneTx", tx);
+    };
+
 
     private renderFromQueue = () => {
         const queueData = this.renderQueue.shift();
