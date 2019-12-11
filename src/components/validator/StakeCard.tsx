@@ -112,7 +112,7 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                     </Col>
                 </Row>
                 {action !== StakeActions.None && (
-                    <div>
+                    <div key={action}>
                         <Row>
                             <Col width={1}>
                                 <LargeInput
