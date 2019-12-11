@@ -462,7 +462,7 @@ class AccountDetected extends React.Component<IProps, IState> {
         const inputPerls = e.target.value.replace(/\,/g, "") || "0";
         const kens = new BigNumber(inputPerls)
             .times(Math.pow(10,9))
-            .toString()
+            .toString(10)
             .replace(/\..*/, "");
         this.setState({ inputPerls, kens });
     }

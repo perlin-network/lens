@@ -50,7 +50,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
             const inputPerls = e.target.value.replace(/\,/g, "") || "0";
             const kens = new BigNumber(inputPerls)
                 .times(Math.pow(10,9))
-                .toString()
+                .toString(10)
                 .replace(/\..*/, "");
             setAmount(kens);
         },
