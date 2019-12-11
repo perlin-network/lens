@@ -121,7 +121,7 @@ export default class DashboardContainer extends React.Component {
                     <Box width={1 / 2} pl={3}>
                         <GraphBox>
                             <CardHeadings>
-                                Transactions
+                                Transaction Blocks
                                 <NetworkLoad tps={perlin.metrics.accepted} />
                             </CardHeadings>
                             <Divider />

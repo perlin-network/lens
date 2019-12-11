@@ -66,8 +66,9 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
         (newValue: number) => {
             const limit = new BigNumber(balance)
                 .div(100)
-                .times(newValue)
-                .toString();
+                .times(Math.min(newValue, 99))
+                .toString()
+                .replace(/\..*/, "");
 
             setGasLimit(limit);
             onChange(limit);

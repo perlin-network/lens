@@ -86,7 +86,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                 errorNotification(results.error);
             } else {
                 setAction(StakeActions.None);
-                successNotification("Stake Placed", results.tx_id);
+                successNotification("Stake Placed", results.id);
             }
         }
     }, []);
@@ -100,7 +100,7 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
                     errorNotification(results.error);
                 } else {
                     setAction(StakeActions.None);
-                    successNotification("Stake Withdrawn", results.tx_id);
+                    successNotification("Stake Withdrawn", results.id);
                 }
             }
         },
@@ -109,18 +109,22 @@ const ValidatorView: React.FunctionComponent<{}> = () => {
 
     const handleWithdrawReward = useCallback(
         async (amount: number) => {
+            
             if (amount <= 0 || isNaN(amount) || amount > reward) {
                 errorNotification("You have entered and invalid amount");
                 return false;
+            } 
+            if (amount < 100) {
+                errorNotification("Minimum withdraw amount is 100 KENs");
+                return false;
+            }
+            const results = await perlin.withdrawReward(amount);
+            if (results.error) {
+                errorNotification(results.error);
+                return false;
             } else {
-                const results = await perlin.withdrawReward(amount);
-                if (results.error) {
-                    errorNotification(results.error);
-                    return false;
-                } else {
-                    successNotification("Reward Withdrawn", results.tx_id);
-                    return true;
-                }
+                successNotification("Reward Withdrawn", results.id);
+                return true;
             }
         },
         [reward]

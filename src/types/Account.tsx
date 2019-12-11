@@ -1,4 +1,4 @@
-interface IAccount {
+export interface IAccount {
     public_key: string;
 
     reward: number;
@@ -10,5 +10,3 @@ interface IAccount {
     num_mem_pages: number;
     nonce?: number;
 }
-
-export { IAccount };

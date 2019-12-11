@@ -19,7 +19,6 @@ import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
-import { TX_FEE } from "src/constants";
 import {
     DividerInput,
     Divider as DividerPipe,
@@ -142,11 +141,7 @@ const successNotification = (title: string, txId: string) => {
     });
 };
 
-const createSmartContract = async (
-    file: File,
-    gasLimit: JSBI,
-    gasDeposit: JSBI
-) => {
+const readFile = async (file: File) => {
     const reader = new FileReader();
 
     const bytes: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -160,6 +155,15 @@ const createSmartContract = async (
         };
         reader.readAsArrayBuffer(file);
     });
+    return bytes;
+}
+const createSmartContract = async (
+    bytes: ArrayBuffer,
+    fileName: string, 
+    gasLimit: JSBI,
+    gasDeposit: JSBI
+) => {
+    
 
     contractStore.contract.transactionId = "";
 
@@ -169,7 +173,6 @@ const createSmartContract = async (
             gasLimit,
             gasDeposit
         );
-
         if (resp.error) {
             errorNotification(`${resp.status}: ${resp.error}`);
         } else {
@@ -178,8 +181,8 @@ const createSmartContract = async (
             });
             wasmModule.applyNames();
 
-            contractStore.contract.name = file.name;
-            contractStore.contract.transactionId = resp.tx_id;
+            contractStore.contract.name = fileName;
+            contractStore.contract.transactionId = resp.id;
             contractStore.contract.textContent = wasmModule.toText({
                 foldExprs: true,
                 inlineExport: false
@@ -227,6 +230,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     contractId = ""
 }) => {
     const [loading, setLoading] = useState(false);
+    const [bytes, setBytes] = useState();
     const [gasLimit, setGasLimit] = useState();
     const [gasDeposit, setGasDeposit] = useState();
     const [contractAddress, setContractAddress] = useState(contractId);
@@ -298,7 +302,10 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
             const file = acceptedFiles[0];
             setLoading(true);
             let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+            const bytes = await readFile(file);
+            setBytes(bytes);
+            const fee = perlin.calculateFee(TAG_CONTRACT, bytes, gasLimit, gasDeposit);
+            gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(fee));
 
             const gasDepositNumber = JSBI.BigInt(Math.floor(gasDeposit || 0));
             setInlineMessage(undefined);
@@ -327,14 +334,17 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                     return;
                 }
 
+                
+
                 await createSmartContract(
-                    file,
+                    bytes,
+                    file.name,
                     gasLimitNumber,
                     gasDepositNumber
                 );
 
                 if (contractStore.contract.transactionId) {
-                    const tx = await contractStore.listenForApplied(
+                    const tx = await perlin.listenForApplied(
                         TAG_CONTRACT,
                         contractStore.contract.transactionId
                     );
@@ -377,6 +387,8 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     if (contractStore.contract.errorMessage) {
         errorNotification(contractStore.contract.errorMessage);
     }
+
+    const fee = perlin.calculateFee(TAG_CONTRACT, bytes, gasLimit, gasDeposit);
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <IntroText>
@@ -397,7 +409,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                     onChange={handleUpdateGasDeposit}
                 />
                 <DividerPipe>|</DividerPipe>
-                <DividerAside>Fee: {formatBalance(TX_FEE)}</DividerAside>
+                <DividerAside>Fee: {formatBalance(fee)}</DividerAside>
             </InputWrapper>
             <GasLimit
                 balance={perlin.account.balance}

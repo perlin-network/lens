@@ -9,7 +9,6 @@ import {
     QuickSendArrowIcon,
     CancelCardIcon
 } from "../../common/typography";
-import { TX_FEE } from "src/constants";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
 import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
@@ -24,6 +23,7 @@ import { DividerInput, Divider, DividerAside } from "../../common/dividerInput";
 import BigNumber from "bignumber.js";
 import GasLimit from "../../common/gas-limit/GasLimit";
 import JSBI from "jsbi";
+import { TAG_TRANSFER,  } from "wavelet-client";
 
 interface IProps extends RouteComponentProps {
     recipient: any;
@@ -188,6 +188,9 @@ class AccountDetected extends React.Component<IProps, IState> {
             return <Redirect to={url} />;
         }
         const gasLimit = this.state.gasLimit || "";
+        let amount = this.state.inputType  === "send-perls" ? this.state.kens : 0;
+        const gasDeposit = this.state.inputType  !== "send-perls" ? this.state.kens : 0;
+        const fee = perlin.calculateFee(TAG_TRANSFER, recipient.public_key, amount, this.state.gasLimit, gasDeposit);
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -290,7 +293,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         />
                                         <Divider>|</Divider>
                                         <DividerAside>
-                                            Fee: {formatBalance(TX_FEE)}
+                                            Fee: {formatBalance(fee)}
                                         </DividerAside>
                                     </InputWrapper>
                                 </Flex>
@@ -319,7 +322,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                                 this.props.validContract &&
                                                 !parseInt(gasLimit, 10)
                                             }
-                                            onClick={this.handleSendButton}
+                                            onClick={this.handleSendButton(fee)}
                                         >
                                             {this.state.inputType ===
                                             inputTypes[1].value
@@ -380,7 +383,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                 My Balance:{" "}
                                 {formatBalance(perlin.account.balance)}
                             </span>
-                            {/* <DeltaTag value={-this.state.inputPerls - TX_FEE} /> */}
                             <DeltaTag
                                 value={"-" + formatBalance(this.state.kens)}
                             />
@@ -420,7 +422,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         ).toString() */}
                                     {formatBalance(
                                         new BigNumber(recipient.gas_balance)
-                                            .plus(this.state.kens)
                                             .toString()
                                     )}
                                 </span>
@@ -431,7 +432,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         recipientBalance.toString() */}
                                     {formatBalance(
                                         recipientBalance
-                                            .plus(this.state.kens)
                                             .toString()
                                     )}
                                 </span>
@@ -455,11 +455,12 @@ class AccountDetected extends React.Component<IProps, IState> {
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         const inputPerls = e.target.value;
-        const kens = Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+        const kens = Math.ceil(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
         this.setState({ inputPerls, kens });
     }
-    private handleSendButton = () => {
-        if (this.successfulSend()) {
+    private handleSendButton = (fee: number) => async () => {
+        
+        if (await this.successfulSend(fee)) {
             this.props.changeComponent("showSendConfirmation");
         }
     };
@@ -468,11 +469,12 @@ class AccountDetected extends React.Component<IProps, IState> {
         this.setState({ doubleChecked });
     }
 
-    private successfulSend = () => {
+    private successfulSend = async (fee: number) => {
         const gasLimit = +(this.state.gasLimit + "");
 
         let gasLimitNumber = JSBI.BigInt(Math.floor(gasLimit || 0));
-        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(TX_FEE));
+        
+        gasLimitNumber = JSBI.subtract(gasLimitNumber, JSBI.BigInt(fee));
 
         let perls = JSBI.BigInt(this.state.kens);
 
@@ -510,34 +512,46 @@ class AccountDetected extends React.Component<IProps, IState> {
             perls = JSBI.BigInt(0);
         }
 
-        perlin
-            .transfer(
+        try {
+            const response =  await perlin.transfer(
                 this.props.recipient.public_key,
                 perls,
                 gasLimitNumber,
                 gasDeposit
-            )
-            .then(response => {
-                perlin.notify({
-                    title: "PERL(s) Sent",
-                    type: NotificationTypes.Success,
-                    content: (
-                        <p>
-                            You can view your transaction
-                            <Link
-                                to={"/transactions/" + response.tx_id}
-                                title={response.tx_id}
-                                target="_blank"
-                            >
-                                here
-                            </Link>
-                        </p>
-                    ),
-                    dismiss: { duration: 10000 }
-                });
+            );
 
-                this.updateGasLimit("");
+            perlin.listenForApplied(TAG_TRANSFER, response.id).catch((err) => {
+                perlin.notify({
+                    type: NotificationTypes.Danger,
+                    message: err.message
+                });
             });
+    
+            perlin.notify({
+                title: "PERL(s) Sent",
+                type: NotificationTypes.Success,
+                content: (
+                    <p>
+                        You can view your transaction
+                        <Link
+                            to={"/transactions/" + response.id}
+                            title={response.id}
+                            target="_blank"
+                        >
+                            here
+                        </Link>
+                    </p>
+                ),
+                dismiss: { duration: 10000 }
+            });
+        } catch (err) {
+            perlin.notify({
+                type: NotificationTypes.Danger,
+                message: err.message
+            });
+            return false;
+        }
+        this.updateGasLimit("");
 
         // further validation required for successful send
         return true;

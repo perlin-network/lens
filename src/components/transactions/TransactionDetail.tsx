@@ -124,36 +124,16 @@ const renderTransactionDataView = (data: any) => {
                 <Col>{data.sender}</Col>
             </Row>
             <Row>
-                <HeadCol>Sender Signature:</HeadCol>
-                <Col>{data.sender_signature}</Col>
-            </Row>
-
-            <Row>
-                <HeadCol>Creator:</HeadCol>
-                <Col>{data.creator}</Col>
-            </Row>
-            <Row>
-                <HeadCol>Creator Signature:</HeadCol>
-                <Col>{data.creator_signature}</Col>
-            </Row>
-            <Row>
-                <HeadCol>Parents:</HeadCol>
-                <Col>
-                    {/*
-                        todo : put comma
-                    */}
-                    {data.parents.map((item: string, i: number) => {
-                        return <span key={i}>{item}&nbsp;</span>;
-                    })}
-                </Col>
+                <HeadCol>Signature:</HeadCol>
+                <Col>{data.signature}</Col>
             </Row>
             <Row>
                 <HeadCol>Nonce:</HeadCol>
                 <Col>{data.nonce}</Col>
             </Row>
             <Row>
-                <HeadCol>Depth:</HeadCol>
-                <Col>{data.depth}</Col>
+                <HeadCol>Status:</HeadCol>
+                <Col>{data.status}</Col>
             </Row>
 
             {payload && (

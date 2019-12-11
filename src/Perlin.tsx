@@ -25,7 +25,7 @@ export enum NotificationTypes {
 const controller = new AbortController();
 const signal = controller.signal;
 
-class Perlin {
+export class Perlin {
     @computed get recentTransactions() {
         return this.transactions.recent.slice();
     }
@@ -83,8 +83,10 @@ class Perlin {
     public lastFaucetFetch = 0;
 
     @observable public api = {
-        host: storage.getCurrentHost(),
-        ws: storage.getCurrentHost().replace(/^http/, "ws"),
+        host: "",
+        get ws() {
+            return this.host.replace(/^http/, "ws");
+        },
         token: ""
     };
 
@@ -92,7 +94,7 @@ class Perlin {
         public_key: "",
         address: "",
         peers: [] as string[],
-        round: {} as any,
+        block: {} as any,
         num_accounts: 0
     };
 
@@ -133,23 +135,21 @@ class Perlin {
     public keys: nacl.SignKeyPair;
     public onConsensusRound: (
         accepted: number,
-        rejected: number,
-        maxDepth: number,
-        round: number,
-        startId?: string,
         endId?: string
     ) => void;
     public onConsensusPrune: (round: number) => void;
     public client: any;
 
-    private transactionDebounceIntv: number = 2200;
+    private transactionDebounceIntv: number = 100;
     private peerPollIntv: number = 10000;
     private interval: any;
+    private numRound = 1;
 
     private constructor() {
         const secret = storage.getSecretKey();
         storage.watchCurrentHost(this.handleHostChange);
 
+        this.api.host = storage.getCurrentHost();
         if (secret) {
             this.login(secret);
         }
@@ -278,6 +278,34 @@ class Perlin {
         };
     }
 
+    public listenForApplied(tag: number, txId: string) {
+        return new Promise<ITransaction>(async (resolve, reject) => {
+            const poll = await this.client.pollTransactions(
+                {
+                    onTransactionApplied: (data: any) => {
+                        const tx: ITransaction = {
+                            id: data.tx_id,
+                            sender: data.sender_id,
+                            signature: data.signature,
+                            nonce: data.nonce,
+                            tag: data.tag,
+                            status: data.event || "new"
+                        };
+                        resolve(tx);
+                        poll.close();
+                    },
+                    onTransactionRejected: (data: any) => {
+                        const message =
+                            data.error || `Transaction was rejected`;
+                        reject(new Error(message));
+                        poll.close();
+                    }
+                },
+                { tag, id: txId }
+            );
+        });
+    }
+
     // @ts-ignore
     public async getTransaction(id: string): Promise<any> {
         return await this.client.getTransaction(id);
@@ -301,7 +329,7 @@ class Perlin {
 
             const appliedTransactions = transactions.filter(
                 tx => tx.status === "applied"
-            );
+            ).sort((a, b) => b.nonce - a.nonce);
 
             this.transactions = {
                 ...this.transactions,
@@ -313,6 +341,16 @@ class Perlin {
         } catch (err) {
             console.log(err);
         }
+    }
+
+    public calculateFee(tag: number, ...args: any[]) {
+        try {
+            const fee = this.client.calculateFee(tag, ...args);
+            return Math.ceil(fee);
+        } catch (err) {
+            console.warn(err.message);
+        }
+        return NaN;
     }
 
     public async pollAccountUpdates(
@@ -446,7 +484,10 @@ class Perlin {
         this.peers = this.ledger.peers || [];
         this.numAccounts = this.ledger.num_accounts;
 
-        this.initRound = this.ledger.round;
+        this.initRound = {
+            applied: 1,
+            end_id: this.ledger.block.id
+        };
 
         this.account = await this.getAccount(this.publicKeyHex);
         this.pollAccountUpdates(this.publicKeyHex, this.account);
@@ -502,28 +543,26 @@ class Perlin {
         );
     }
 
+
     private pollConsensusUpdates() {
         this.client.pollConsensus({
             onRoundEnded: (logs: any) => {
+                const round = this.numRound ++;
                 this.initRound = {
                     applied: logs.num_applied_tx,
-                    rejected: logs.num_rejected_tx,
-                    depth: logs.round_depth,
-                    start_id: logs.old_root,
-                    end_id: logs.new_root
+                    end_id: logs.new_block_id
                 };
+
                 if (this.onConsensusRound) {
                     this.onConsensusRound(
                         logs.num_applied_tx,
-                        logs.num_rejected_tx,
-                        logs.round_depth,
-                        logs.new_round,
-                        logs.old_root,
-                        logs.new_root
+                        logs.new_block_id
                     );
                 }
-            },
-            onRoundPruned: this.onConsensusPrune
+                if (logs.num_pruned_tx && this.onConsensusPrune) {
+                    this.onConsensusPrune(logs.num_pruned_tx);
+                }
+            }
         });
     }
 
@@ -551,7 +590,7 @@ class Perlin {
         offset: number = 0,
         limit: number = 0
     ): Promise<ITransaction[] | undefined> {
-        return await this.getJSON(`/tx?creator=${this.publicKeyHex}`, {
+        return await this.getJSON(`/tx`, {
             offset,
             limit,
             sender: this.publicKeyHex
@@ -568,5 +607,3 @@ class Perlin {
         );
     }
 }
-
-export { Perlin };

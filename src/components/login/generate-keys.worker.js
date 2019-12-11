@@ -1,10 +1,7 @@
-// Worker.ts
 import * as nacl from "tweetnacl";
 import { blake2b } from "blakejs";
 
-const ctx: Worker = self as any;
-
-onmessage = evt => {
+onmessage = (evt) => {
     const { type, ...data } = evt.data;
     switch (type) {
         case "generateKeys":
@@ -17,7 +14,7 @@ const generateNewKeys = (c1 = 1) => {
     let generatedKeys;
     let checksum;
 
-    const prefixLen = (buf: Uint8Array) => {
+    const prefixLen = (buf) => {
         for (let i = 0; i < buf.length; i++) {
             const b = buf[i];
             if (b !== 0) {
@@ -38,7 +35,7 @@ const generateNewKeys = (c1 = 1) => {
         checksum = blake2b(id, undefined, 32);
     } while (prefixLen(checksum) < c1);
 
-    ctx.postMessage({
+    postMessage({
         type: "newKeys",
         data: generatedKeys
     });

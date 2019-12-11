@@ -56,32 +56,4 @@ export default class ContractStore {
     public waveletContract: any;
 
     @observable public logs = [] as string[];
-
-    public listenForApplied(tag: number, txId: string) {
-        return new Promise<ITransaction>(async (resolve, reject) => {
-            const poll = await perlin.client.pollTransactions(
-                {
-                    onTransactionApplied: (data: any) => {
-                        const tx: ITransaction = {
-                            id: data.tx_id,
-                            sender: data.sender_id,
-                            creator: data.creator_id,
-                            depth: data.depth,
-                            tag: data.tag,
-                            status: data.event || "new"
-                        };
-                        resolve(tx);
-                        poll.close();
-                    },
-                    onTransactionRejected: (data: any) => {
-                        const message =
-                            data.error || `Transaction was rejected`;
-                        reject(new Error(message));
-                        poll.close();
-                    }
-                },
-                { tag, id: txId }
-            );
-        });
-    }
 }
