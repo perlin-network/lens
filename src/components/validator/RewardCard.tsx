@@ -1,10 +1,14 @@
 import React, { useCallback, useState } from "react";
-import { ErrorMessage, Input, RoundButton, LargeInput } from "../common/core";
+import {
+    LargeWhiteButton,
+    formatBalance,
+    inputToKens,
+    RoundButton,
+    LargeInput
+} from "../common/core";
 import { Box, Flex } from "@rebass/grid";
-import { LargeWhiteButton, formatBalance } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
-import BigNumber from "bignumber.js";
 
 const Row = styled(Flex)`
     padding-top: 10px;
@@ -47,11 +51,7 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputPerls = e.target.value.replace(/\,/g, "") || "0";
-            const kens = new BigNumber(inputPerls)
-                .times(Math.pow(10,9))
-                .toString(10)
-                .replace(/\..*/, "");
+            const kens = inputToKens(e.target.value);
             setAmount(kens);
         },
         []

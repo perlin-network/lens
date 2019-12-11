@@ -11,7 +11,7 @@ import {
 } from "../../common/typography";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
-import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
+import { formatBalance, StyledDropdown, InputWrapper, inputToKens } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 import {
     Link,
@@ -423,10 +423,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                             {this.state.inputType === inputTypes[1].value ? (
                                 <span className="balance">
                                     Recipient Gas Balance:{" "}
-                                    {/* {numberWithCommas(
-                                        new BigNumber(
-                                            recipient.gas_balance
-                                        ).toString() */}
+                                    
                                     {formatBalance(
                                         new BigNumber(recipient.gas_balance)
                                             .toString()
@@ -435,8 +432,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                             ) : (
                                 <span className="balance">
                                     Recipient Balance:{" "}
-                                    {/* {numberWithCommas(
-                                        recipientBalance.toString() */}
                                     {formatBalance(
                                         recipientBalance
                                             .toString()
@@ -462,10 +457,7 @@ class AccountDetected extends React.Component<IProps, IState> {
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
         const inputPerls = e.target.value.replace(/\,/g, "") || "0";
-        const kens = new BigNumber(inputPerls)
-            .times(Math.pow(10,9))
-            .toString(10)
-            .replace(/\..*/, "");
+        const kens = inputToKens(inputPerls);
         this.setState({ inputPerls, kens });
     }
     private handleSendButton = (fee: number) => async () => {

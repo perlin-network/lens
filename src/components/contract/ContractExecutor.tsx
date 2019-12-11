@@ -7,7 +7,8 @@ import {
     InputWrapper,
     StyledDropdown,
     WhiteButton,
-    formatBalance
+    formatBalance,
+    inputToKens
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
@@ -323,8 +324,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const updateInputPerls = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value || "0";
-            const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
+            const kens = inputToKens(e.target.value);
             setInputPerls(kens);
         },
         []

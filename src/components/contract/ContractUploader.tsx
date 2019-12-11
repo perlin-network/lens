@@ -5,7 +5,8 @@ import {
     Card,
     StyledInput,
     InputWrapper,
-    formatBalance
+    formatBalance,
+    inputToKens
 } from "../common/core";
 import { InlineNotification } from "../common/notification/Notification";
 import styled from "styled-components";
@@ -255,11 +256,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     }, []);
 
     const handleUpdateGasDeposit = useCallback((e: any) => {
-        const value = e.target.value.replace(/\,/g, "") || "0";
-        const kens = new BigNumber(value)
-            .times(Math.pow(10,9))
-            .toString(10)
-            .replace(/\..*/, "");
+        const kens = inputToKens(e.target.value);
 
         setGasDeposit(kens);
     }, []);

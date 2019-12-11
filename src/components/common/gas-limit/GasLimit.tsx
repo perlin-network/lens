@@ -4,6 +4,7 @@ import ChoiceButtons from "./ChoiceButtons";
 import { Flex } from "@rebass/grid";
 import { DividerInput, Divider, DividerAside } from "../dividerInput";
 import BigNumber from "bignumber.js";
+import { inputToKens } from "../../common/core";
 
 export const gasLimitValues = [
     {
@@ -45,24 +46,11 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     ml
 }) => {
     balance = balance + "";
-    // const [gasLimit, setGasLimit] = useState(value);
     const [choiceReset, setChoiceReset] = useState(0);
-
-    // useEffect(() => {
-
-    //     if (gasLimit !== value) {
-    //         setGasLimit(value);
-    //         setChoiceReset(choiceReset + 1);
-    //     }
-    // }, [value]);
 
     const updateGasLimit = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const limit = e.target.value.replace(/\,/g, "") || "0";
-            const kens = new BigNumber(limit)
-                .times(Math.pow(10, 9))
-                .toString(10)
-                .replace(/\..*/, "");
+            const kens = inputToKens(e.target.value);
 
             setChoiceReset(choiceReset + 1);
             onChange(kens);

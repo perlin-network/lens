@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { Flex } from "@rebass/grid";
 import Dropdown, { Option } from "react-dropdown";
 import JSBI from "jsbi";
+import BigNumber from "bignumber.js";
 
 export const ErrorMessage = styled.div`
     margin: 10px 0;
@@ -411,3 +412,12 @@ export const StyledDropdown = styled(Dropdown)`
     font-weight: 400;
     font-family: HKGrotesk;
 `;
+
+export const inputToKens = (perls: string) => {
+    perls = perls.replace(/\,/g, "") || "0";
+    const kens = new BigNumber(perls)
+            .times(Math.pow(10,9))
+            .toString(10)
+            .replace(/\..*/, "");
+    return kens;
+}

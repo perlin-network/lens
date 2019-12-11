@@ -5,7 +5,8 @@ import {
     LargeWhiteButton,
     RoundButton,
     LargeInput,
-    formatBalance
+    formatBalance,
+    inputToKens
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 import BigNumber from "bignumber.js";
@@ -67,11 +68,7 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputPerls = e.target.value.replace(/\,/g, "") || "0";
-            const kens = new BigNumber(inputPerls)
-                .times(Math.pow(10,9))
-                .toString(10)
-                .replace(/\..*/, "");
+            const kens = inputToKens(e.target.value);
             setAmount(kens);
         },
         []
