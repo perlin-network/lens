@@ -19,6 +19,7 @@ import LoadingSpinner from "../common/loadingSpinner";
 import GasLimit from "../common/gas-limit/GasLimit";
 import { Contract, TAG_CONTRACT } from "wavelet-client";
 import JSBI from "jsbi";
+import BigNumber from "bignumber.js";
 import {
     DividerInput,
     Divider as DividerPipe,
@@ -253,9 +254,13 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
         setGasLimit(value);
     }, []);
 
-    const handleUpdateGasDeposit = useCallback((event: any) => {
-        const value = event.target.value;
-        const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
+    const handleUpdateGasDeposit = useCallback((e: any) => {
+        const value = e.target.value.replace(/\,/g, "") || "0";
+        const kens = new BigNumber(value)
+            .times(Math.pow(10,9))
+            .toString(10)
+            .replace(/\..*/, "");
+
         setGasDeposit(kens);
     }, []);
 
@@ -389,6 +394,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     }
 
     const fee = perlin.calculateFee(TAG_CONTRACT, bytes, gasLimit, gasDeposit);
+    const gasLimitFee = new BigNumber(fee).plus(gasDeposit || 0).toString(10);
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <IntroText>
@@ -415,6 +421,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
                 balance={perlin.account.balance}
                 onChange={handleUpdateGasLimit}
                 value={gasLimit}
+                fee={gasLimitFee}
                 mb={2}
             />
 

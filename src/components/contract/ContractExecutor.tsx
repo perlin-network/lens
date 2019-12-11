@@ -27,6 +27,7 @@ import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
 import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
+import BigNumber from "bignumber.js";
 
 interface IParamItem {
     id: string;
@@ -483,6 +484,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const gasDeposit = inputType  !== "send-perls" ? inputPerls : 0;
 
     const fee = perlin.calculateFee(TAG_TRANSFER, contractStore.contract.transactionId, amount || 0, gasLimit || 0, gasDeposit || 0, paramsList);
+    const gasLimitFee = new BigNumber(fee).plus(amount || gasDeposit || 0).toString(10);
     return (
         <>
             <Card style={{ marginBottom: "20px" }}>
@@ -550,6 +552,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         balance={perlin.account.balance}
                         onChange={handleUpdateGasLimit}
                         value={gasLimit}
+                        fee={gasLimitFee}
                     />
                     <Flex
                         mt={3}

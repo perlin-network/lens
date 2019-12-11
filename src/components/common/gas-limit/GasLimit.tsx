@@ -27,6 +27,7 @@ export const gasLimitValues = [
 interface IGasLimitProps {
     onChange: (value: string) => void;
     balance: string | number;
+    fee?: string | number;
     value?: any;
     mr?: any;
     mt?: any;
@@ -36,31 +37,37 @@ interface IGasLimitProps {
 const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     balance,
     onChange,
-    value,
+    value = 0,
+    fee = 0,
     mr,
     mt,
     mb,
     ml
 }) => {
     balance = balance + "";
-    const [gasLimit, setGasLimit] = useState(value);
+    // const [gasLimit, setGasLimit] = useState(value);
     const [choiceReset, setChoiceReset] = useState(0);
 
-    useEffect(() => {
-        if (gasLimit !== value) {
-            setGasLimit(value);
-            setChoiceReset(choiceReset + 1);
-        }
-    }, [value]);
+    // useEffect(() => {
+
+    //     if (gasLimit !== value) {
+    //         setGasLimit(value);
+    //         setChoiceReset(choiceReset + 1);
+    //     }
+    // }, [value]);
+
     const updateGasLimit = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const limit = e.target.value;
-            const kens = Math.floor(parseFloat(limit) * Math.pow(10, 9)) + "";
-            setGasLimit(kens);
+            const limit = e.target.value.replace(/\,/g, "") || "0";
+            const kens = new BigNumber(limit)
+                .times(Math.pow(10, 9))
+                .toString(10)
+                .replace(/\..*/, "");
+
             setChoiceReset(choiceReset + 1);
             onChange(kens);
         },
-        []
+        [onChange]
     );
     const calculateGasLimit = useCallback(
         (newValue: number) => {
@@ -70,13 +77,14 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
                 .toString()
                 .replace(/\..*/, "");
 
-            setGasLimit(limit);
             onChange(limit);
         },
         [balance]
     );
-    const formattedValue =
-        (gasLimit && parseInt(gasLimit, 10) / Math.pow(10, 9)) || "";
+
+    const gasLimit = new BigNumber(value).minus(fee).div(Math.pow(10, 9));
+    const formattedValue = gasLimit.gt(0) ? gasLimit.toString(10) : "";
+
     return (
         <Flex mr={mr} mt={mt} mb={mb} ml={ml} flex="1">
             <DividerInput
@@ -87,7 +95,7 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
             <Divider>|</Divider>
             <DividerAside title="% of total balance">
                 <ChoiceButtons
-                    key={choiceReset}
+                    // key={choiceReset}
                     options={gasLimitValues}
                     onChange={calculateGasLimit}
                 />
