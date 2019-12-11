@@ -4,6 +4,7 @@ import { Box, Flex } from "@rebass/grid";
 import { LargeWhiteButton, formatBalance } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
+import BigNumber from "bignumber.js";
 
 const Row = styled(Flex)`
     padding-top: 10px;
@@ -46,10 +47,12 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputPerls = e.target.value;
-            const kens =
-                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
-            setAmount(parseInt(kens, 10));
+            const inputPerls = e.target.value.replace(/\,/g, "") || "0";
+            const kens = new BigNumber(inputPerls)
+                .times(Math.pow(10,9))
+                .toString()
+                .replace(/\..*/, "");
+            setAmount(kens);
         },
         []
     );

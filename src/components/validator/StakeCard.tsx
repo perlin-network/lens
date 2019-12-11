@@ -4,12 +4,11 @@ import { useState } from "react";
 import {
     LargeWhiteButton,
     RoundButton,
-    ErrorMessage,
     LargeInput,
     formatBalance
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
-
+import BigNumber from "bignumber.js";
 import { Box, Flex } from "@rebass/grid";
 
 import { StakeActions } from "./ValidatorView";
@@ -68,10 +67,12 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputPerls = e.target.value;
-            const kens =
-                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
-            setAmount(parseInt(kens, 10));
+            const inputPerls = e.target.value.replace(/\,/g, "") || "0";
+            const kens = new BigNumber(inputPerls)
+                .times(Math.pow(10,9))
+                .toString()
+                .replace(/\..*/, "");
+            setAmount(kens);
         },
         []
     );

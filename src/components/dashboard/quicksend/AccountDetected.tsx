@@ -454,8 +454,11 @@ class AccountDetected extends React.Component<IProps, IState> {
     };
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
-        const inputPerls = e.target.value;
-        const kens = Math.ceil(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+        const inputPerls = e.target.value.replace(/\,/g, "") || "0";
+        const kens = new BigNumber(inputPerls)
+            .times(Math.pow(10,9))
+            .toString()
+            .replace(/\..*/, "");
         this.setState({ inputPerls, kens });
     }
     private handleSendButton = (fee: number) => async () => {
