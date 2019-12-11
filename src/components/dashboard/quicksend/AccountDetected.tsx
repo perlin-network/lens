@@ -80,6 +80,9 @@ const SendPerlsButton = styled.button`
     margin: 10px 0;
     white-space: nowrap;
     min-width: 110px;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
 
     &:hover,
     &:focus {
@@ -311,6 +314,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                         />
                                     )}
                                     <Box
+                                        className="no-overflow"
                                         title={
                                             !parseInt(gasLimit, 10)
                                                 ? "Please enter a valid gas limit"
@@ -323,6 +327,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                                 !parseInt(gasLimit, 10)
                                             }
                                             onClick={this.handleSendButton(fee)}
+                                            title={formatBalance(this.state.kens)}
                                         >
                                             {this.state.inputType ===
                                             inputTypes[1].value
