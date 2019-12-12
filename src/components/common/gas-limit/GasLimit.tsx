@@ -47,43 +47,64 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
 }) => {
     balance = balance + "";
     const [choiceReset, setChoiceReset] = useState(0);
+    const [gasLimit, setGasLimit] = useState(value);
+    const [focus, setFocus] = useState(false);
+
+    useEffect(() => {
+        let limit = new BigNumber(value).minus(fee).integerValue();
+
+        if (limit.lt(0)) {
+            limit = new BigNumber(fee)
+                .integerValue();
+        }
+        setChoiceReset(choiceReset + 1);
+        setGasLimit(limit.toString(10));
+    }, [fee]);
 
     const updateGasLimit = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const kens = inputToKens(e.target.value);
+            let kens = inputToKens(e.target.value);
 
+            if (new BigNumber(kens).lt(fee)) {
+                kens = fee + "";
+            }
+            setGasLimit(kens);
             setChoiceReset(choiceReset + 1);
             onChange(kens);
         },
-        [onChange]
+        [onChange, fee]
     );
     const calculateGasLimit = useCallback(
         (newValue: number) => {
             const limit = new BigNumber(balance)
                 .div(100)
-                .times(Math.min(newValue, 99))
-                .toString()
-                .replace(/\..*/, "");
+                .times(Math.min(newValue, 99))  // needed to take into account smart contract execution fee
+                .minus(fee)
+                .integerValue()
+                .toString(10);
 
+            setGasLimit(limit);
             onChange(limit);
         },
-        [balance]
+        [balance, fee]
     );
 
-    const gasLimit = new BigNumber(value).minus(fee).div(Math.pow(10, 9));
-    const formattedValue = gasLimit.gt(0) ? gasLimit.toString(10) : "";
-
+    const formattedValue = value
+        ? new BigNumber(gasLimit).div(Math.pow(10, 9)).toString(10)
+        : "";
     return (
         <Flex mr={mr} mt={mt} mb={mb} ml={ml} flex="1">
             <DividerInput
                 placeholder="Gas Limit"
-                value={formattedValue}
+                value={!focus ? formattedValue: undefined}
                 onChange={updateGasLimit}
+                onBlur={() => setFocus(false)}
+                onFocus={() => setFocus(true)}
             />
             <Divider>|</Divider>
             <DividerAside title="% of total balance">
                 <ChoiceButtons
-                    // key={choiceReset}
+                    key={choiceReset}
                     options={gasLimitValues}
                     onChange={calculateGasLimit}
                 />
