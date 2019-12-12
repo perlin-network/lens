@@ -54,8 +54,7 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
         let limit = new BigNumber(value).minus(fee).integerValue();
 
         if (limit.lt(0)) {
-            limit = new BigNumber(fee)
-                .integerValue();
+            limit = new BigNumber(0);
         }
         setChoiceReset(choiceReset + 1);
         setGasLimit(limit.toString(10));
@@ -65,8 +64,8 @@ const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
         (e: React.ChangeEvent<HTMLInputElement>) => {
             let kens = inputToKens(e.target.value);
 
-            if (new BigNumber(kens).lt(fee)) {
-                kens = fee + "";
+            if (new BigNumber(kens).lt(0)) {
+                kens = 0 + "";
             }
             setGasLimit(kens);
             setChoiceReset(choiceReset + 1);

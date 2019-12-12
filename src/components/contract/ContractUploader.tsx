@@ -391,7 +391,7 @@ const ContractUploader: React.FunctionComponent<IContractUploaderProps> = ({
     }
 
     const fee = perlin.calculateFee(TAG_CONTRACT, bytes, gasLimit, gasDeposit);
-    const gasLimitFee = new BigNumber(fee).plus(gasDeposit || 0).toString(10);
+    const gasLimitFee = new BigNumber(gasDeposit || 0).toString(10);
     return (
         <Wrapper showBoxShadow={false} flexDirection="column">
             <IntroText>

@@ -484,7 +484,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const gasDeposit = inputType  !== "send-perls" ? inputPerls : 0;
 
     const fee = perlin.calculateFee(TAG_TRANSFER, contractStore.contract.transactionId, amount || 0, gasLimit || 0, gasDeposit || 0, paramsList);
-    const gasLimitFee = new BigNumber(fee).plus(amount || gasDeposit || 0).toString(10);
+    const gasLimitFee = new BigNumber(amount || gasDeposit || 0).toString(10);
     return (
         <>
             <Card style={{ marginBottom: "20px" }}>

@@ -194,7 +194,7 @@ class AccountDetected extends React.Component<IProps, IState> {
         let amount = this.state.inputType  === "send-perls" ? this.state.kens : 0;
         const gasDeposit = this.state.inputType  !== "send-perls" ? this.state.kens : 0;
         const fee = perlin.calculateFee(TAG_TRANSFER, recipient.public_key, amount, this.state.gasLimit, gasDeposit);
-        const gasLimitFee = new BigNumber(fee).plus(this.state.kens || 0).toString(10);
+        const gasLimitFee = new BigNumber(this.state.kens || 0).toString(10);
         return (
             <Wrapper>
                 <AccountDetectedAnimation
