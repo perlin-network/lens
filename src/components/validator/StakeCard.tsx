@@ -9,7 +9,6 @@ import {
     inputToKens
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
-import BigNumber from "bignumber.js";
 import { Box, Flex } from "@rebass/grid";
 
 import { StakeActions } from "./ValidatorView";
