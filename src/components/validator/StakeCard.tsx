@@ -4,12 +4,11 @@ import { useState } from "react";
 import {
     LargeWhiteButton,
     RoundButton,
-    ErrorMessage,
     LargeInput,
-    formatBalance
+    formatBalance,
+    inputToKens
 } from "../common/core";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
-
 import { Box, Flex } from "@rebass/grid";
 
 import { StakeActions } from "./ValidatorView";
@@ -68,10 +67,8 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputPerls = e.target.value;
-            const kens =
-                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
-            setAmount(parseInt(kens, 10));
+            const kens = inputToKens(e.target.value);
+            setAmount(kens);
         },
         []
     );
@@ -111,7 +108,7 @@ const StakeCard: React.FunctionComponent<IStakeCardProps> = ({
                     </Col>
                 </Row>
                 {action !== StakeActions.None && (
-                    <div>
+                    <div key={action}>
                         <Row>
                             <Col width={1}>
                                 <LargeInput

@@ -1,7 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { ErrorMessage, Input, RoundButton, LargeInput } from "../common/core";
+import {
+    LargeWhiteButton,
+    formatBalance,
+    inputToKens,
+    RoundButton,
+    LargeInput
+} from "../common/core";
 import { Box, Flex } from "@rebass/grid";
-import { LargeWhiteButton, formatBalance } from "../common/core";
 import styled from "styled-components";
 import { Card, CardHeader, CardTitle, CardBody } from "../common/card";
 
@@ -46,10 +51,8 @@ const RewardCard: React.FunctionComponent<IRewardCardProps> = ({
 
     const handleAmountChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputPerls = e.target.value;
-            const kens =
-                Math.floor(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
-            setAmount(parseInt(kens, 10));
+            const kens = inputToKens(e.target.value);
+            setAmount(kens);
         },
         []
     );

@@ -4,6 +4,7 @@ import ChoiceButtons from "./ChoiceButtons";
 import { Flex } from "@rebass/grid";
 import { DividerInput, Divider, DividerAside } from "../dividerInput";
 import BigNumber from "bignumber.js";
+import { inputToKens } from "../../common/core";
 
 export const gasLimitValues = [
     {
@@ -27,6 +28,7 @@ export const gasLimitValues = [
 interface IGasLimitProps {
     onChange: (value: string) => void;
     balance: string | number;
+    fee?: string | number;
     value?: any;
     mr?: any;
     mt?: any;
@@ -36,53 +38,67 @@ interface IGasLimitProps {
 const GasLimit: React.FunctionComponent<IGasLimitProps> = ({
     balance,
     onChange,
-    value,
+    value = 0,
+    fee = 0,
     mr,
     mt,
     mb,
     ml
 }) => {
     balance = balance + "";
-    const [gasLimit, setGasLimit] = useState(value);
     const [choiceReset, setChoiceReset] = useState(0);
+    const [gasLimit, setGasLimit] = useState(value);
+    const [focus, setFocus] = useState(false);
 
     useEffect(() => {
-        if (gasLimit !== value) {
-            setGasLimit(value);
-            setChoiceReset(choiceReset + 1);
+        let limit = new BigNumber(value).minus(fee).integerValue();
+
+        if (limit.lt(0)) {
+            limit = new BigNumber(0);
         }
-    }, [value]);
+        setChoiceReset(choiceReset + 1);
+        setGasLimit(limit.toString(10));
+    }, [fee]);
+
     const updateGasLimit = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const limit = e.target.value;
-            const kens = Math.floor(parseFloat(limit) * Math.pow(10, 9)) + "";
+            let kens = inputToKens(e.target.value);
+
+            if (new BigNumber(kens).lt(0)) {
+                kens = 0 + "";
+            }
             setGasLimit(kens);
             setChoiceReset(choiceReset + 1);
             onChange(kens);
         },
-        []
+        [onChange, fee]
     );
     const calculateGasLimit = useCallback(
         (newValue: number) => {
             const limit = new BigNumber(balance)
                 .div(100)
-                .times(Math.min(newValue, 99))
-                .toString()
-                .replace(/\..*/, "");
+                .times(Math.min(newValue, 99))  // needed to take into account smart contract execution fee
+                .minus(fee)
+                .integerValue()
+                .toString(10);
 
             setGasLimit(limit);
             onChange(limit);
         },
-        [balance]
+        [balance, fee]
     );
-    const formattedValue =
-        (gasLimit && parseInt(gasLimit, 10) / Math.pow(10, 9)) || "";
+
+    const formattedValue = value
+        ? new BigNumber(gasLimit).div(Math.pow(10, 9)).toString(10)
+        : "";
     return (
         <Flex mr={mr} mt={mt} mb={mb} ml={ml} flex="1">
             <DividerInput
                 placeholder="Gas Limit"
-                value={formattedValue}
+                value={!focus ? formattedValue: undefined}
                 onChange={updateGasLimit}
+                onBlur={() => setFocus(false)}
+                onFocus={() => setFocus(true)}
             />
             <Divider>|</Divider>
             <DividerAside title="% of total balance">

@@ -7,7 +7,8 @@ import {
     InputWrapper,
     StyledDropdown,
     WhiteButton,
-    formatBalance
+    formatBalance,
+    inputToKens
 } from "../common/core";
 import styled from "styled-components";
 import FunctionSelect from "./FunctionSelect";
@@ -27,6 +28,7 @@ import { Link } from "react-router-dom";
 import JSBI from "jsbi";
 import { TAG_TRANSFER } from "wavelet-client";
 import { DividerInput, Divider, DividerAside } from "../common/dividerInput";
+import BigNumber from "bignumber.js";
 
 interface IParamItem {
     id: string;
@@ -322,8 +324,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
 
     const updateInputPerls = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value || "0";
-            const kens = Math.floor(parseFloat(value) * Math.pow(10, 9)) + "";
+            const kens = inputToKens(e.target.value);
             setInputPerls(kens);
         },
         []
@@ -483,6 +484,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
     const gasDeposit = inputType  !== "send-perls" ? inputPerls : 0;
 
     const fee = perlin.calculateFee(TAG_TRANSFER, contractStore.contract.transactionId, amount || 0, gasLimit || 0, gasDeposit || 0, paramsList);
+    const gasLimitFee = new BigNumber(amount || gasDeposit || 0).toString(10);
     return (
         <>
             <Card style={{ marginBottom: "20px" }}>
@@ -550,6 +552,7 @@ const ContractExecutor: React.FunctionComponent = observer(() => {
                         balance={perlin.account.balance}
                         onChange={handleUpdateGasLimit}
                         value={gasLimit}
+                        fee={gasLimitFee}
                     />
                     <Flex
                         mt={3}

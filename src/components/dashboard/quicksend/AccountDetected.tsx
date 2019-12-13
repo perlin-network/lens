@@ -11,7 +11,7 @@ import {
 } from "../../common/typography";
 import DeltaTag from "../../common/deltaTag";
 import { QRCodeWidget } from "../../common/qr";
-import { formatBalance, StyledDropdown, InputWrapper } from "../../common/core";
+import { formatBalance, StyledDropdown, InputWrapper, inputToKens } from "../../common/core";
 import AccountDetectedAnimation from "./AccountDetectedAnimation";
 import {
     Link,
@@ -80,6 +80,9 @@ const SendPerlsButton = styled.button`
     margin: 10px 0;
     white-space: nowrap;
     min-width: 110px;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
 
     &:hover,
     &:focus {
@@ -191,6 +194,7 @@ class AccountDetected extends React.Component<IProps, IState> {
         let amount = this.state.inputType  === "send-perls" ? this.state.kens : 0;
         const gasDeposit = this.state.inputType  !== "send-perls" ? this.state.kens : 0;
         const fee = perlin.calculateFee(TAG_TRANSFER, recipient.public_key, amount, this.state.gasLimit, gasDeposit);
+        const gasLimitFee = new BigNumber(this.state.kens || 0).toString(10);
         return (
             <Wrapper>
                 <AccountDetectedAnimation
@@ -307,10 +311,12 @@ class AccountDetected extends React.Component<IProps, IState> {
                                             mr={2}
                                             balance={perlin.account.balance}
                                             onChange={this.updateGasLimit}
+                                            fee={gasLimitFee}
                                             value={this.state.gasLimit}
                                         />
                                     )}
                                     <Box
+                                        className="no-overflow"
                                         title={
                                             !parseInt(gasLimit, 10)
                                                 ? "Please enter a valid gas limit"
@@ -323,6 +329,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                                                 !parseInt(gasLimit, 10)
                                             }
                                             onClick={this.handleSendButton(fee)}
+                                            title={formatBalance(this.state.kens)}
                                         >
                                             {this.state.inputType ===
                                             inputTypes[1].value
@@ -416,10 +423,7 @@ class AccountDetected extends React.Component<IProps, IState> {
                             {this.state.inputType === inputTypes[1].value ? (
                                 <span className="balance">
                                     Recipient Gas Balance:{" "}
-                                    {/* {numberWithCommas(
-                                        new BigNumber(
-                                            recipient.gas_balance
-                                        ).toString() */}
+                                    
                                     {formatBalance(
                                         new BigNumber(recipient.gas_balance)
                                             .toString()
@@ -428,8 +432,6 @@ class AccountDetected extends React.Component<IProps, IState> {
                             ) : (
                                 <span className="balance">
                                     Recipient Balance:{" "}
-                                    {/* {numberWithCommas(
-                                        recipientBalance.toString() */}
                                     {formatBalance(
                                         recipientBalance
                                             .toString()
@@ -454,8 +456,8 @@ class AccountDetected extends React.Component<IProps, IState> {
     };
 
     private updateInputPerls(e: React.ChangeEvent<HTMLInputElement>) {
-        const inputPerls = e.target.value;
-        const kens = Math.ceil(parseFloat(inputPerls) * Math.pow(10, 9)) + "";
+        const inputPerls = e.target.value.replace(/\,/g, "") || "0";
+        const kens = inputToKens(inputPerls);
         this.setState({ inputPerls, kens });
     }
     private handleSendButton = (fee: number) => async () => {

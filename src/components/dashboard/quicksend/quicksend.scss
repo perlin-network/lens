@@ -8,6 +8,9 @@ input::placeholder {
     font-size: 14px;
     opacity: 30%;
 }
+.no-overflow {
+    overflow: hidden;
+}
 
 .break-word {
     word-wrap: break-word;
