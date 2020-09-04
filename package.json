@@ -41,7 +41,7 @@
         "mobx-react": "^6.1.4",
         "mobx-react-lite": "^1.5.0",
         "nanoid": "^2.0.1",
-        "node-sass": "^4.13.0",
+        "node-sass": "^4.13.1",
         "normalize.css": "^8.0.0",
         "particulate": "^0.3.3",
         "pixi.js": "^4.8.0",
