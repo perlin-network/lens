@@ -11329,10 +11329,10 @@ text-table@0.2.0, text-table@^0.2.0:
   version "0.0.8"
   resolved "https://codeload.github.com/claudiucelfilip/three-trackballcontrols/tar.gz/1990f450af67fea613e7a01e4a7bd9210f755d43"
 
-three@^0.103.0:
-  version "0.103.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.103.0.tgz#63b3dbccc861caad93269618061a73dadebae71b"
-  integrity sha512-4WKRHTMt96sp+lX+Hx/eHtN9CWFyejDqr1ikgxZUJIkKEHVglSE7FY8n81NC6yWXqVSjUIQQppaxsoUe26Zi9g==
+three@^0.125.0:
+  version "0.125.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.125.0.tgz#19e922b9dc51ad0b706893aeee888de68e99850a"
+  integrity sha512-qL36qUGsPQ/Ofo/RZdXwHwM7A8wzUSAIyawtjIebJSPvounUQeneSqxI0aBY2iwKpseGy+RUtj3C5f/z4poyXw==
 
 throat@^4.0.0:
   version "4.1.0"
