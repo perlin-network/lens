@@ -27,7 +27,7 @@
         "babel-plugin-styled-components": "^1.10.6",
         "bignumber.js": "^9.0.0",
         "blakejs": "^1.1.0",
-        "codemirror": "^5.44.0",
+        "codemirror": "^5.58.2",
         "create-file-webpack": "^1.0.2",
         "customize-cra": "^0.8.0",
         "d3": "^5.7.0",
